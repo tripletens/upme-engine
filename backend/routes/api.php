@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\v1\ProjectController;
 use App\Http\Controllers\Api\v1\ActivityController;
 use App\Http\Controllers\Api\v1\DependencyController;
 use App\Http\Controllers\Api\v1\DeliverableEvidenceController;
+use App\Http\Controllers\Api\v1\TemplateAndReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +19,14 @@ Route::prefix('v1')->middleware(['api', \App\Http\Middleware\TenantContextMiddle
     Route::post('/projects', [ProjectController::class, 'store']);
     Route::get('/projects/{uuid}', [ProjectController::class, 'show']);
     Route::get('/projects/{uuid}/health', [ProjectController::class, 'health']);
+
+    // Templates & Instantiation
+    Route::get('/templates', [TemplateAndReportController::class, 'indexTemplates']);
+    Route::post('/projects/from-template', [TemplateAndReportController::class, 'createFromTemplate']);
+
+    // Reports & CSV Export
+    Route::get('/projects/{uuid}/report', [TemplateAndReportController::class, 'generateReport']);
+    Route::get('/projects/{uuid}/report/export', [TemplateAndReportController::class, 'exportCsv']);
 
     // Activities & Delay Propagation
     Route::post('/activities/{id}/progress', [ActivityController::class, 'updateProgress']);
