@@ -248,10 +248,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
                   <SpeedIcon sx={{ color: '#4f46e5', fontSize: 28 }} />
                 </Box>
                 <Typography variant="h5" sx={{ fontWeight: 800, mb: 1, color: '#0f172a' }}>
-                  Deterministic Health Score $H \in [0, 100]$
+                  Deterministic Health Score (0 - 100)
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#475569', lineHeight: 1.7 }}>
-                  No more subjective project status updates. UPME evaluates Schedule Variance ($30\%$), Progress ($25\%$), Issue Severity ($20\%$), Risk ($15\%$), and Deliverable Approvals ($10\%$) to calculate exact health scores automatically.
+                  No more subjective project status updates. UPME evaluates Schedule Variance (30%), Progress (25%), Issue Severity (20%), Risk (15%), and Deliverable Approvals (10%) to calculate exact health scores automatically.
                 </Typography>
               </CardContent>
             </Card>
