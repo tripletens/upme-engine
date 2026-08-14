@@ -316,7 +316,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
       <Box sx={{ py: 6, background: '#ffffff', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
         <Container maxWidth="lg">
           <Typography variant="body2" sx={{ color: '#64748b', mb: 1 }}>
-            © 2026 Universal Project Monitoring Engine (UPME). Published on GitHub: <a href="https://github.com/tripletens/upme-engine" target="_blank" rel="noreferrer" style={{ color: '#4f46e5', fontWeight: 600 }}>tripletens/upme-engine</a>
+            © 2026 Universal Project Monitoring Engine (UPME). All rights reserved.
           </Typography>
         </Container>
       </Box>
