@@ -18,6 +18,7 @@ import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import WarningIcon from '@mui/icons-material/Warning';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import HomeIcon from '@mui/icons-material/Home';
 
 import {
   schoolLabProjectDemo,
@@ -27,10 +28,16 @@ import {
   schoolLabEvents
 } from './data/schoolLabDemoData';
 import { GanttTimeline } from './components/GanttTimeline';
+import { LandingPage } from './pages/LandingPage';
 
 export const App: React.FC = () => {
+  const [currentView, setCurrentView] = useState<'landing' | 'dashboard'>('landing');
   const [project] = useState(schoolLabProjectDemo);
   const [milestones] = useState(schoolLabMilestones);
+
+  if (currentView === 'landing') {
+    return <LandingPage onLaunchDashboard={() => setCurrentView('dashboard')} />;
+  }
 
   return (
     <Box sx={{ minHeight: '100vh', background: '#0f172a', color: '#f8fafc', pb: 8 }}>
@@ -59,10 +66,22 @@ export const App: React.FC = () => {
             </Typography>
           </Box>
 
-          <Chip
-            label="Tenant: Example International School"
-            sx={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.3)' }}
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<HomeIcon />}
+              onClick={() => setCurrentView('landing')}
+              sx={{ color: '#cbd5e1', borderColor: 'rgba(255,255,255,0.2)', textTransform: 'none' }}
+            >
+              Back to Landing & Pricing
+            </Button>
+
+            <Chip
+              label="Tenant: Example International School"
+              sx={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.3)' }}
+            />
+          </Box>
         </Toolbar>
       </AppBar>
 

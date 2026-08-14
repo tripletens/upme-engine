@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\v1\DependencyController;
 use App\Http\Controllers\Api\v1\DeliverableEvidenceController;
 use App\Http\Controllers\Api\v1\TemplateAndReportController;
 use App\Http\Controllers\Api\v1\KycController;
+use App\Http\Controllers\Api\v1\BillingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +16,11 @@ use App\Http\Controllers\Api\v1\KycController;
 */
 
 Route::prefix('v1')->middleware(['api', \App\Http\Middleware\TenantContextMiddleware::class])->group(function () {
+    // Paystack SaaS Billing & Subscriptions
+    Route::post('/billing/initialize', [BillingController::class, 'initialize']);
+    Route::get('/billing/verify', [BillingController::class, 'verify']);
+    Route::post('/billing/paystack/webhook', [BillingController::class, 'webhook']);
+
     // KYC Verification State Machine
     Route::get('/kyc/status', [KycController::class, 'status']);
     Route::post('/kyc/submit', [KycController::class, 'submit'])->middleware(\App\Http\Middleware\EnsureTenantPermission::class . ':kyc:submit');
