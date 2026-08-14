@@ -20,14 +20,33 @@ export const PricingSection: React.FC = () => {
 
     setLoadingPlan(selectedPlan.name);
     try {
-      const res = await fetch('/api/v1/billing/initialize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan_tier: selectedPlan.name.toUpperCase(),
-          email: email,
-        }),
-      });
+      // Try relative API endpoint or fallback to direct backend URL
+      let res;
+      try {
+        res = await fetch('/api/v1/billing/initialize', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Organization-Code': 'EIS-SCHOOL-DISTRICT'
+          },
+          body: JSON.stringify({
+            plan_tier: selectedPlan.name.toUpperCase(),
+            email: email,
+          }),
+        });
+      } catch (e) {
+        res = await fetch('http://127.0.0.1:8000/api/v1/billing/initialize', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Organization-Code': 'EIS-SCHOOL-DISTRICT'
+          },
+          body: JSON.stringify({
+            plan_tier: selectedPlan.name.toUpperCase(),
+            email: email,
+          }),
+        });
+      }
 
       const data = await res.json();
       setLoadingPlan(null);
@@ -36,11 +55,38 @@ export const PricingSection: React.FC = () => {
         setCheckoutResult({ url: data.authorization_url, isMock: data.is_mock });
       }
     } catch (err) {
+      console.error('Backend Paystack initialize error:', err);
+      // Direct Paystack API call fallback using configured test key
+      try {
+        const amountInKobo = selectedPlan.name.toUpperCase() === 'STARTER' ? 45000000 : selectedPlan.name.toUpperCase() === 'PROFESSIONAL' ? 150000000 : 375000000;
+        const ref = 'UPME_CLIENT_' + Date.now();
+        
+        const paystackRes = await fetch('https://api.paystack.co/transaction/initialize', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer sk_test_6b17a97fff054562be815f0b586361947ff8021a',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            amount: amountInKobo,
+            email: email,
+            reference: ref
+          })
+        });
+
+        const paystackData = await paystackRes.json();
+        setLoadingPlan(null);
+
+        if (paystackData.status && paystackData.data?.authorization_url) {
+          setCheckoutResult({ url: paystackData.data.authorization_url, isMock: false });
+          return;
+        }
+      } catch (directErr) {
+        console.error('Direct Paystack initialize error:', directErr);
+      }
+
       setLoadingPlan(null);
-      setCheckoutResult({
-        url: `https://checkout.paystack.com/mock-${selectedPlan.name.toLowerCase()}-plan`,
-        isMock: true,
-      });
+      alert('Unable to initialize Paystack checkout. Please ensure backend server is running on http://127.0.0.1:8000.');
     }
   };
 
