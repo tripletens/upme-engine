@@ -1,0 +1,58 @@
+name: UPME Continuous Integration
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  backend-tests:
+    name: Backend Unit Tests (PHP 8.4)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP & Composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo, pdo_sqlite, bcmath
+          coverage: none
+
+      - name: Install Composer Dependencies
+        run: |
+          cd backend
+          composer install --prefer-dist --no-progress --no-suggest
+
+      - name: Run PHPUnit Unit Tests
+        run: |
+          cd backend
+          ./vendor/bin/phpunit --testsuite Unit
+
+  frontend-build:
+    name: Frontend Build & Typecheck (React Vite)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package.json
+
+      - name: Install NPM Dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: TypeScript Typecheck & Vite Production Build
+        run: |
+          cd frontend
+          npm run build
