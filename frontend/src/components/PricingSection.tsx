@@ -76,7 +76,7 @@ export const PricingSection: React.FC = () => {
                   ₦450,000
                 </Typography>
                 <Typography variant="subtitle2" sx={{ color: '#64748b', ml: 1 }}>
-                  / month (\$299)
+                  / month ($299)
                 </Typography>
               </Box>
 
@@ -143,7 +143,7 @@ export const PricingSection: React.FC = () => {
                   ₦1,500,000
                 </Typography>
                 <Typography variant="subtitle2" sx={{ color: '#64748b', ml: 1 }}>
-                  / month (\$999)
+                  / month ($999)
                 </Typography>
               </Box>
 
@@ -202,7 +202,7 @@ export const PricingSection: React.FC = () => {
                   ₦3,750,000
                 </Typography>
                 <Typography variant="subtitle2" sx={{ color: '#64748b', ml: 1 }}>
-                  / month (\$2,500+)
+                  / month ($2,500+)
                 </Typography>
               </Box>
 
@@ -245,7 +245,7 @@ export const PricingSection: React.FC = () => {
         </Grid>
       </Grid>
 
-      {/* Paystack Checkout Dialog Modal (Clean White Enterprise Style) */}
+      {/* Paystack Checkout Dialog Modal */}
       <Dialog
         open={openModal}
         onClose={() => { setOpenModal(false); setCheckoutResult(null); }}
