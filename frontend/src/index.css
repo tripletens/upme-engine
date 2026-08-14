@@ -1,0 +1,61 @@
+:root {
+  --bg-dark: #0f172a;
+  --bg-card: rgba(30, 41, 59, 0.7);
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --accent-primary: #6366f1;
+  --accent-cyan: #06b6d4;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --status-on-track: #10b981;
+  --status-warning: #f59e0b;
+  --status-at-risk: #f97316;
+  --status-critical: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, .brand-title {
+  font-family: 'Outfit', system-ui, sans-serif;
+}
+
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glass);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+}
+
+.glow-primary {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.35);
+}
+
+.badge-on-track {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-at-risk {
+  background: rgba(249, 115, 22, 0.15);
+  color: #fb923c;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.badge-critical {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
