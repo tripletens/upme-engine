@@ -40,17 +40,17 @@ export const App: React.FC = () => {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', background: '#0f172a', color: '#f8fafc', pb: 8 }}>
+    <Box sx={{ minHeight: '100vh', background: '#f8fafc', color: '#0f172a', pb: 8 }}>
       {/* Header Bar */}
-      <AppBar position="static" sx={{ background: 'rgba(30, 41, 59, 0.8)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <Toolbar>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexGrow: 1 }}>
+      <AppBar position="static" elevation={0} sx={{ background: '#ffffff', borderBottom: '1px solid #e2e8f0' }}>
+        <Toolbar sx={{ justifyContent: 'space-between', maxW: 'xl', mx: 'auto', width: '100%' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Box
               sx={{
                 width: 36,
                 height: 36,
                 borderRadius: '10px',
-                background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
+                background: 'linear-gradient(135deg, #4f46e5 0%, #0284c7 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -61,8 +61,8 @@ export const App: React.FC = () => {
             >
               U
             </Box>
-            <Typography variant="h6" className="brand-title" sx={{ color: '#fff', fontWeight: 700, letterSpacing: 0.5 }}>
-              UPME <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 400 }}>Engine v1.0</span>
+            <Typography variant="h6" className="brand-title" sx={{ color: '#0f172a', fontWeight: 800, letterSpacing: -0.5 }}>
+              UPME <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 500 }}>Engine v1.0</span>
             </Typography>
           </Box>
 
@@ -72,14 +72,14 @@ export const App: React.FC = () => {
               size="small"
               startIcon={<HomeIcon />}
               onClick={() => setCurrentView('landing')}
-              sx={{ color: '#cbd5e1', borderColor: 'rgba(255,255,255,0.2)', textTransform: 'none' }}
+              sx={{ color: '#475569', borderColor: '#cbd5e1', textTransform: 'none', fontWeight: 600 }}
             >
               Back to Landing & Pricing
             </Button>
 
             <Chip
               label="Tenant: Example International School"
-              sx={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.3)' }}
+              sx={{ background: '#e0e7ff', color: '#4338ca', fontWeight: 700, border: '1px solid #c7d2fe' }}
             />
           </Box>
         </Toolbar>
@@ -87,20 +87,20 @@ export const App: React.FC = () => {
 
       <Container maxWidth="xl" sx={{ mt: 4 }}>
         {/* Project Title Banner */}
-        <Box className="glass-card" sx={{ p: 3, mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+        <Box className="enterprise-card" sx={{ p: 4, mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-              <Typography variant="h5" sx={{ fontWeight: 800, color: '#f8fafc' }}>
+              <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a' }}>
                 {project.name}
               </Typography>
-              <Chip label={project.code} size="small" sx={{ background: 'rgba(255,255,255,0.1)', color: '#cbd5e1' }} />
+              <Chip label={project.code} size="small" sx={{ background: '#f1f5f9', color: '#334155', fontWeight: 700 }} />
               <Chip
                 label={`HEALTH: ${project.healthStatus} (${project.overallHealthScore}/100)`}
                 className={project.healthStatus === 'AT_RISK' ? 'badge-at-risk' : 'badge-on-track'}
                 sx={{ fontWeight: 700 }}
               />
             </Box>
-            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+            <Typography variant="body2" sx={{ color: '#64748b' }}>
               {project.description}
             </Typography>
           </Box>
@@ -109,10 +109,13 @@ export const App: React.FC = () => {
             variant="contained"
             startIcon={<RefreshIcon />}
             sx={{
-              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+              background: '#4f46e5',
+              color: '#ffffff',
               borderRadius: '10px',
               textTransform: 'none',
-              fontWeight: 600
+              fontWeight: 700,
+              boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)',
+              '&:hover': { background: '#4338ca' }
             }}
           >
             Recalculate Health & Variance
@@ -122,7 +125,7 @@ export const App: React.FC = () => {
         {/* Executive Alerts */}
         <Alert
           severity="warning"
-          sx={{ mb: 4, background: 'rgba(245, 158, 11, 0.12)', color: '#fde68a', border: '1px solid rgba(245, 158, 11, 0.3)' }}
+          sx={{ mb: 4, background: '#fff7ed', color: '#9a3412', border: '1px solid #ffedd5', borderRadius: '12px' }}
         >
           <strong>Monitoring Warning:</strong> Computer Procurement is 9 days behind baseline schedule, blocking downstream Equipment Installation and Network Setup activities.
         </Alert>
@@ -130,61 +133,61 @@ export const App: React.FC = () => {
         {/* Top Metric Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
-            <Card className="glass-card">
+            <Card className="enterprise-card">
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>Overall Health Score</Typography>
-                  <DashboardIcon sx={{ color: '#fb923c' }} />
+                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>Overall Health Score</Typography>
+                  <DashboardIcon sx={{ color: '#ea580c' }} />
                 </Box>
-                <Typography variant="h4" sx={{ color: '#fb923c', fontWeight: 800 }}>
+                <Typography variant="h4" sx={{ color: '#ea580c', fontWeight: 800 }}>
                   {project.overallHealthScore} / 100
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#94a3b8' }}>Status: AT_RISK</Typography>
+                <Typography variant="caption" sx={{ color: '#64748b' }}>Status: AT_RISK</Typography>
               </CardContent>
             </Card>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card className="glass-card">
+            <Card className="enterprise-card">
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>Actual Progress</Typography>
-                  <AssignmentTurnedInIcon sx={{ color: '#818cf8' }} />
+                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>Actual Progress</Typography>
+                  <AssignmentTurnedInIcon sx={{ color: '#4f46e5' }} />
                 </Box>
-                <Typography variant="h4" sx={{ color: '#818cf8', fontWeight: 800 }}>
+                <Typography variant="h4" sx={{ color: '#4f46e5', fontWeight: 800 }}>
                   {project.overallProgress}%
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#94a3b8' }}>Planned Baseline: 51.0%</Typography>
+                <Typography variant="caption" sx={{ color: '#64748b' }}>Planned Baseline: 51.0%</Typography>
               </CardContent>
             </Card>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card className="glass-card">
+            <Card className="enterprise-card">
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>Schedule Variance</Typography>
-                  <AccountTreeIcon sx={{ color: '#ef4444' }} />
+                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>Schedule Variance</Typography>
+                  <AccountTreeIcon sx={{ color: '#dc2626' }} />
                 </Box>
-                <Typography variant="h4" sx={{ color: '#f87171', fontWeight: 800 }}>
+                <Typography variant="h4" sx={{ color: '#dc2626', fontWeight: 800 }}>
                   -9 Days
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#94a3b8' }}>1 Critical Path Activity Blocked</Typography>
+                <Typography variant="caption" sx={{ color: '#64748b' }}>1 Critical Path Activity Blocked</Typography>
               </CardContent>
             </Card>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card className="glass-card">
+            <Card className="enterprise-card">
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>Active Issues</Typography>
-                  <WarningIcon sx={{ color: '#ef4444' }} />
+                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>Active Issues</Typography>
+                  <WarningIcon sx={{ color: '#dc2626' }} />
                 </Box>
-                <Typography variant="h4" sx={{ color: '#f87171', fontWeight: 800 }}>
+                <Typography variant="h4" sx={{ color: '#dc2626', fontWeight: 800 }}>
                   {schoolLabIssues.length} Critical
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#94a3b8' }}>Port Customs Clearing Hold</Typography>
+                <Typography variant="caption" sx={{ color: '#64748b' }}>Port Customs Clearing Hold</Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -193,54 +196,53 @@ export const App: React.FC = () => {
         {/* Main Content Layout */}
         <Grid container spacing={3}>
           <Grid item xs={12} lg={8}>
-            {/* Timeline & Gantt */}
             <GanttTimeline milestones={milestones} />
           </Grid>
 
           <Grid item xs={12} lg={4}>
             {/* Risks & Issues Card */}
-            <Box className="glass-card" sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" sx={{ color: '#f8fafc', fontWeight: 700, mb: 2 }}>
+            <Box className="enterprise-card" sx={{ p: 3, mb: 3 }}>
+              <Typography variant="h6" sx={{ color: '#0f172a', fontWeight: 800, mb: 2 }}>
                 ⚠️ Active Risks & Issues
               </Typography>
               {schoolLabIssues.map((issue) => (
-                <Box key={issue.id} sx={{ p: 2, borderRadius: 2, background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', mb: 2 }}>
-                  <Typography variant="subtitle2" sx={{ color: '#f87171', fontWeight: 700 }}>
+                <Box key={issue.id} sx={{ p: 2, borderRadius: '10px', background: '#fef2f2', border: '1px solid #fecaca', mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ color: '#b91c1c', fontWeight: 700 }}>
                     {issue.title}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#cbd5e1', fontSize: '0.8rem', mt: 0.5 }}>
+                  <Typography variant="body2" sx={{ color: '#334155', fontSize: '0.8rem', mt: 0.5 }}>
                     {issue.description}
                   </Typography>
                 </Box>
               ))}
 
-              <Divider sx={{ my: 2, borderColor: 'rgba(255,255,255,0.08)' }} />
+              <Divider sx={{ my: 2, borderColor: '#e2e8f0' }} />
 
-              <Typography variant="subtitle2" sx={{ color: '#cbd5e1', fontWeight: 600, mb: 1 }}>
+              <Typography variant="subtitle2" sx={{ color: '#475569', fontWeight: 700, mb: 1 }}>
                 Identified Risks ({schoolLabRisks.length}):
               </Typography>
               {schoolLabRisks.map((risk) => (
                 <Box key={risk.id} sx={{ display: 'flex', justifyContent: 'space-between', py: 1 }}>
-                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>{risk.title}</Typography>
-                  <Chip label={risk.status} size="small" sx={{ height: 18, fontSize: '0.65rem' }} />
+                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500 }}>{risk.title}</Typography>
+                  <Chip label={risk.status} size="small" sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700 }} />
                 </Box>
               ))}
             </Box>
 
             {/* Audit Log Events Stream */}
-            <Box className="glass-card" sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ color: '#f8fafc', fontWeight: 700, mb: 2 }}>
+            <Box className="enterprise-card" sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ color: '#0f172a', fontWeight: 800, mb: 2 }}>
                 📜 Audit Trail Stream
               </Typography>
               {schoolLabEvents.map((ev) => (
-                <Box key={ev.id} sx={{ mb: 2, pb: 1, borderBottom: '1px dashed rgba(255,255,255,0.08)' }}>
-                  <Typography variant="caption" sx={{ color: '#6366f1', fontWeight: 700 }}>
+                <Box key={ev.id} sx={{ mb: 2, pb: 1, borderBottom: '1px dashed #e2e8f0' }}>
+                  <Typography variant="caption" sx={{ color: '#4f46e5', fontWeight: 700 }}>
                     {ev.eventType}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#cbd5e1', fontSize: '0.78rem' }}>
+                  <Typography variant="body2" sx={{ color: '#334155', fontSize: '0.78rem' }}>
                     {ev.payload.message || JSON.stringify(ev.payload)}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem' }}>
+                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>
                     {ev.createdAt}
                   </Typography>
                 </Box>
