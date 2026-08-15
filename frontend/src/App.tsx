@@ -35,6 +35,7 @@ import { HealthBreakdownModal } from './components/HealthBreakdownModal';
 import { KycPortalModal } from './components/KycPortalModal';
 import { CreateTemplateModal } from './components/CreateTemplateModal';
 import { PricingSection } from './components/PricingSection';
+import { AlertsAndActionsView } from './components/AlertsAndActionsView';
 
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'landing' | 'dashboard'>('landing');
@@ -160,6 +161,8 @@ export const App: React.FC = () => {
           {/* Tab View Routing */}
           {activeTab === 'billing' ? (
             <PricingSection />
+          ) : activeTab === 'alerts_actions' ? (
+            <AlertsAndActionsView />
           ) : (
             <>
               {/* Executive Alerts */}
