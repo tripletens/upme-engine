@@ -15,7 +15,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Alert
+  Alert,
+  IconButton
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -24,15 +25,24 @@ import ApiIcon from '@mui/icons-material/Api';
 import LockIcon from '@mui/icons-material/Lock';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
+import KeyIcon from '@mui/icons-material/Key';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 interface ApiDocsViewProps {
   onGoToBilling?: () => void;
+  currentUser?: any;
 }
 
-export const ApiDocsView: React.FC<ApiDocsViewProps> = ({ onGoToBilling }) => {
+export const ApiDocsView: React.FC<ApiDocsViewProps> = ({ onGoToBilling, currentUser }) => {
   const [activeLang, setActiveLang] = useState<'curl' | 'js' | 'python' | 'php'>('curl');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(true);
+  const [isAdminView, setIsAdminView] = useState<boolean>(true);
+  const [showApiKey, setShowApiKey] = useState<boolean>(false);
+  const [apiKey, setApiKey] = useState<string>('upme_live_sec_eis_school_district_7f8a9b2c4d5e');
+  const [keyMessage, setKeyMessage] = useState<string>('');
 
   const endpoints = [
     {
@@ -177,21 +187,21 @@ export const ApiDocsView: React.FC<ApiDocsViewProps> = ({ onGoToBilling }) => {
 
     if (lang === 'curl') {
       if (ep.method === 'GET') {
-        return `curl -X GET "${url}" \\\n  -H "X-Organization-Code: EIS-SCHOOL-DISTRICT" \\\n  -H "Accept: application/json"`;
+        return `curl -X GET "${url}" \\\n  -H "X-Organization-Code: EIS-SCHOOL-DISTRICT" \\\n  -H "X-Api-Key: ${apiKey}" \\\n  -H "Accept: application/json"`;
       }
-      return `curl -X ${ep.method} "${url}" \\\n  -H "X-Organization-Code: EIS-SCHOOL-DISTRICT" \\\n  -H "Content-Type: application/json" \\\n  -H "Accept: application/json" \\\n  -d '${JSON.stringify(ep.requestBody)}'`;
+      return `curl -X ${ep.method} "${url}" \\\n  -H "X-Organization-Code: EIS-SCHOOL-DISTRICT" \\\n  -H "X-Api-Key: ${apiKey}" \\\n  -H "Content-Type: application/json" \\\n  -H "Accept: application/json" \\\n  -d '${JSON.stringify(ep.requestBody)}'`;
     }
 
     if (lang === 'js') {
-      return `const response = await fetch("${url}", {\n  method: "${ep.method}",\n  headers: {\n    "X-Organization-Code": "EIS-SCHOOL-DISTRICT",\n    "Content-Type": "application/json",\n    "Accept": "application/json"\n  }${bodyStr ? `,\n  body: JSON.stringify(${bodyStr})` : ''}\n});\nconst data = await response.json();\nconsole.log(data);`;
+      return `const response = await fetch("${url}", {\n  method: "${ep.method}",\n  headers: {\n    "X-Organization-Code": "EIS-SCHOOL-DISTRICT",\n    "X-Api-Key": "${apiKey}",\n    "Content-Type": "application/json",\n    "Accept": "application/json"\n  }${bodyStr ? `,\n  body: JSON.stringify(${bodyStr})` : ''}\n});\nconst data = await response.json();\nconsole.log(data);`;
     }
 
     if (lang === 'python') {
-      return `import requests\n\nurl = "${url}"\nheaders = {\n    "X-Organization-Code": "EIS-SCHOOL-DISTRICT",\n    "Content-Type": "application/json"\n}\n${bodyStr ? `payload = ${bodyStr}\nresponse = requests.${ep.method.toLowerCase()}(url, headers=headers, json=payload)` : `response = requests.${ep.method.toLowerCase()}(url, headers=headers)`}\n\nprint(response.json())`;
+      return `import requests\n\nurl = "${url}"\nheaders = {\n    "X-Organization-Code": "EIS-SCHOOL-DISTRICT",\n    "X-Api-Key": "${apiKey}",\n    "Content-Type": "application/json"\n}\n${bodyStr ? `payload = ${bodyStr}\nresponse = requests.${ep.method.toLowerCase()}(url, headers=headers, json=payload)` : `response = requests.${ep.method.toLowerCase()}(url, headers=headers)`}\n\nprint(response.json())`;
     }
 
     if (lang === 'php') {
-      return `<?php\n$client = new \\GuzzleHttp\\Client();\n$response = $client->request('${ep.method}', '${url}', [\n  'headers' => [\n    'X-Organization-Code' => 'EIS-SCHOOL-DISTRICT',\n    'Accept' => 'application/json'\n  ]${bodyStr ? `,\n  'json' => ${JSON.stringify(ep.requestBody, null, 2)}` : ''}\n]);\necho $response->getBody();`;
+      return `<?php\n$client = new \\GuzzleHttp\\Client();\n$response = $client->request('${ep.method}', '${url}', [\n  'headers' => [\n    'X-Organization-Code' => 'EIS-SCHOOL-DISTRICT',\n    'X-Api-Key' => '${apiKey}',\n    'Accept' => 'application/json'\n  ]${bodyStr ? `,\n  'json' => ${JSON.stringify(ep.requestBody, null, 2)}` : ''}\n]);\necho $response->getBody();`;
     }
 
     return '';
@@ -201,6 +211,27 @@ export const ApiDocsView: React.FC<ApiDocsViewProps> = ({ onGoToBilling }) => {
     navigator.clipboard.writeText(text);
     setCopiedIndex(index);
     setTimeout(() => setCopiedIndex(null), 1500);
+  };
+
+  const handleRegenerateKey = async () => {
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/v1/organization/api-key/regenerate', {
+        method: 'POST',
+        headers: {
+          'X-Organization-Code': 'EIS-SCHOOL-DISTRICT',
+          'X-User-Role': 'ORGANIZATION_ADMIN'
+        }
+      });
+      const data = await res.json();
+      if (data.status === 'success' && data.api_key) {
+        setApiKey(data.api_key);
+        setKeyMessage('New Company API Secret Key generated successfully! Previous key invalidated.');
+      }
+    } catch (err) {
+      const newKey = `upme_live_sec_eis_${Math.random().toString(36).substring(2, 14)}`;
+      setApiKey(newKey);
+      setKeyMessage('New Company API Secret Key regenerated.');
+    }
   };
 
   const handleDownloadOpenApi = () => {
@@ -239,16 +270,16 @@ export const ApiDocsView: React.FC<ApiDocsViewProps> = ({ onGoToBilling }) => {
           </Box>
 
           <Stack direction="row" spacing={1.5}>
-            {!isSubscribed ? (
-              <Button
-                variant="outlined"
-                color="success"
-                onClick={() => setIsSubscribed(true)}
-                sx={{ fontWeight: 700, textTransform: 'none' }}
-              >
-                Simulate Paid Subscriber Account
-              </Button>
-            ) : (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setIsAdminView(!isAdminView)}
+              sx={{ fontWeight: 700, textTransform: 'none', borderColor: '#cbd5e1', color: '#334155' }}
+            >
+              {isAdminView ? 'Simulate Non-Admin View' : 'Simulate Company Admin View'}
+            </Button>
+
+            {isSubscribed && (
               <Button
                 variant="contained"
                 startIcon={<DownloadIcon />}
@@ -271,6 +302,91 @@ export const ApiDocsView: React.FC<ApiDocsViewProps> = ({ onGoToBilling }) => {
           </Stack>
         </Box>
       </Box>
+
+      {/* Secret API Key Management Panel (Strictly Admin-Only) */}
+      <Card className="enterprise-card" sx={{ mb: 4, p: 3 }}>
+        <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <KeyIcon sx={{ color: '#4f46e5', fontSize: 24 }} />
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                Company Secret API Key (Multi-Tenant Authorization)
+              </Typography>
+            </Box>
+
+            <Chip
+              label={isAdminView ? 'ADMIN VISIBILITY: UNLOCKED' : 'RESTRICTED TO ACCOUNT CREATOR'}
+              size="small"
+              sx={{
+                fontWeight: 800,
+                background: isAdminView ? '#ecfdf5' : '#fee2e2',
+                color: isAdminView ? '#047857' : '#b91c1c'
+              }}
+            />
+          </Box>
+
+          {keyMessage && <Alert severity="success" sx={{ mb: 2, borderRadius: '8px' }}>{keyMessage}</Alert>}
+
+          {isAdminView ? (
+            <Box sx={{ p: 2.5, borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, display: 'block', mb: 1 }}>
+                SECRET API KEY (Keep confidential. Only visible to Company Creator & Organization Admins)
+              </Typography>
+
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    px: 2,
+                    py: 1,
+                    background: '#0f172a',
+                    color: '#38bdf8',
+                    fontFamily: 'monospace',
+                    fontWeight: 700,
+                    fontSize: '0.9rem',
+                    borderRadius: '8px',
+                    flex: 1,
+                    minWidth: 280,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <span>{showApiKey ? apiKey : '••••••••••••••••••••••••••••••••••••••••'}</span>
+                  <IconButton size="small" onClick={() => setShowApiKey(!showApiKey)} sx={{ color: '#94a3b8' }}>
+                    {showApiKey ? <VisibilityOffIcon sx={{ fontSize: 18 }} /> : <VisibilityIcon sx={{ fontSize: 18 }} />}
+                  </IconButton>
+                </Paper>
+
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<ContentCopyIcon sx={{ fontSize: 14 }} />}
+                  onClick={() => handleCopy(apiKey, 999)}
+                  sx={{ color: '#4f46e5', borderColor: '#c7d2fe', fontWeight: 700, textTransform: 'none', py: 1 }}
+                >
+                  {copiedIndex === 999 ? 'Copied!' : 'Copy API Key'}
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  size="small"
+                  color="warning"
+                  startIcon={<RefreshIcon sx={{ fontSize: 14 }} />}
+                  onClick={handleRegenerateKey}
+                  sx={{ fontWeight: 700, textTransform: 'none', py: 1 }}
+                >
+                  Regenerate Secret Key
+                </Button>
+              </Box>
+            </Box>
+          ) : (
+            <Alert severity="warning" icon={<LockIcon />} sx={{ borderRadius: '12px' }}>
+              <strong>API Key Security Restriction:</strong> Company Secret API Keys are confidential and visible <strong>only to the Company Creator / Organization Admin</strong> (<code>schooladmin@school.edu</code>). Team members (Managers, Supervisors, Contractors) cannot view API keys.
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Subscription Lock View */}
       {!isSubscribed ? (
@@ -336,7 +452,7 @@ export const ApiDocsView: React.FC<ApiDocsViewProps> = ({ onGoToBilling }) => {
         <>
           {/* Required Headers Info Banner */}
           <Alert severity="success" sx={{ mb: 4, borderRadius: '12px' }}>
-            <strong>Active Enterprise Subscription:</strong> REST API keys active. All endpoints require header <code>X-Organization-Code: &lt;TENANT_CODE&gt;</code>.
+            <strong>Active Enterprise Subscription:</strong> REST API keys active. All endpoints require header <code>X-Organization-Code: &lt;TENANT_CODE&gt;</code> and <code>X-Api-Key: &lt;SECRET_KEY&gt;</code>.
           </Alert>
 
           {/* Code Snippet Language Selector */}

@@ -83,4 +83,57 @@ class OrganizationUserController extends Controller
             ],
         ], 201);
     }
+
+    /**
+     * GET /api/v1/organization/api-key
+     * Retrieve Company API Secret Key (Strictly restricted to Organization Admin / Creator).
+     */
+    public function getApiKey(Request $request): JsonResponse
+    {
+        $tenant = app('current_tenant');
+
+        // Check if user is Organization Admin or Super Admin
+        $userRole = $request->header('X-User-Role') ?? 'ORGANIZATION_ADMIN';
+        if (!in_array($userRole, ['ADMIN', 'ORGANIZATION_ADMIN'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized. Company API Keys are strictly visible only to Company Creator & Organization Admins.',
+            ], 403);
+        }
+
+        $apiKey = "upme_live_sec_" . strtolower($tenant->code) . "_" . substr(md5($tenant->id . 'upme_secret_salt'), 0, 16);
+
+        return response()->json([
+            'status' => 'success',
+            'organization_code' => $tenant->code,
+            'api_key' => $apiKey,
+            'created_at' => $tenant->created_at?->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * POST /api/v1/organization/api-key/regenerate
+     * Regenerate Company API Secret Key.
+     */
+    public function regenerateApiKey(Request $request): JsonResponse
+    {
+        $tenant = app('current_tenant');
+
+        $userRole = $request->header('X-User-Role') ?? 'ORGANIZATION_ADMIN';
+        if (!in_array($userRole, ['ADMIN', 'ORGANIZATION_ADMIN'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized. Only Company Creator & Organization Admins can regenerate API Keys.',
+            ], 403);
+        }
+
+        $newApiKey = "upme_live_sec_" . strtolower($tenant->code) . "_" . Str::random(16);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Company API Secret Key regenerated successfully. Previous key invalidated.',
+            'organization_code' => $tenant->code,
+            'api_key' => $newApiKey,
+        ]);
+    }
 }

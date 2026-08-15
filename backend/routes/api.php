@@ -26,9 +26,11 @@ Route::prefix('v1')->middleware(['api', \App\Http\Middleware\TenantContextMiddle
     // User Authentication
     Route::post('/auth/login', [AuthController::class, 'login']);
 
-    // Multi-Tenant Company User Management
+    // Multi-Tenant Company User Management & Admin API Keys
     Route::get('/organization/users', [OrganizationUserController::class, 'index']);
     Route::post('/organization/users/invite', [OrganizationUserController::class, 'invite']);
+    Route::get('/organization/api-key', [OrganizationUserController::class, 'getApiKey']);
+    Route::post('/organization/api-key/regenerate', [OrganizationUserController::class, 'regenerateApiKey']);
 
     // Paystack SaaS Billing & Subscriptions
     Route::post('/billing/initialize', [BillingController::class, 'initialize']);
