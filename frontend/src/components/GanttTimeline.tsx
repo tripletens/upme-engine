@@ -32,7 +32,11 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({ milestones, onRefr
   const [alertMsg, setAlertMsg] = useState('');
 
   // Extract flat list of activities for dependency manager
-  const allActivities = milestones.flatMap((m) => m.activities);
+  const allActivities = milestones.flatMap((m) =>
+    m.activities && m.activities.length > 0
+      ? m.activities
+      : [{ id: m.id, name: m.name, progress: m.progress, status: m.status, isCriticalPath: true }]
+  );
 
   const handleOpenEvidence = (act: any) => {
     setSelectedActivity(act);
@@ -106,172 +110,200 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({ milestones, onRefr
         </Alert>
       )}
 
-      {milestones.map((m) => (
-        <Box key={m.id} sx={{ mb: 4 }}>
-          {/* Milestone Header */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-            <Typography variant="subtitle1" sx={{ color: '#1e293b', fontWeight: 700 }}>
-              {m.name}
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="caption" sx={{ color: '#64748b' }}>
-                {m.plannedStartDate} → {m.plannedEndDate}
+      {milestones.map((m) => {
+        // Fallback to synthetic activity if milestone activities list is empty
+        const activitiesList = (m.activities && m.activities.length > 0)
+          ? m.activities
+          : [{
+              id: m.id,
+              name: m.name,
+              status: m.progress >= 100 ? 'COMPLETED' : m.status,
+              plannedStartDate: m.plannedStartDate,
+              plannedEndDate: m.plannedEndDate,
+              plannedDurationDays: 5,
+              progress: m.progress >= 100 ? 100 : m.progress,
+              isCriticalPath: true
+            }];
+
+        // Dynamically compute milestone completion status
+        const isAllCompleted = activitiesList.every((a: any) => a.progress >= 100 || a.status === 'COMPLETED');
+        const computedStatus = isAllCompleted ? 'COMPLETED' : m.status;
+
+        return (
+          <Box key={m.id} sx={{ mb: 4 }}>
+            {/* Milestone Header */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+              <Typography variant="subtitle1" sx={{ color: '#1e293b', fontWeight: 700 }}>
+                {m.name}
               </Typography>
-              <Chip
-                label={m.status}
-                size="small"
-                color={m.status === 'COMPLETED' ? 'success' : m.status === 'DELAYED' ? 'error' : 'warning'}
-                variant="outlined"
-              />
-            </Box>
-          </Box>
-
-          {/* Activities inside Milestone */}
-          {m.activities.map((act) => {
-            const hasEvidence = !!verifiedEvidence[act.name];
-
-            return (
-              <Box
-                key={act.id}
-                sx={{
-                  p: 2.5,
-                  mb: 1.5,
-                  borderRadius: '12px',
-                  background: act.status === 'BLOCKED' ? '#fef2f2' : '#f8fafc',
-                  border: hasEvidence ? '1px solid #10b981' : act.status === 'BLOCKED' ? '1px solid #fecaca' : '1px solid #e2e8f0',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 1
-                }}
-              >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                    {act.status === 'COMPLETED' && <CheckCircleIcon sx={{ color: '#059669', fontSize: 18 }} />}
-                    {act.status === 'BLOCKED' && <LockIcon sx={{ color: '#dc2626', fontSize: 18 }} />}
-                    {act.status === 'IN_PROGRESS' && <WarningAmberIcon sx={{ color: '#d97706', fontSize: 18 }} />}
-
-                    <Typography variant="body2" sx={{ fontWeight: 700, color: act.status === 'BLOCKED' ? '#991b1b' : '#0f172a' }}>
-                      {act.name}
-                    </Typography>
-
-                    {act.isCriticalPath && (
-                      <Chip label="CRITICAL PATH" size="small" sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700, background: '#fef3c7', color: '#b45309' }} />
-                    )}
-
-                    {hasEvidence && (
-                      <Chip
-                        icon={<VerifiedIcon sx={{ fontSize: 14 }} />}
-                        label="Verified Evidence Attached"
-                        size="small"
-                        sx={{ height: 20, fontSize: '0.65rem', fontWeight: 800, background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}
-                      />
-                    )}
-                  </Box>
-
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Chip
-                      label={`${act.progress}% (${act.status})`}
-                      size="small"
-                      onClick={() => handleOpenProgressModal(act)}
-                      sx={{
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        background: act.status === 'COMPLETED' ? '#d1fae5' : act.status === 'BLOCKED' ? '#fee2e2' : '#e0e7ff',
-                        color: act.status === 'COMPLETED' ? '#047857' : act.status === 'BLOCKED' ? '#b91c1c' : '#4338ca'
-                      }}
-                    />
-
-                    <Button
-                      variant="text"
-                      size="small"
-                      startIcon={<EditIcon sx={{ fontSize: 13 }} />}
-                      onClick={() => handleOpenProgressModal(act)}
-                      sx={{ fontSize: '0.75rem', textTransform: 'none', color: '#334155', fontWeight: 600 }}
-                    >
-                      Update Progress
-                    </Button>
-
-                    <Button
-                      variant={hasEvidence ? 'outlined' : 'text'}
-                      size="small"
-                      color={hasEvidence ? 'success' : 'primary'}
-                      startIcon={<CloudUploadIcon sx={{ fontSize: 14 }} />}
-                      onClick={() => handleOpenEvidence(act)}
-                      sx={{ fontSize: '0.75rem', textTransform: 'none', fontWeight: 600 }}
-                    >
-                      {hasEvidence ? 'Re-upload Evidence' : 'Upload Evidence'}
-                    </Button>
-                  </Stack>
-                </Box>
-
-                <LinearProgress
-                  variant="determinate"
-                  value={act.progress}
-                  sx={{
-                    height: 6,
-                    borderRadius: 3,
-                    background: '#e2e8f0',
-                    '& .MuiLinearProgress-bar': {
-                      background: act.status === 'COMPLETED' ? '#059669' : act.status === 'BLOCKED' ? '#dc2626' : '#4f46e5'
-                    }
-                  }}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="caption" sx={{ color: '#64748b' }}>
+                  {m.plannedStartDate} → {m.plannedEndDate}
+                </Typography>
+                <Chip
+                  label={computedStatus}
+                  size="small"
+                  color={computedStatus === 'COMPLETED' ? 'success' : computedStatus === 'DELAYED' ? 'error' : 'warning'}
+                  variant="outlined"
+                  sx={{ fontWeight: 700 }}
                 />
               </Box>
-            );
-          })}
-        </Box>
-      ))}
+            </Box>
 
-      {/* Progress Update Modal */}
-      <Dialog open={progressModalOpen} onClose={() => setProgressModalOpen(false)} PaperProps={{ sx: { borderRadius: '16px', p: 1, minWidth: 440 } }}>
-        <DialogTitle sx={{ fontWeight: 800 }}>Update Live Activity Progress</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" sx={{ color: '#64748b', mb: 2 }}>
-            Task: <strong>{selectedActivity?.name}</strong>
-          </Typography>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: '#4f46e5', my: 1, textAlign: 'center' }}>
-            {newProgress}%
-          </Typography>
-          <Slider
-            value={newProgress}
-            onChange={(_, val) => setNewProgress(val as number)}
-            min={0}
-            max={100}
-            step={5}
-            sx={{ color: '#4f46e5', mt: 2 }}
-          />
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setProgressModalOpen(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            disabled={updating}
-            onClick={handleUpdateProgressSubmit}
-            sx={{ background: '#4f46e5', fontWeight: 700, borderRadius: '10px' }}
-          >
-            {updating ? 'Saving to Database...' : 'Save & Trigger Graph Recalculation'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+            {/* Activities inside Milestone */}
+            {activitiesList.map((act: any) => {
+              const hasEvidence = !!verifiedEvidence[act.name];
+
+              return (
+                <Box
+                  key={act.id}
+                  sx={{
+                    p: 2.5,
+                    mb: 1.5,
+                    borderRadius: '12px',
+                    background: act.status === 'BLOCKED' ? '#fef2f2' : '#f8fafc',
+                    border: hasEvidence ? '1px solid #10b981' : act.status === 'BLOCKED' ? '1px solid #fecaca' : '1px solid #e2e8f0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                      {(act.status === 'COMPLETED' || act.progress >= 100) && <CheckCircleIcon sx={{ color: '#059669', fontSize: 18 }} />}
+                      {act.status === 'BLOCKED' && <LockIcon sx={{ color: '#dc2626', fontSize: 18 }} />}
+                      {(act.status === 'IN_PROGRESS' && act.progress < 100) && <WarningAmberIcon sx={{ color: '#d97706', fontSize: 18 }} />}
+
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: act.status === 'BLOCKED' ? '#991b1b' : '#0f172a' }}>
+                        {act.name}
+                      </Typography>
+
+                      {act.isCriticalPath && (
+                        <Chip label="CRITICAL PATH" size="small" sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700, background: '#fef3c7', color: '#b45309' }} />
+                      )}
+
+                      {hasEvidence && (
+                        <Chip
+                          icon={<VerifiedIcon sx={{ fontSize: 14 }} />}
+                          label="Verified Evidence Attached"
+                          size="small"
+                          sx={{ height: 20, fontSize: '0.65rem', fontWeight: 800, background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}
+                        />
+                      )}
+                    </Box>
+
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Chip
+                        label={`${act.progress}% (${act.progress >= 100 ? 'COMPLETED' : act.status})`}
+                        size="small"
+                        onClick={() => handleOpenProgressModal(act)}
+                        sx={{
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          background: (act.status === 'COMPLETED' || act.progress >= 100) ? '#d1fae5' : act.status === 'BLOCKED' ? '#fee2e2' : '#e0e7ff',
+                          color: (act.status === 'COMPLETED' || act.progress >= 100) ? '#047857' : act.status === 'BLOCKED' ? '#b91c1c' : '#4338ca'
+                        }}
+                      />
+
+                      <Button
+                        variant="text"
+                        size="small"
+                        startIcon={<EditIcon sx={{ fontSize: 13 }} />}
+                        onClick={() => handleOpenProgressModal(act)}
+                        sx={{ fontSize: '0.75rem', textTransform: 'none', color: '#334155', fontWeight: 600 }}
+                      >
+                        Update Progress
+                      </Button>
+
+                      <Button
+                        variant={hasEvidence ? 'outlined' : 'text'}
+                        size="small"
+                        color={hasEvidence ? 'success' : 'primary'}
+                        startIcon={<CloudUploadIcon sx={{ fontSize: 14 }} />}
+                        onClick={() => handleOpenEvidence(act)}
+                        sx={{ fontSize: '0.75rem', textTransform: 'none', fontWeight: 600 }}
+                      >
+                        {hasEvidence ? 'Evidence Attached' : 'Upload Evidence'}
+                      </Button>
+                    </Stack>
+                  </Box>
+
+                  {/* Gantt Progress Bar */}
+                  <LinearProgress
+                    variant="determinate"
+                    value={act.progress}
+                    sx={{
+                      height: 8,
+                      borderRadius: 4,
+                      background: '#e2e8f0',
+                      '& .MuiLinearProgress-bar': {
+                        background: (act.status === 'COMPLETED' || act.progress >= 100) ? '#059669' : act.status === 'BLOCKED' ? '#dc2626' : '#4f46e5'
+                      }
+                    }}
+                  />
+                </Box>
+              );
+            })}
+          </Box>
+        );
+      })}
 
       {/* Deliverable Evidence Upload Modal */}
-      <DeliverableEvidenceModal
-        open={evidenceModalOpen}
-        onClose={() => setEvidenceModalOpen(false)}
-        activityName={selectedActivity?.name || ''}
-        onUploadSuccess={handleEvidenceSuccess}
-      />
+      {selectedActivity && (
+        <DeliverableEvidenceModal
+          open={evidenceModalOpen}
+          onClose={() => setEvidenceModalOpen(false)}
+          deliverableName={selectedActivity.name}
+          onSuccess={handleEvidenceSuccess}
+        />
+      )}
 
-      {/* DAG Dependency Manager Modal */}
+      {/* Dependency Manager Modal */}
       <DependencyManagerModal
         open={dependencyModalOpen}
         onClose={() => setDependencyModalOpen(false)}
         activities={allActivities}
-        onAddDependency={(pred, succ, type, lag) => {
-          console.log('Added DAG dependency:', pred, succ, type, lag);
+        onDependencyAdded={() => {
+          setAlertMsg('New DAG precedence link added! Engine recalculating Kahn critical path.');
           if (onRefresh) onRefresh();
         }}
       />
+
+      {/* Quick Progress Edit Dialog */}
+      <Dialog open={progressModalOpen} onClose={() => setProgressModalOpen(false)} PaperProps={{ sx: { borderRadius: '12px', p: 1 } }}>
+        <DialogTitle sx={{ fontWeight: 800, pb: 1 }}>
+          Update Task Progress: {selectedActivity?.name}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
+            Drag the slider to update task completion percentage:
+          </Typography>
+          <Box sx={{ px: 2 }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: '#4f46e5', textAlign: 'center', mb: 2 }}>
+              {newProgress}%
+            </Typography>
+            <Slider
+              value={newProgress}
+              onChange={(_, val) => setNewProgress(val as number)}
+              min={0}
+              max={100}
+              step={5}
+              sx={{ color: '#4f46e5' }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setProgressModalOpen(false)} sx={{ textTransform: 'none' }}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleUpdateProgressSubmit}
+            disabled={updating}
+            sx={{ background: '#4f46e5', textTransform: 'none', fontWeight: 700 }}
+          >
+            {updating ? 'Saving...' : 'Save & Sync Engine'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
