@@ -11,15 +11,13 @@ import {
   Divider,
   Stack,
   Alert,
-  CircularProgress,
-  MenuItem
+  CircularProgress
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SaveIcon from '@mui/icons-material/Save';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import EditIcon from '@mui/icons-material/Edit';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import EditIcon from '@mui/icons-material/Edit';
 import DescriptionIcon from '@mui/icons-material/Description';
 
 interface CsmtStageEditViewProps {
@@ -62,13 +60,13 @@ export const CsmtStageEditView: React.FC<CsmtStageEditViewProps> = ({
   };
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, width: '100%', maxWidth: 1100, mx: 'auto', boxSizing: 'border-box' }}>
+    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, width: '100%', maxWidth: 1100, mx: 'auto', boxSizing: 'border-box', overflowX: 'hidden' }}>
       {/* Top Back Navigation Button */}
       <Button
         variant="outlined"
         startIcon={<ArrowBackIcon />}
         onClick={onBack}
-        sx={{ mb: 3, textTransform: 'none', fontWeight: 800, color: '#334155', borderColor: '#cbd5e1', borderRadius: '10px' }}
+        sx={{ mb: 3, textTransform: 'none', fontWeight: 800, color: '#334155', borderColor: '#cbd5e1', borderRadius: '10px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}
       >
         Back to {project?.projectName || 'Project Details'}
       </Button>
@@ -77,8 +75,8 @@ export const CsmtStageEditView: React.FC<CsmtStageEditViewProps> = ({
       <Paper
         elevation={0}
         sx={{
-          p: { xs: 3, md: 4 },
-          mb: 4,
+          p: { xs: 2.5, sm: 3.5, md: 4 },
+          mb: 3,
           borderRadius: '20px',
           background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
           color: '#ffffff',
@@ -86,10 +84,10 @@ export const CsmtStageEditView: React.FC<CsmtStageEditViewProps> = ({
           boxShadow: '0 10px 25px rgba(30, 27, 75, 0.2)'
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, flexWrap: 'wrap' }}>
           <Chip
             icon={<EditIcon sx={{ color: '#fff !important', fontSize: 14 }} />}
-            label="FULL-PAGE STAGE PROGRESS EDITOR"
+            label="STAGE PROGRESS EDITOR"
             size="small"
             sx={{ background: '#4f46e5', color: '#fff', fontWeight: 800, fontSize: '0.68rem' }}
           />
@@ -101,33 +99,33 @@ export const CsmtStageEditView: React.FC<CsmtStageEditViewProps> = ({
           />
         </Box>
 
-        <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: -0.5, mb: 1, fontSize: { xs: '1.4rem', sm: '2.1rem' } }}>
+        <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: -0.5, mb: 1, fontSize: { xs: '1.35rem', sm: '2.1rem' } }}>
           {stage?.name || 'Milestone Stage'}
         </Typography>
 
-        <Typography variant="body2" sx={{ color: '#c7d2fe' }}>
+        <Typography variant="body2" sx={{ color: '#c7d2fe', fontSize: { xs: '0.8rem', sm: '0.88rem' } }}>
           Project: <strong>{project?.projectName}</strong> • Lead Supervisor: <strong>{project?.supervisor}</strong>
         </Typography>
       </Paper>
 
       {successMsg && (
-        <Alert severity="success" sx={{ mb: 4, borderRadius: '12px' }}>
+        <Alert severity="success" sx={{ mb: 3, borderRadius: '12px' }}>
           {successMsg}
         </Alert>
       )}
 
       {/* Interactive Stage Progress Form */}
-      <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, borderRadius: '16px', background: '#ffffff', border: '1px solid #e2e8f0' }}>
-        <Box component="form" onSubmit={handleSave} sx={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}>
+      <Paper elevation={0} sx={{ p: { xs: 2.5, sm: 3.5, md: 4 }, borderRadius: '16px', background: '#ffffff', border: '1px solid #e2e8f0' }}>
+        <Box component="form" onSubmit={handleSave} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           
           {/* Progress Slider & Numerical Selector */}
           <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1.5 }}>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', fontSize: { xs: '1.05rem', sm: '1.25rem' } }}>
                 Completion Percentage: <span style={{ color: '#4f46e5' }}>{progress}%</span>
               </Typography>
               
-              <Stack direction="row" spacing={1}>
+              <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
                 {[0, 25, 50, 75, 100].map((val) => (
                   <Chip
                     key={val}
@@ -135,10 +133,10 @@ export const CsmtStageEditView: React.FC<CsmtStageEditViewProps> = ({
                     onClick={() => handlePresetSelect(val)}
                     color={progress === val ? 'primary' : 'default'}
                     variant={progress === val ? 'filled' : 'outlined'}
-                    sx={{ fontWeight: 800, cursor: 'pointer', height: 26 }}
+                    sx={{ fontWeight: 800, cursor: 'pointer', height: 28, fontSize: '0.75rem' }}
                   />
                 ))}
-              </Stack>
+              </Box>
             </Box>
 
             <Slider
@@ -160,7 +158,7 @@ export const CsmtStageEditView: React.FC<CsmtStageEditViewProps> = ({
 
           {/* Supervisor Field Execution Notes */}
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 1, display: 'flex', alignItems: 'center', gap: 1, fontSize: '0.95rem' }}>
               <DescriptionIcon sx={{ color: '#4f46e5' }} />
               Supervisor Field Audit Notes
             </Typography>
@@ -177,17 +175,25 @@ export const CsmtStageEditView: React.FC<CsmtStageEditViewProps> = ({
 
           {/* Verification Evidence Attachment */}
           <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 1, display: 'flex', alignItems: 'center', gap: 1, fontSize: '0.95rem' }}>
               <CloudUploadIcon sx={{ color: '#059669' }} />
               Attach Stage Proof Document (Optional PDF / Image)
             </Typography>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
               <Button
                 variant="outlined"
                 component="label"
                 startIcon={<CloudUploadIcon />}
-                sx={{ textTransform: 'none', fontWeight: 700, borderColor: '#cbd5e1', color: '#334155' }}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  borderColor: '#cbd5e1',
+                  color: '#334155',
+                  whiteSpace: 'nowrap',
+                  height: 40,
+                  fontSize: '0.82rem'
+                }}
               >
                 Select Audit Proof File...
                 <input
@@ -207,7 +213,7 @@ export const CsmtStageEditView: React.FC<CsmtStageEditViewProps> = ({
                   onDelete={() => setSelectedFile(null)}
                   color="success"
                   size="small"
-                  sx={{ fontWeight: 700 }}
+                  sx={{ fontWeight: 700, height: 26, fontSize: '0.72rem' }}
                 />
               )}
             </Box>
@@ -215,9 +221,32 @@ export const CsmtStageEditView: React.FC<CsmtStageEditViewProps> = ({
 
           <Divider />
 
-          {/* Submit Save Button */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-            <Button variant="outlined" onClick={onBack} sx={{ textTransform: 'none', fontWeight: 700, color: '#64748b' }}>
+          {/* Single-Line Responsive Action Buttons */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column-reverse', sm: 'row' },
+              justifyContent: 'flex-end',
+              gap: 1.5,
+              mt: 1
+            }}
+          >
+            <Button
+              variant="outlined"
+              onClick={onBack}
+              sx={{
+                width: { xs: '100%', sm: 'auto' },
+                height: 42,
+                whiteSpace: 'nowrap',
+                fontSize: '0.85rem',
+                textTransform: 'none',
+                fontWeight: 800,
+                color: '#64748b',
+                borderColor: '#cbd5e1',
+                px: 3,
+                borderRadius: '10px'
+              }}
+            >
               Cancel
             </Button>
 
@@ -227,18 +256,21 @@ export const CsmtStageEditView: React.FC<CsmtStageEditViewProps> = ({
               disabled={saving}
               startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
               sx={{
-                background: '#4f46e5',
-                color: '#fff',
+                width: { xs: '100%', sm: 'auto' },
+                height: 42,
+                whiteSpace: 'nowrap',
+                fontSize: '0.85rem',
+                background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)',
+                color: '#ffffff',
                 textTransform: 'none',
                 fontWeight: 800,
-                px: 4,
-                py: 1.2,
+                px: 3.5,
                 borderRadius: '10px',
                 boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)',
                 '&:hover': { background: '#4338ca' }
               }}
             >
-              {saving ? 'Saving to Database Engine...' : 'Save Milestone Progress & Sync'}
+              {saving ? 'Saving to Database...' : 'Save Progress'}
             </Button>
           </Box>
         </Box>

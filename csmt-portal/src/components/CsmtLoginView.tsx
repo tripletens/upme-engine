@@ -10,7 +10,6 @@ import {
   Stack,
   Alert,
   CircularProgress,
-  Divider,
   Grid
 } from '@mui/material';
 import SchoolIcon from '@mui/icons-material/School';
@@ -31,7 +30,7 @@ export const CsmtLoginView: React.FC<CsmtLoginViewProps> = ({ onLoginSuccess }) 
   const [errorMsg, setErrorMsg] = useState('');
 
   const demoAccounts = [
-    { name: 'Dr. Clement Eze', email: 'admin@csmt.edu.ng', role: 'District Admin / Principal', dept: 'CSMT Executive Admin', isSystemAdmin: true, allowedCategory: 'ALL' },
+    { name: 'Dr. Clement Eze', email: 'admin@csmt.edu.ng', role: 'District Admin / Principal', dept: 'Executive Admin', isSystemAdmin: true, allowedCategory: 'ALL' },
     { name: 'Dr. Robert Vance', email: 'dr.vance@csmt.edu.ng', role: 'HOD Computer Science', dept: 'CS & AI Labs', allowedCategory: 'ACADEMIC_LAB' },
     { name: 'Mrs. Clara Hughes', email: 'clara.hughes@csmt.edu.ng', role: 'Head Librarian', dept: 'Digital Library', allowedCategory: 'LIBRARY' },
     { name: 'Coach Marcus Miller', email: 'marcus.miller@csmt.edu.ng', role: 'Sports Director', dept: 'Sports Complex', allowedCategory: 'SPORTS' },
@@ -82,7 +81,7 @@ export const CsmtLoginView: React.FC<CsmtLoginViewProps> = ({ onLoginSuccess }) 
         name: 'Dr. Clement Eze',
         email: 'admin@csmt.edu.ng',
         role: 'District Admin / Principal',
-        dept: 'CSMT Executive Admin',
+        dept: 'Executive Admin',
         isSystemAdmin: true,
         allowedCategory: 'ALL'
       };
@@ -97,59 +96,88 @@ export const CsmtLoginView: React.FC<CsmtLoginViewProps> = ({ onLoginSuccess }) 
         background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%)',
         display: 'flex',
         alignItems: 'center',
-        justify: 'center',
-        py: 6,
-        px: 2
+        justifyContent: 'center',
+        py: { xs: 3, sm: 5, md: 6 },
+        px: { xs: 1.5, sm: 2, md: 3 },
+        boxSizing: 'border-box'
       }}
     >
-      <Container maxWidth="md">
+      <Container maxWidth="md" disableGutters sx={{ px: { xs: 1, sm: 2 } }}>
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 3, md: 5 },
-            borderRadius: '24px',
+            p: { xs: 2.5, sm: 4, md: 5 },
+            borderRadius: { xs: '16px', sm: '24px' },
             background: '#ffffff',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
-            border: '1px solid #e2e8f0'
+            border: '1px solid #e2e8f0',
+            overflow: 'hidden'
           }}
         >
-          <Grid container spacing={4} alignItems="center">
-            {/* Left Column: Branding & Info */}
+          <Grid container spacing={{ xs: 3, md: 4 }} alignItems="center">
+            {/* Left Column: Branding & Pre-configured Accounts */}
             <Grid item xs={12} md={5}>
-              <Box sx={{ mb: 3 }}>
+              <Box sx={{ mb: 2.5 }}>
                 <Chip
-                  icon={<SchoolIcon sx={{ color: '#fff !important', fontSize: 16 }} />}
+                  icon={<SchoolIcon sx={{ color: '#fff !important', fontSize: 15 }} />}
                   label="CSMT SCHOOLS DISTRICT"
-                  sx={{ background: '#4f46e5', color: '#fff', fontWeight: 800, mb: 2 }}
+                  size="small"
+                  sx={{
+                    background: '#4f46e5',
+                    color: '#fff',
+                    fontWeight: 800,
+                    fontSize: '0.68rem',
+                    mb: 1.5,
+                    maxWidth: '100%'
+                  }}
                 />
-                <Typography variant="h4" sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: -0.5, mb: 1 }}>
-                  Staff & Admin Portal Sign In
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 900,
+                    color: '#0f172a',
+                    letterSpacing: -0.5,
+                    mb: 1,
+                    fontSize: { xs: '1.4rem', sm: '1.8rem', md: '2rem' }
+                  }}
+                >
+                  Staff & Admin Sign In
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#64748b', lineHeight: 1.6 }}>
-                  Role-Scoped Infrastructure Dashboard & UPME Engine Organization Admin Controls.
+                <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.82rem', lineHeight: 1.5 }}>
+                  Role-Scoped Infrastructure Dashboard & Engine Admin Controls.
                 </Typography>
               </Box>
 
-              <Stack spacing={2} sx={{ mb: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <VerifiedUserIcon sx={{ color: '#059669', fontSize: 22 }} />
-                  <Typography variant="caption" sx={{ color: '#334155', fontWeight: 700 }}>
+              <Stack spacing={1.2} sx={{ mb: 2.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                  <VerifiedUserIcon sx={{ color: '#059669', fontSize: 18, flexShrink: 0 }} />
+                  <Typography variant="caption" sx={{ color: '#334155', fontWeight: 700, fontSize: '0.75rem' }}>
                     Role-Based Access Control (RBAC) Enabled
                   </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <KeyIcon sx={{ color: '#4f46e5', fontSize: 22 }} />
-                  <Typography variant="caption" sx={{ color: '#334155', fontWeight: 700 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                  <KeyIcon sx={{ color: '#4f46e5', fontSize: 18, flexShrink: 0 }} />
+                  <Typography variant="caption" sx={{ color: '#334155', fontWeight: 700, fontSize: '0.75rem' }}>
                     Tenant Scope: CSMT-SCHOOLS-DISTRICT
                   </Typography>
                 </Box>
               </Stack>
 
-              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, display: 'block', mb: 1.5 }}>
-                PRE-CONFIGURED STAFF & ADMIN ACCOUNTS:
+              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 800, display: 'block', mb: 1, letterSpacing: 0.3, fontSize: '0.72rem' }}>
+                SELECT STAFF ACCOUNT TO QUICK LOGIN:
               </Typography>
 
-              <Stack spacing={1} sx={{ maxHeight: 320, overflowY: 'auto' }}>
+              {/* Pre-configured Demo Staff Accounts List */}
+              <Stack
+                spacing={1}
+                sx={{
+                  maxHeight: { xs: 260, sm: 300 },
+                  overflowY: 'auto',
+                  pr: 0.5,
+                  '&::-webkit-scrollbar': { width: '4px' },
+                  '&::-webkit-scrollbar-thumb': { background: '#cbd5e1', borderRadius: '4px' }
+                }}
+              >
                 {demoAccounts.map((acc) => (
                   <Paper
                     key={acc.email}
@@ -163,35 +191,62 @@ export const CsmtLoginView: React.FC<CsmtLoginViewProps> = ({ onLoginSuccess }) 
                       background: email === acc.email ? '#f5f3ff' : '#f8fafc',
                       cursor: 'pointer',
                       display: 'flex',
-                      justify: 'space-between',
                       alignItems: 'center',
-                      '&:hover': { borderColor: '#4f46e5' }
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: 1,
+                      transition: 'all 0.15s ease',
+                      '&:hover': { borderColor: '#4f46e5', background: '#f5f3ff' }
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0, flex: 1 }}>
                       {acc.isSystemAdmin ? (
-                        <AdminPanelSettingsIcon sx={{ color: '#4f46e5', fontSize: 20 }} />
+                        <AdminPanelSettingsIcon sx={{ color: '#4f46e5', fontSize: 20, flexShrink: 0 }} />
                       ) : (
-                        <AccountCircleIcon sx={{ color: email === acc.email ? '#4f46e5' : '#94a3b8', fontSize: 20 }} />
+                        <AccountCircleIcon sx={{ color: email === acc.email ? '#4f46e5' : '#94a3b8', fontSize: 20, flexShrink: 0 }} />
                       )}
-                      <Box>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.8rem', lineHeight: 1.1 }}>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            fontWeight: 800,
+                            color: '#0f172a',
+                            fontSize: '0.8rem',
+                            lineHeight: 1.2,
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                        >
                           {acc.name}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: '#64748b',
+                            fontSize: '0.68rem',
+                            display: 'block',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                        >
                           {acc.role}
                         </Typography>
                       </Box>
                     </Box>
+
                     <Chip
                       label={acc.dept}
                       size="small"
                       sx={{
-                        height: 18,
+                        height: 20,
                         fontSize: '0.58rem',
                         fontWeight: 800,
-                        background: acc.isSystemAdmin ? '#e0e7ff' : undefined,
-                        color: acc.isSystemAdmin ? '#4338ca' : undefined
+                        whiteSpace: 'nowrap',
+                        background: acc.isSystemAdmin ? '#e0e7ff' : '#e2e8f0',
+                        color: acc.isSystemAdmin ? '#4338ca' : '#475569',
+                        flexShrink: 0
                       }}
                     />
                   </Paper>
@@ -201,12 +256,12 @@ export const CsmtLoginView: React.FC<CsmtLoginViewProps> = ({ onLoginSuccess }) 
 
             {/* Right Column: Login Form */}
             <Grid item xs={12} md={7}>
-              <Paper elevation={0} sx={{ p: 4, borderRadius: '16px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
+              <Paper elevation={0} sx={{ p: { xs: 2.5, sm: 3.5, md: 4 }, borderRadius: '16px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', mb: 0.5, fontSize: { xs: '1.05rem', sm: '1.25rem' } }}>
                   Sign In to Your Account
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
-                  Each staff role will see only projects relevant to their scope:
+                <Typography variant="body2" sx={{ color: '#64748b', mb: 3, fontSize: '0.8rem' }}>
+                  Each staff role will see only projects relevant to their scope.
                 </Typography>
 
                 {errorMsg && <Alert severity="error" sx={{ mb: 3, borderRadius: '10px' }}>{errorMsg}</Alert>}
@@ -238,18 +293,18 @@ export const CsmtLoginView: React.FC<CsmtLoginViewProps> = ({ onLoginSuccess }) 
                     disabled={loading}
                     startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <LockIcon />}
                     sx={{
-                      background: '#4f46e5',
+                      background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)',
                       color: '#ffffff',
                       borderRadius: '12px',
-                      py: 1.6,
+                      py: 1.4,
                       fontWeight: 800,
                       textTransform: 'none',
-                      fontSize: '1rem',
+                      fontSize: '0.95rem',
                       boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
                       '&:hover': { background: '#4338ca' }
                     }}
                   >
-                    {loading ? 'Authenticating with UPME Engine...' : 'Sign In to CSMT Portal'}
+                    {loading ? 'Authenticating...' : 'Sign In to Portal'}
                   </Button>
                 </Box>
               </Paper>
