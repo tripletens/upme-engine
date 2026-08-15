@@ -7,7 +7,7 @@ use Illuminate\Database\Seeder;
 class CsmtSchoolSeeder extends Seeder
 {
     /**
-     * Seed diverse CSMT Schools projects across campus (Library, Sports, Clubs, Hostel, CS Lab).
+     * Seed diverse CSMT Schools projects across campus (Library, Sports, Clubs, Hostel, CS Lab) in Nigerian Naira (₦).
      */
     public static function getSeededSchoolProjects(): array
     {
@@ -18,7 +18,8 @@ class CsmtSchoolSeeder extends Seeder
                 'project_name' => 'Computer Science & AI Lab Modernization',
                 'category' => 'ACADEMIC_LAB',
                 'location' => 'Block A - Room 304',
-                'budget_allocated' => '$75,000',
+                'currency' => 'NGN',
+                'budget_allocated' => '₦35,000,000',
                 'upme_project_uuid' => 'proj-cs-lab-001',
                 'overall_progress' => 100,
                 'health_status' => 'ON_TRACK',
@@ -37,7 +38,8 @@ class CsmtSchoolSeeder extends Seeder
                 'project_name' => 'Digital Library & E-Reader Hub Renovation',
                 'category' => 'LIBRARY',
                 'location' => 'Central Library - Floor 2',
-                'budget_allocated' => '$45,000',
+                'currency' => 'NGN',
+                'budget_allocated' => '₦20,000,000',
                 'upme_project_uuid' => 'proj-library-002',
                 'overall_progress' => 85,
                 'health_status' => 'ON_TRACK',
@@ -55,7 +57,8 @@ class CsmtSchoolSeeder extends Seeder
                 'project_name' => 'CSMT Stadium Artificial Turf & Floodlights Renovation',
                 'category' => 'SPORTS',
                 'location' => 'Outdoor Sports Complex',
-                'budget_allocated' => '$120,000',
+                'currency' => 'NGN',
+                'budget_allocated' => '₦55,000,000',
                 'upme_project_uuid' => 'proj-sports-003',
                 'overall_progress' => 60,
                 'health_status' => 'WARNING',
@@ -73,7 +76,8 @@ class CsmtSchoolSeeder extends Seeder
                 'project_name' => 'Hostel Hall A & B Smart Access & Solar Hot Water',
                 'category' => 'HOSTEL',
                 'location' => 'Hostels Block A & B',
-                'budget_allocated' => '$85,000',
+                'currency' => 'NGN',
+                'budget_allocated' => '₦40,000,000',
                 'upme_project_uuid' => 'proj-hostel-004',
                 'overall_progress' => 95,
                 'health_status' => 'ON_TRACK',
@@ -91,7 +95,8 @@ class CsmtSchoolSeeder extends Seeder
                 'project_name' => 'Robotics & STEM Student Club Workshop',
                 'category' => 'CLUBS',
                 'location' => 'Innovation Hub - Room 102',
-                'budget_allocated' => '$35,000',
+                'currency' => 'NGN',
+                'budget_allocated' => '₦15,000,000',
                 'upme_project_uuid' => 'proj-robotics-005',
                 'overall_progress' => 70,
                 'health_status' => 'ON_TRACK',
