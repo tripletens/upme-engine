@@ -30,13 +30,16 @@ import LockIcon from '@mui/icons-material/Lock';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 import { UpdateCsmtTaskModal } from './components/UpdateCsmtTaskModal';
 import { CsmtLoginModal } from './components/CsmtLoginModal';
+import { CreateCsmtProjectModal } from './components/CreateCsmtProjectModal';
 
 export const App: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [modalOpen, setModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [selectedProject, setSelectedProject] = useState<any>(null);
@@ -58,7 +61,7 @@ export const App: React.FC = () => {
         };
   });
 
-  // Fetch Live Database Projects directly from UPME Engine REST API (http://127.0.0.1:8000/api/v1/projects)
+  // Fetch Live Engine Database Projects (No static fallback data)
   const fetchLiveEngineProjects = async () => {
     setLoading(true);
     try {
@@ -89,7 +92,6 @@ export const App: React.FC = () => {
             };
           });
 
-          // Flatten milestone activities for simple task management view
           const allTasks = milestones.flatMap((m: any) =>
             m.activities.length > 0
               ? m.activities
@@ -105,127 +107,26 @@ export const App: React.FC = () => {
             uuid: p.uuid,
             schoolName: 'CSMT Science & Technology Campus',
             projectName: p.name,
-            category: p.code?.includes('SCI') ? 'ACADEMIC_LAB' : p.code?.includes('LIB') ? 'LIBRARY' : 'ACADEMIC_LAB',
+            category: p.code?.includes('LIB') ? 'LIBRARY' : p.code?.includes('SPORTS') ? 'SPORTS' : p.code?.includes('HOSTEL') ? 'HOSTEL' : p.code?.includes('CLUBS') ? 'CLUBS' : 'ACADEMIC_LAB',
             location: 'Main Campus',
             budget: '₦35,000,000',
             progress: computedProgress,
             healthScore: computedProgress === 100 ? 100.0 : (p.health_status === 'ON_TRACK' ? 94.5 : 68.0),
             healthStatus: computedProgress === 100 ? 'ON_TRACK' : p.health_status,
             supervisor: 'Dr. Robert Vance (HOD Computer Science)',
-            iconType: 'computer',
+            iconType: p.code?.includes('LIB') ? 'book' : p.code?.includes('SPORTS') ? 'sports' : p.code?.includes('HOSTEL') ? 'hotel' : p.code?.includes('CLUBS') ? 'robotics' : 'computer',
             milestones: allTasks
           };
         });
 
         setCsmtProjects(mapped);
       } else {
-        loadDefaultEngineProjects();
+        setCsmtProjects([]);
       }
     } catch (err) {
       setLoading(false);
-      loadDefaultEngineProjects();
+      setCsmtProjects([]);
     }
-  };
-
-  const loadDefaultEngineProjects = () => {
-    setCsmtProjects([
-      {
-        id: 1,
-        uuid: 'proj-cs-lab-001',
-        schoolName: 'CSMT Science & Technology Campus',
-        projectName: 'Computer Science & AI Lab Modernization',
-        category: 'ACADEMIC_LAB',
-        location: 'Block A - Room 304',
-        budget: '₦35,000,000',
-        progress: 100,
-        healthScore: 100.0,
-        healthStatus: 'ON_TRACK',
-        supervisor: 'Dr. Robert Vance (HOD Computer Science)',
-        iconType: 'computer',
-        milestones: [
-          { id: 1, name: '1. Lab Budget & Specifications Approval', progress: 100 },
-          { id: 2, name: '2. Workstation PCs & Server Procurement', progress: 100 },
-          { id: 3, name: '3. Electrical Wiring & Network Outlets', progress: 100 },
-          { id: 4, name: '4. Equipment Mounting & Software Deployment', progress: 100 }
-        ]
-      },
-      {
-        id: 2,
-        uuid: 'proj-library-002',
-        schoolName: 'CSMT Central Campus',
-        projectName: 'Digital Library & E-Reader Hub Renovation',
-        category: 'LIBRARY',
-        location: 'Central Library - Floor 2',
-        budget: '₦20,000,000',
-        progress: 85,
-        healthScore: 92.5,
-        healthStatus: 'ON_TRACK',
-        supervisor: 'Mrs. Clara Hughes (Head Librarian)',
-        iconType: 'book',
-        milestones: [
-          { id: 5, name: '1. Cataloging Software & E-Book Server Setup', progress: 100 },
-          { id: 6, name: '2. Tablet e-Reader Kiosks Installation', progress: 90 },
-          { id: 7, name: '3. Library High-Speed WiFi AP Array', progress: 65 }
-        ]
-      },
-      {
-        id: 3,
-        uuid: 'proj-sports-003',
-        schoolName: 'CSMT Athletics & Sports Academy',
-        projectName: 'CSMT Stadium Artificial Turf & Floodlights Renovation',
-        category: 'SPORTS',
-        location: 'Outdoor Sports Complex',
-        budget: '₦55,000,000',
-        progress: 60,
-        healthScore: 78.0,
-        healthStatus: 'WARNING',
-        supervisor: 'Coach Marcus Miller (Sports Director)',
-        iconType: 'sports',
-        milestones: [
-          { id: 8, name: '1. Ground Excavation & Sub-base Drainage', progress: 100 },
-          { id: 9, name: '2. FIFA-Standard Synthetic Turf Laying', progress: 50 },
-          { id: 10, name: '3. LED Floodlight Towers Electrical Grid', progress: 30 }
-        ]
-      },
-      {
-        id: 4,
-        uuid: 'proj-hostel-004',
-        schoolName: 'CSMT Residential Campus',
-        projectName: 'Hostel Hall A & B Smart Access & Solar Hot Water',
-        category: 'HOSTEL',
-        location: 'Hostels Block A & B',
-        budget: '₦40,000,000',
-        progress: 95,
-        healthScore: 96.0,
-        healthStatus: 'ON_TRACK',
-        supervisor: 'Engr. David Opara (Facilities Manager)',
-        iconType: 'hotel',
-        milestones: [
-          { id: 11, name: '1. RFID Smart Card Keypad Installation', progress: 100 },
-          { id: 12, name: '2. Roof Solar Thermal Water Heater Array', progress: 100 },
-          { id: 13, name: '3. Hostel Mesh WiFi Network Expansion', progress: 85 }
-        ]
-      },
-      {
-        id: 5,
-        uuid: 'proj-robotics-005',
-        schoolName: 'CSMT Innovation Hub',
-        projectName: 'Robotics & STEM Student Club Workshop',
-        category: 'CLUBS',
-        location: 'Innovation Hub - Room 102',
-        budget: '₦15,000,000',
-        progress: 70,
-        healthScore: 88.0,
-        healthStatus: 'ON_TRACK',
-        supervisor: 'Prof. Alex Chen (Robotics Club Patron)',
-        iconType: 'robotics',
-        milestones: [
-          { id: 14, name: '1. 3D Printers & Soldering Benches Procurement', progress: 100 },
-          { id: 15, name: '2. Student Microcontroller & Sensor Kits', progress: 75 },
-          { id: 16, name: '3. Competition Testing Arena Construction', progress: 35 }
-        ]
-      }
-    ]);
   };
 
   useEffect(() => {
@@ -245,15 +146,21 @@ export const App: React.FC = () => {
   const handleTaskSaved = (newProgress: number, notes: string, fileName: string) => {
     if (!selectedProject || !selectedTask) return;
 
-    setCsmtProjects((prev) =>
-      prev.map((p) => {
+    setCsmtProjects((prev) => {
+      const updated = prev.map((p) => {
         if (p.id !== selectedProject.id) return p;
-        const updatedMilestones = p.milestones.map((m: any) =>
-          m.id === selectedTask.id ? { ...m, progress: newProgress } : m
-        );
+
+        const updatedMilestones = p.milestones.map((m: any) => {
+          if (m.id === selectedTask.id || m.name === selectedTask.name) {
+            return { ...m, progress: newProgress };
+          }
+          return m;
+        });
+
         const avgProgress = Math.round(
-          updatedMilestones.reduce((sum: number, m: any) => sum + m.progress, 0) / updatedMilestones.length
+          updatedMilestones.reduce((sum: number, m: any) => sum + Number(m.progress || 0), 0) / updatedMilestones.length
         );
+
         return {
           ...p,
           progress: avgProgress,
@@ -261,15 +168,14 @@ export const App: React.FC = () => {
           healthStatus: avgProgress === 100 ? 'ON_TRACK' : p.healthStatus,
           milestones: updatedMilestones
         };
-      })
-    );
+      });
+
+      return updated;
+    });
 
     setAlertMsg(
-      `🎉 Task "${selectedTask.name}" updated to ${newProgress}% by ${currentUser.name}! Live REST API request sent to UPME Engine (http://127.0.0.1:8000/api/v1/activities/${selectedTask.id}/progress).`
+      `🎉 Task "${selectedTask.name}" updated to ${newProgress}% by ${currentUser.name}! Saved directly to UPME Engine database.`
     );
-
-    // Re-fetch live engine state
-    fetchLiveEngineProjects();
   };
 
   const renderIcon = (type: string) => {
@@ -313,7 +219,7 @@ export const App: React.FC = () => {
                 />
                 <Chip
                   icon={<VerifiedIcon sx={{ color: '#fff !important', fontSize: 14 }} />}
-                  label="LIVE ENGINE REST API CONNECTED"
+                  label="LIVE ENGINE REST API (NO STATIC DATA)"
                   sx={{ background: '#059669', color: '#fff', fontWeight: 800 }}
                 />
               </Box>
@@ -326,15 +232,27 @@ export const App: React.FC = () => {
             </Box>
 
             <Stack direction="column" spacing={1.5} alignItems="flex-end">
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />}
-                onClick={fetchLiveEngineProjects}
-                sx={{ color: '#a5f3fc', borderColor: 'rgba(255,255,255,0.3)', textTransform: 'none', fontWeight: 700 }}
-              >
-                Sync Live Engine Data
-              </Button>
+              <Stack direction="row" spacing={1}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={() => setCreateModalOpen(true)}
+                  sx={{ background: '#059669', color: '#fff', textTransform: 'none', fontWeight: 800, '&:hover': { background: '#047857' } }}
+                >
+                  Create School Project
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />}
+                  onClick={fetchLiveEngineProjects}
+                  sx={{ color: '#a5f3fc', borderColor: 'rgba(255,255,255,0.3)', textTransform: 'none', fontWeight: 700 }}
+                >
+                  Sync Engine DB
+                </Button>
+              </Stack>
 
               {currentUser ? (
                 <Paper elevation={0} sx={{ p: 1.5, px: 2, background: 'rgba(255,255,255,0.1)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -368,12 +286,6 @@ export const App: React.FC = () => {
                   School Staff Login
                 </Button>
               )}
-
-              <Chip
-                icon={<KeyIcon sx={{ fontSize: 14, color: '#a5f3fc !important' }} />}
-                label="TENANT: CSMT-SCHOOLS-DISTRICT"
-                sx={{ background: 'rgba(255,255,255,0.1)', color: '#a5f3fc', fontWeight: 700, border: '1px solid rgba(255,255,255,0.2)' }}
-              />
             </Stack>
           </Box>
         </Paper>
@@ -401,109 +313,129 @@ export const App: React.FC = () => {
         </Box>
 
         {/* Project Cards Grid */}
-        <Grid container spacing={3}>
-          {filteredProjects.map((proj) => (
-            <Grid item xs={12} md={6} key={proj.id}>
-              <Card sx={{ borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: 'none', '&:hover': { borderColor: '#4f46e5' } }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Box sx={{ width: 44, height: 44, borderRadius: '12px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {renderIcon(proj.iconType)}
+        {filteredProjects.length === 0 ? (
+          <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: '16px', background: '#ffffff', border: '1px dashed #cbd5e1' }}>
+            <SchoolIcon sx={{ fontSize: 48, color: '#94a3b8', mb: 2 }} />
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1 }}>
+              No Active Projects Found in Live Engine Database
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
+              Click below to instantiate your first real project baseline directly inside the UPME Engine (`CSMT-SCHOOLS-DISTRICT`).
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddCircleOutlineIcon />}
+              onClick={() => setCreateModalOpen(true)}
+              sx={{ background: '#4f46e5', color: '#fff', borderRadius: '10px', px: 3, py: 1.2, fontWeight: 800, textTransform: 'none' }}
+            >
+              Create First CSMT School Project
+            </Button>
+          </Paper>
+        ) : (
+          <Grid container spacing={3}>
+            {filteredProjects.map((proj) => (
+              <Grid item xs={12} md={6} key={proj.id}>
+                <Card sx={{ borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: 'none', '&:hover': { borderColor: '#4f46e5' } }}>
+                  <CardContent sx={{ p: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box sx={{ width: 44, height: 44, borderRadius: '12px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {renderIcon(proj.iconType)}
+                        </Box>
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ color: '#64748b', fontWeight: 600 }}>
+                            {proj.schoolName}
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                            {proj.projectName}
+                          </Typography>
+                        </Box>
                       </Box>
+
+                      <Chip
+                        label={`ENGINE HEALTH: ${proj.healthScore}/100`}
+                        size="small"
+                        sx={{
+                          fontWeight: 800,
+                          fontSize: '0.68rem',
+                          background: proj.healthStatus === 'ON_TRACK' ? '#ecfdf5' : '#fef3c7',
+                          color: proj.healthStatus === 'ON_TRACK' ? '#047857' : '#b45309'
+                        }}
+                      />
+                    </Box>
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, p: 2, background: '#f8fafc', borderRadius: '10px' }}>
                       <Box>
-                        <Typography variant="subtitle2" sx={{ color: '#64748b', fontWeight: 600 }}>
-                          {proj.schoolName}
+                        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, display: 'block' }}>
+                          BUDGET ALLOCATED (NAIRA)
                         </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>
-                          {proj.projectName}
+                        <Typography variant="h5" sx={{ fontWeight: 800, color: '#059669' }}>
+                          {proj.budget}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ textAlign: 'right' }}>
+                        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, display: 'block' }}>
+                          COMPLETION PROGRESS
+                        </Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 800, color: '#4f46e5' }}>
+                          {proj.progress}%
                         </Typography>
                       </Box>
                     </Box>
 
-                    <Chip
-                      label={`ENGINE HEALTH: ${proj.healthScore}/100`}
-                      size="small"
-                      sx={{
-                        fontWeight: 800,
-                        fontSize: '0.68rem',
-                        background: proj.healthStatus === 'ON_TRACK' ? '#ecfdf5' : '#fef3c7',
-                        color: proj.healthStatus === 'ON_TRACK' ? '#047857' : '#b45309'
-                      }}
+                    <LinearProgress
+                      variant="determinate"
+                      value={proj.progress}
+                      sx={{ height: 8, borderRadius: 4, mb: 2, background: '#e2e8f0', '& .MuiLinearProgress-bar': { background: '#4f46e5' } }}
                     />
-                  </Box>
 
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, p: 2, background: '#f8fafc', borderRadius: '10px' }}>
-                    <Box>
-                      <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, display: 'block' }}>
-                        BUDGET ALLOCATED (NAIRA)
-                      </Typography>
-                      <Typography variant="h5" sx={{ fontWeight: 800, color: '#059669' }}>
-                        {proj.budget}
-                      </Typography>
-                    </Box>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, display: 'block', mb: 1 }}>
+                      Lead Supervisor: <strong>{proj.supervisor}</strong>
+                    </Typography>
 
-                    <Box sx={{ textAlign: 'right' }}>
-                      <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, display: 'block' }}>
-                        COMPLETION PROGRESS
-                      </Typography>
-                      <Typography variant="h5" sx={{ fontWeight: 800, color: '#4f46e5' }}>
-                        {proj.progress}%
-                      </Typography>
-                    </Box>
-                  </Box>
+                    <Divider sx={{ my: 1.5 }} />
 
-                  <LinearProgress
-                    variant="determinate"
-                    value={proj.progress}
-                    sx={{ height: 8, borderRadius: 4, mb: 2, background: '#e2e8f0', '& .MuiLinearProgress-bar': { background: '#4f46e5' } }}
-                  />
+                    <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 700, display: 'block', mb: 1 }}>
+                      PROJECT MILESTONES & TASK MANAGEMENT
+                    </Typography>
 
-                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, display: 'block', mb: 1 }}>
-                    Lead Supervisor: <strong>{proj.supervisor}</strong>
-                  </Typography>
+                    {proj.milestones.map((m: any) => (
+                      <Box key={m.id || m.name} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.8, borderBottom: '1px dashed #f1f5f9' }}>
+                        <Typography variant="body2" sx={{ color: '#334155', fontWeight: 600, fontSize: '0.82rem' }}>
+                          {m.name}
+                        </Typography>
 
-                  <Divider sx={{ my: 1.5 }} />
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <Chip
+                            label={`${m.progress}%`}
+                            size="small"
+                            sx={{
+                              height: 20,
+                              fontSize: '0.65rem',
+                              fontWeight: 800,
+                              background: m.progress >= 100 ? '#ecfdf5' : '#e0e7ff',
+                              color: m.progress >= 100 ? '#047857' : '#4338ca'
+                            }}
+                          />
 
-                  <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 700, display: 'block', mb: 1 }}>
-                    PROJECT MILESTONES & TASK MANAGEMENT
-                  </Typography>
-
-                  {proj.milestones.map((m: any) => (
-                    <Box key={m.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.8, borderBottom: '1px dashed #f1f5f9' }}>
-                      <Typography variant="body2" sx={{ color: '#334155', fontWeight: 600, fontSize: '0.82rem' }}>
-                        {m.name}
-                      </Typography>
-
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <Chip
-                          label={`${m.progress}%`}
-                          size="small"
-                          sx={{
-                            height: 20,
-                            fontSize: '0.65rem',
-                            fontWeight: 800,
-                            background: m.progress >= 100 ? '#ecfdf5' : '#e0e7ff',
-                            color: m.progress >= 100 ? '#047857' : '#4338ca'
-                          }}
-                        />
-
-                        <Button
-                          size="small"
-                          startIcon={<EditIcon sx={{ fontSize: 13 }} />}
-                          onClick={() => handleOpenTaskModal(proj, m)}
-                          sx={{ fontSize: '0.72rem', textTransform: 'none', fontWeight: 700, color: '#4f46e5' }}
-                        >
-                          Update & Proof
-                        </Button>
-                      </Stack>
-                    </Box>
-                  ))}
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+                          <Button
+                            size="small"
+                            startIcon={<EditIcon sx={{ fontSize: 13 }} />}
+                            onClick={() => handleOpenTaskModal(proj, m)}
+                            sx={{ fontSize: '0.72rem', textTransform: 'none', fontWeight: 700, color: '#4f46e5' }}
+                          >
+                            Update & Proof
+                          </Button>
+                        </Stack>
+                      </Box>
+                    ))}
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )}
 
         {/* Interactive Update Modal */}
         {selectedTask && selectedProject && (
@@ -517,6 +449,16 @@ export const App: React.FC = () => {
             onSaveSuccess={handleTaskSaved}
           />
         )}
+
+        {/* Create Project Modal */}
+        <CreateCsmtProjectModal
+          open={createModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+          onProjectCreated={(newProj) => {
+            setCsmtProjects((prev) => [newProj, ...prev]);
+            setAlertMsg(`🎉 Real School Project "${newProj.projectName}" created in UPME Engine backend database!`);
+          }}
+        />
 
         {/* School Staff Login Modal */}
         <CsmtLoginModal
