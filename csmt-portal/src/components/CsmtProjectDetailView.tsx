@@ -28,6 +28,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import LockIcon from '@mui/icons-material/Lock';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 import { UpdateCsmtTaskModal } from './UpdateCsmtTaskModal';
 import { DocumentPreviewModal } from './DocumentPreviewModal';
@@ -352,6 +353,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
             <Stack spacing={1.5}>
               {(project?.milestones || []).map((m: any) => {
                 const isSelected = activeStage?.id === m?.id || activeStage?.name === m?.name;
+                const isCompleted = (m?.progress || 0) >= 100;
                 return (
                   <Paper
                     key={m?.id || m?.name}
@@ -377,8 +379,8 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                         sx={{
                           fontWeight: 800,
                           fontSize: '0.65rem',
-                          background: (m?.progress || 0) >= 100 ? '#ecfdf5' : '#e0e7ff',
-                          color: (m?.progress || 0) >= 100 ? '#047857' : '#4338ca'
+                          background: isCompleted ? '#ecfdf5' : '#e0e7ff',
+                          color: isCompleted ? '#047857' : '#4338ca'
                         }}
                       />
                     </Box>
@@ -386,7 +388,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                     <LinearProgress
                       variant="determinate"
                       value={m?.progress || 0}
-                      sx={{ height: 6, borderRadius: 3, background: '#cbd5e1', '& .MuiLinearProgress-bar': { background: (m?.progress || 0) >= 100 ? '#059669' : '#4f46e5' } }}
+                      sx={{ height: 6, borderRadius: 3, background: '#cbd5e1', '& .MuiLinearProgress-bar': { background: isCompleted ? '#059669' : '#4f46e5' } }}
                     />
 
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
@@ -394,22 +396,54 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                         Click to view stage docs
                       </Typography>
 
-                      <Tooltip title={canUpdateProgress ? 'Update progress %' : 'Permission Removed by Admin'}>
+                      <Tooltip title={canUpdateProgress ? (isCompleted ? 'Progress complete (100%)' : 'Update stage progress %') : 'Permission Removed by Admin'}>
                         <span>
                           <Button
                             size="small"
                             variant="contained"
                             disabled={!canUpdateProgress}
-                            startIcon={canUpdateProgress ? <EditIcon sx={{ fontSize: 12 }} /> : <LockIcon sx={{ fontSize: 12 }} />}
+                            startIcon={
+                              !canUpdateProgress ? (
+                                <LockIcon sx={{ fontSize: 13 }} />
+                              ) : isCompleted ? (
+                                <CheckCircleIcon sx={{ fontSize: 13 }} />
+                              ) : (
+                                <EditIcon sx={{ fontSize: 13 }} />
+                              )
+                            }
                             onClick={(e) => {
                               e.stopPropagation();
                               if (!canUpdateProgress) return;
                               setSelectedTask(m);
                               setTaskModalOpen(true);
                             }}
-                            sx={{ fontSize: '0.65rem', textTransform: 'none', fontWeight: 800, background: canUpdateProgress ? '#4f46e5' : '#94a3b8', px: 1.5 }}
+                            sx={{
+                              height: 30,
+                              px: 2,
+                              borderRadius: '20px',
+                              fontSize: '0.72rem',
+                              textTransform: 'none',
+                              fontWeight: 800,
+                              whiteSpace: 'nowrap',
+                              background: !canUpdateProgress
+                                ? '#f1f5f9'
+                                : isCompleted
+                                ? 'linear-gradient(135deg, #059669 0%, #047857 100%)'
+                                : 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)',
+                              color: !canUpdateProgress ? '#94a3b8' : '#ffffff',
+                              boxShadow: !canUpdateProgress ? 'none' : '0 3px 10px rgba(79, 70, 229, 0.25)',
+                              transition: 'all 0.2s ease',
+                              '&:hover': {
+                                background: !canUpdateProgress
+                                  ? '#f1f5f9'
+                                  : isCompleted
+                                  ? '#047857'
+                                  : '#312e81',
+                                transform: !canUpdateProgress ? 'none' : 'translateY(-1px)'
+                              }
+                            }}
                           >
-                            {canUpdateProgress ? 'Update %' : 'Locked'}
+                            {canUpdateProgress ? (isCompleted ? 'Completed' : 'Edit Progress') : 'Locked'}
                           </Button>
                         </span>
                       </Tooltip>
