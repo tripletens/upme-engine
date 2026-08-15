@@ -41,9 +41,15 @@ class ActivityController extends Controller
 
         $activity->save();
 
-        // Recalculate parent project overall progress & health score
+        // Recalculate parent project overall progress
         $project = $activity->project;
         $project->overall_progress = $progressEngine->calculateProgress($project);
+        
+        if ((float) $project->overall_progress >= 100.0) {
+            $project->status = 'COMPLETED';
+            $project->health_status = 'ON_TRACK'; // Keep health_status valid for SQLite CHECK constraint
+        }
+
         $project->save();
 
         // Dispatch asynchronous background DAG delay propagation job

@@ -33,18 +33,35 @@ class TemplateAndReportController extends Controller
     public function createFromTemplate(Request $request, ProjectTemplateService $templateService): JsonResponse
     {
         $request->validate([
-            'template_id' => ['required', 'integer', 'exists:project_templates,id'],
+            'template_id' => ['nullable', 'integer'],
+            'template_code' => ['nullable', 'string'],
             'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', 'string', 'max:50'],
-            'start_date' => ['required', 'date'],
+            'code' => ['nullable', 'string', 'max:50'],
+            'start_date' => ['nullable', 'date'],
         ]);
 
-        $template = ProjectTemplate::findOrFail($request->input('template_id'));
-        $project = $templateService->instantiateProject($template, $request->all());
+        $template = null;
+        if ($request->filled('template_id')) {
+            $template = ProjectTemplate::find($request->input('template_id'));
+        } elseif ($request->filled('template_code')) {
+            $template = ProjectTemplate::where('code', $request->input('template_code'))->first();
+        }
+        
+        if (!$template) {
+            $template = ProjectTemplate::first();
+        }
+
+        $code = $request->input('code', 'PROJ-' . strtoupper(substr(md5(uniqid()), 0, 6)));
+        $startDate = $request->input('start_date', now()->toDateString());
+
+        $project = $templateService->instantiateProject($template, array_merge($request->all(), [
+            'code' => $code,
+            'start_date' => $startDate,
+        ]));
 
         return response()->json([
             'status' => 'success',
-            'message' => "Project '{$project->name}' created from template '{$template->name}'.",
+            'message' => "Project '{$project->name}' created and saved to database.",
             'data' => $project->load('milestones.activities'),
         ], 201);
     }

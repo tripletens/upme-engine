@@ -61,52 +61,54 @@ export const CreateCsmtProjectModal: React.FC<CreateCsmtProjectModalProps> = ({
       const data = await res.json();
       setSubmitting(false);
 
-      const newProj = {
-        id: Date.now(),
-        uuid: data.data?.uuid || `proj-csmt-${Date.now()}`,
-        schoolName,
-        projectName,
-        category,
-        location,
-        budget,
-        progress: 0,
-        healthScore: 100.0,
-        healthStatus: 'ON_TRACK',
-        supervisor,
-        iconType: category === 'LIBRARY' ? 'book' : category === 'SPORTS' ? 'sports' : category === 'HOSTEL' ? 'hotel' : category === 'CLUBS' ? 'robotics' : 'computer',
-        milestones: [
-          { id: Date.now() + 1, name: '1. Project Specifications & Budget Approval', progress: 0 },
-          { id: Date.now() + 2, name: '2. Equipment Procurement & Delivery', progress: 0 },
-          { id: Date.now() + 3, name: '3. Site Preparation & Installation', progress: 0 }
-        ]
-      };
+      if (data.status === 'success' && data.data) {
+        const p = data.data;
 
-      onProjectCreated(newProj);
-      onClose();
+        const milestones = (p.milestones || []).map((m: any) => {
+          const activities = (m.activities || []).map((a: any) => ({
+            id: a.id,
+            name: a.name,
+            progress: a.progress,
+            status: a.status
+          }));
+          return {
+            id: m.id,
+            name: m.name,
+            progress: m.progress,
+            activities
+          };
+        });
+
+        const allTasks = milestones.flatMap((m: any) =>
+          m.activities.length > 0
+            ? m.activities
+            : [{ id: m.id, name: m.name, progress: m.progress }]
+        );
+
+        const newProj = {
+          id: p.id,
+          uuid: p.uuid,
+          schoolName,
+          projectName: p.name,
+          category,
+          location,
+          budget,
+          progress: 0,
+          healthScore: 100.0,
+          healthStatus: 'ON_TRACK',
+          supervisor,
+          iconType: category === 'LIBRARY' ? 'book' : category === 'SPORTS' ? 'sports' : category === 'HOSTEL' ? 'hotel' : category === 'CLUBS' ? 'robotics' : 'computer',
+          milestones: allTasks
+        };
+
+        onProjectCreated(newProj);
+        onClose();
+      } else {
+        setErrorMsg(data.message || 'Failed to create project in database engine.');
+      }
     } catch (err) {
       setSubmitting(false);
-      const newProj = {
-        id: Date.now(),
-        uuid: `proj-csmt-${Date.now()}`,
-        schoolName,
-        projectName,
-        category,
-        location,
-        budget,
-        progress: 0,
-        healthScore: 100.0,
-        healthStatus: 'ON_TRACK',
-        supervisor,
-        iconType: category === 'LIBRARY' ? 'book' : category === 'SPORTS' ? 'sports' : category === 'HOSTEL' ? 'hotel' : category === 'CLUBS' ? 'robotics' : 'computer',
-        milestones: [
-          { id: Date.now() + 1, name: '1. Project Specifications & Budget Approval', progress: 0 },
-          { id: Date.now() + 2, name: '2. Equipment Procurement & Delivery', progress: 0 },
-          { id: Date.now() + 3, name: '3. Site Preparation & Installation', progress: 0 }
-        ]
-      };
-
-      onProjectCreated(newProj);
-      onClose();
+      setErrorMsg('Failed to connect to UPME Engine database backend.');
     }
   };
 
@@ -205,7 +207,7 @@ export const CreateCsmtProjectModal: React.FC<CreateCsmtProjectModalProps> = ({
               '&:hover': { background: '#4338ca' }
             }}
           >
-            {submitting ? 'Creating Baseline in UPME Engine...' : 'Create Real Project Baseline'}
+            {submitting ? 'Saving to UPME Database...' : 'Create & Save to Database'}
           </Button>
         </Box>
       </DialogContent>
