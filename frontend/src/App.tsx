@@ -25,6 +25,8 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import DownloadIcon from '@mui/icons-material/Download';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 import {
   schoolLabProjectDemo,
@@ -36,15 +38,20 @@ import {
 import { GanttTimeline } from './components/GanttTimeline';
 import { LandingPage } from './pages/LandingPage';
 import { HealthBreakdownModal } from './components/HealthBreakdownModal';
+import { KycPortalModal } from './components/KycPortalModal';
+import { CreateTemplateModal } from './components/CreateTemplateModal';
 
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'landing' | 'dashboard'>('landing');
-  const [project] = useState(schoolLabProjectDemo);
+  const [project, setProject] = useState<any>(schoolLabProjectDemo);
   const [milestones] = useState(schoolLabMilestones);
 
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [currentOrganization, setCurrentOrganization] = useState<any>(null);
   const [healthModalOpen, setHealthModalOpen] = useState(false);
+  const [kycModalOpen, setKycModalOpen] = useState(false);
+  const [templateModalOpen, setTemplateModalOpen] = useState(false);
+  const [kycStatus, setKycStatus] = useState('VERIFIED');
 
   const handleLoginSuccess = (user: any, organization: any) => {
     setCurrentUser(user);
@@ -113,17 +120,32 @@ export const App: React.FC = () => {
               Landing & Pricing
             </Button>
 
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<VerifiedUserIcon />}
+              onClick={() => setKycModalOpen(true)}
+              sx={{ color: '#059669', borderColor: '#a7f3d0', textTransform: 'none', fontWeight: 700 }}
+            >
+              KYC: {kycStatus}
+            </Button>
+
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<AddCircleOutlineIcon />}
+              onClick={() => setTemplateModalOpen(true)}
+              sx={{ background: '#4f46e5', textTransform: 'none', fontWeight: 700, borderRadius: '8px' }}
+            >
+              New Project Baseline
+            </Button>
+
             {currentUser ? (
               <>
                 <Chip
                   icon={<PersonIcon sx={{ fontSize: 16 }} />}
                   label={`${currentUser.name} (${currentUser.role})`}
                   sx={{ background: '#e0e7ff', color: '#4338ca', fontWeight: 700 }}
-                />
-
-                <Chip
-                  label={`Tenant: ${currentOrganization?.name || 'Enterprise'}`}
-                  sx={{ background: '#ecfdf5', color: '#047857', fontWeight: 700, border: '1px solid #a7f3d0' }}
                 />
 
                 <Button
@@ -363,6 +385,21 @@ export const App: React.FC = () => {
         onClose={() => setHealthModalOpen(false)}
         overallScore={project.overallHealthScore}
         healthStatus={project.healthStatus}
+      />
+
+      {/* Corporate KYC Verification Modal */}
+      <KycPortalModal
+        open={kycModalOpen}
+        onClose={() => setKycModalOpen(false)}
+        currentKycStatus={kycStatus}
+        onKycUpdated={(st) => setKycStatus(st)}
+      />
+
+      {/* Project Baseline Template Creator Modal */}
+      <CreateTemplateModal
+        open={templateModalOpen}
+        onClose={() => setTemplateModalOpen(false)}
+        onProjectCreated={(newProj) => setProject(newProj)}
       />
     </Box>
   );
