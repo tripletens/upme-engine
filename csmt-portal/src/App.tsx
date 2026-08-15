@@ -31,18 +31,23 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 import { UpdateCsmtTaskModal } from './components/UpdateCsmtTaskModal';
 import { CsmtLoginModal } from './components/CsmtLoginModal';
 import { CreateCsmtProjectModal } from './components/CreateCsmtProjectModal';
+import { StageDocumentViewerModal } from './components/StageDocumentViewerModal';
 
 export const App: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [modalOpen, setModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [docModalOpen, setDocModalOpen] = useState(false);
+
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [selectedStage, setSelectedStage] = useState<any>(null);
   const [alertMsg, setAlertMsg] = useState('');
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -61,7 +66,7 @@ export const App: React.FC = () => {
         };
   });
 
-  // Fetch Live Engine Database Projects (No static fallback data)
+  // Fetch Live MySQL Engine Database Projects
   const fetchLiveEngineProjects = async () => {
     setLoading(true);
     try {
@@ -143,6 +148,12 @@ export const App: React.FC = () => {
     setModalOpen(true);
   };
 
+  const handleOpenDocModal = (proj: any, stage: any) => {
+    setSelectedProject(proj);
+    setSelectedStage(stage);
+    setDocModalOpen(true);
+  };
+
   const handleTaskSaved = (newProgress: number, notes: string, fileName: string) => {
     if (!selectedProject || !selectedTask) return;
 
@@ -174,7 +185,7 @@ export const App: React.FC = () => {
     });
 
     setAlertMsg(
-      `🎉 Task "${selectedTask.name}" updated to ${newProgress}% by ${currentUser.name}! Saved directly to UPME Engine database.`
+      `🎉 Task "${selectedTask.name}" updated to ${newProgress}% by ${currentUser.name}! Saved directly to MySQL database.`
     );
   };
 
@@ -219,7 +230,7 @@ export const App: React.FC = () => {
                 />
                 <Chip
                   icon={<VerifiedIcon sx={{ color: '#fff !important', fontSize: 14 }} />}
-                  label="LIVE ENGINE REST API (NO STATIC DATA)"
+                  label="CONNECTED TO MYSQL DATABASE"
                   sx={{ background: '#059669', color: '#fff', fontWeight: 800 }}
                 />
               </Box>
@@ -397,35 +408,39 @@ export const App: React.FC = () => {
                     <Divider sx={{ my: 1.5 }} />
 
                     <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 700, display: 'block', mb: 1 }}>
-                      PROJECT MILESTONES & TASK MANAGEMENT
+                      PROJECT MILESTONES & STAGE AUDIT DOCUMENTS
                     </Typography>
 
                     {proj.milestones.map((m: any) => (
-                      <Box key={m.id || m.name} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.8, borderBottom: '1px dashed #f1f5f9' }}>
-                        <Typography variant="body2" sx={{ color: '#334155', fontWeight: 600, fontSize: '0.82rem' }}>
-                          {m.name}
-                        </Typography>
+                      <Box key={m.id || m.name} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, borderBottom: '1px dashed #f1f5f9' }}>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: '#334155', fontWeight: 700, fontSize: '0.82rem' }}>
+                            {m.name}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem' }}>
+                            Progress: <strong>{m.progress}%</strong> • Audit Docs: <strong>4 Files Attached</strong>
+                          </Typography>
+                        </Box>
 
                         <Stack direction="row" spacing={1} alignItems="center">
-                          <Chip
-                            label={`${m.progress}%`}
+                          <Button
                             size="small"
-                            sx={{
-                              height: 20,
-                              fontSize: '0.65rem',
-                              fontWeight: 800,
-                              background: m.progress >= 100 ? '#ecfdf5' : '#e0e7ff',
-                              color: m.progress >= 100 ? '#047857' : '#4338ca'
-                            }}
-                          />
+                            variant="outlined"
+                            startIcon={<DescriptionIcon sx={{ fontSize: 13 }} />}
+                            onClick={() => handleOpenDocModal(proj, m)}
+                            sx={{ fontSize: '0.7rem', textTransform: 'none', fontWeight: 700, color: '#059669', borderColor: '#a7f3d0' }}
+                          >
+                            View Stage Docs
+                          </Button>
 
                           <Button
                             size="small"
+                            variant="contained"
                             startIcon={<EditIcon sx={{ fontSize: 13 }} />}
                             onClick={() => handleOpenTaskModal(proj, m)}
-                            sx={{ fontSize: '0.72rem', textTransform: 'none', fontWeight: 700, color: '#4f46e5' }}
+                            sx={{ fontSize: '0.7rem', textTransform: 'none', fontWeight: 700, background: '#4f46e5', color: '#fff' }}
                           >
-                            Update & Proof
+                            Update
                           </Button>
                         </Stack>
                       </Box>
@@ -450,13 +465,25 @@ export const App: React.FC = () => {
           />
         )}
 
+        {/* Stage Documents Viewer Modal */}
+        {selectedStage && selectedProject && (
+          <StageDocumentViewerModal
+            open={docModalOpen}
+            onClose={() => setDocModalOpen(false)}
+            stageName={selectedStage.name}
+            projectName={selectedProject.projectName}
+            supervisorName={selectedProject.supervisor}
+            progress={selectedStage.progress}
+          />
+        )}
+
         {/* Create Project Modal */}
         <CreateCsmtProjectModal
           open={createModalOpen}
           onClose={() => setCreateModalOpen(false)}
           onProjectCreated={(newProj) => {
             setCsmtProjects((prev) => [newProj, ...prev]);
-            setAlertMsg(`🎉 Real School Project "${newProj.projectName}" created in UPME Engine backend database!`);
+            setAlertMsg(`🎉 Real School Project "${newProj.projectName}" created in MySQL database!`);
           }}
         />
 
