@@ -25,11 +25,18 @@ import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturi
 import VerifiedIcon from '@mui/icons-material/Verified';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import KeyIcon from '@mui/icons-material/Key';
+import EditIcon from '@mui/icons-material/Edit';
+
+import { UpdateCsmtTaskModal } from './components/UpdateCsmtTaskModal';
 
 export const App: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [alertMsg, setAlertMsg] = useState('');
 
-  const csmtProjects = [
+  const [csmtProjects, setCsmtProjects] = useState<any[]>([
     {
       id: 101,
       schoolName: 'CSMT Science & Technology Campus',
@@ -44,10 +51,10 @@ export const App: React.FC = () => {
       supervisor: 'Dr. Robert Vance (HOD Computer Science)',
       icon: <ComputerIcon sx={{ color: '#4f46e5' }} />,
       milestones: [
-        { name: '1. Lab Budget & Specifications Approval', progress: 100 },
-        { name: '2. Workstation PCs & Server Procurement', progress: 100 },
-        { name: '3. Electrical Wiring & Network Outlets', progress: 100 },
-        { name: '4. Equipment Mounting & Software Deployment', progress: 100 }
+        { id: 1, name: '1. Lab Budget & Specifications Approval', progress: 100 },
+        { id: 2, name: '2. Workstation PCs & Server Procurement', progress: 100 },
+        { id: 3, name: '3. Electrical Wiring & Network Outlets', progress: 100 },
+        { id: 4, name: '4. Equipment Mounting & Software Deployment', progress: 100 }
       ]
     },
     {
@@ -64,9 +71,9 @@ export const App: React.FC = () => {
       supervisor: 'Mrs. Clara Hughes (Head Librarian)',
       icon: <MenuBookIcon sx={{ color: '#0284c7' }} />,
       milestones: [
-        { name: '1. Cataloging Software & E-Book Server Setup', progress: 100 },
-        { name: '2. Tablet e-Reader Kiosks Installation', progress: 90 },
-        { name: '3. Library High-Speed WiFi AP Array', progress: 65 }
+        { id: 5, name: '1. Cataloging Software & E-Book Server Setup', progress: 100 },
+        { id: 6, name: '2. Tablet e-Reader Kiosks Installation', progress: 90 },
+        { id: 7, name: '3. Library High-Speed WiFi AP Array', progress: 65 }
       ]
     },
     {
@@ -83,9 +90,9 @@ export const App: React.FC = () => {
       supervisor: 'Coach Marcus Miller (Sports Director)',
       icon: <SportsSoccerIcon sx={{ color: '#d97706' }} />,
       milestones: [
-        { name: '1. Ground Excavation & Sub-base Drainage', progress: 100 },
-        { name: '2. FIFA-Standard Synthetic Turf Laying', progress: 50 },
-        { name: '3. LED Floodlight Towers Electrical Grid', progress: 30 }
+        { id: 8, name: '1. Ground Excavation & Sub-base Drainage', progress: 100 },
+        { id: 9, name: '2. FIFA-Standard Synthetic Turf Laying', progress: 50 },
+        { id: 10, name: '3. LED Floodlight Towers Electrical Grid', progress: 30 }
       ]
     },
     {
@@ -102,9 +109,9 @@ export const App: React.FC = () => {
       supervisor: 'Engr. David Opara (Facilities Manager)',
       icon: <HotelIcon sx={{ color: '#059669' }} />,
       milestones: [
-        { name: '1. RFID Smart Card Keypad Installation', progress: 100 },
-        { name: '2. Roof Solar Thermal Water Heater Array', progress: 100 },
-        { name: '3. Hostel Mesh WiFi Network Expansion', progress: 85 }
+        { id: 11, name: '1. RFID Smart Card Keypad Installation', progress: 100 },
+        { id: 12, name: '2. Roof Solar Thermal Water Heater Array', progress: 100 },
+        { id: 13, name: '3. Hostel Mesh WiFi Network Expansion', progress: 85 }
       ]
     },
     {
@@ -121,12 +128,45 @@ export const App: React.FC = () => {
       supervisor: 'Prof. Alex Chen (Robotics Club Patron)',
       icon: <PrecisionManufacturingIcon sx={{ color: '#7c3aed' }} />,
       milestones: [
-        { name: '1. 3D Printers & Soldering Benches Procurement', progress: 100 },
-        { name: '2. Student Microcontroller & Sensor Kits', progress: 75 },
-        { name: '3. Competition Testing Arena Construction', progress: 35 }
+        { id: 14, name: '1. 3D Printers & Soldering Benches Procurement', progress: 100 },
+        { id: 15, name: '2. Student Microcontroller & Sensor Kits', progress: 75 },
+        { id: 16, name: '3. Competition Testing Arena Construction', progress: 35 }
       ]
     }
-  ];
+  ]);
+
+  const handleOpenTaskModal = (proj: any, task: any) => {
+    setSelectedProject(proj);
+    setSelectedTask(task);
+    setModalOpen(true);
+  };
+
+  const handleTaskSaved = (newProgress: number, notes: string, fileName: string) => {
+    if (!selectedProject || !selectedTask) return;
+
+    setCsmtProjects((prev) =>
+      prev.map((p) => {
+        if (p.id !== selectedProject.id) return p;
+        const updatedMilestones = p.milestones.map((m: any) =>
+          m.id === selectedTask.id ? { ...m, progress: newProgress } : m
+        );
+        const avgProgress = Math.round(
+          updatedMilestones.reduce((sum: number, m: any) => sum + m.progress, 0) / updatedMilestones.length
+        );
+        return {
+          ...p,
+          progress: avgProgress,
+          healthScore: avgProgress === 100 ? 100.0 : p.healthScore,
+          healthStatus: avgProgress === 100 ? 'ON_TRACK' : p.healthStatus,
+          milestones: updatedMilestones
+        };
+      })
+    );
+
+    setAlertMsg(
+      `🎉 Task "${selectedTask.name}" updated to ${newProgress}%! Proof asset "${fileName}" attached & synced with UPME Engine.`
+    );
+  };
 
   const filteredProjects = csmtProjects.filter((p) => {
     if (activeCategory === 'ALL') return true;
@@ -182,6 +222,12 @@ export const App: React.FC = () => {
             </Stack>
           </Box>
         </Paper>
+
+        {alertMsg && (
+          <Alert severity="success" sx={{ mb: 4, borderRadius: '12px' }} onClose={() => setAlertMsg('')}>
+            {alertMsg}
+          </Alert>
+        )}
 
         {/* Category Filter Tabs */}
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
@@ -265,25 +311,37 @@ export const App: React.FC = () => {
                   <Divider sx={{ my: 1.5 }} />
 
                   <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 700, display: 'block', mb: 1 }}>
-                    PROJECT MILESTONES ({proj.milestones.length})
+                    PROJECT MILESTONES & TASK MANAGEMENT
                   </Typography>
 
-                  {proj.milestones.map((m, idx) => (
-                    <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5 }}>
-                      <Typography variant="caption" sx={{ color: '#334155', fontWeight: 500 }}>
+                  {proj.milestones.map((m: any) => (
+                    <Box key={m.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.8, borderBottom: '1px dashed #f1f5f9' }}>
+                      <Typography variant="body2" sx={{ color: '#334155', fontWeight: 600, fontSize: '0.82rem' }}>
                         {m.name}
                       </Typography>
-                      <Chip
-                        label={`${m.progress}%`}
-                        size="small"
-                        sx={{
-                          height: 18,
-                          fontSize: '0.62rem',
-                          fontWeight: 800,
-                          background: m.progress >= 100 ? '#ecfdf5' : '#e0e7ff',
-                          color: m.progress >= 100 ? '#047857' : '#4338ca'
-                        }}
-                      />
+
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Chip
+                          label={`${m.progress}%`}
+                          size="small"
+                          sx={{
+                            height: 20,
+                            fontSize: '0.65rem',
+                            fontWeight: 800,
+                            background: m.progress >= 100 ? '#ecfdf5' : '#e0e7ff',
+                            color: m.progress >= 100 ? '#047857' : '#4338ca'
+                          }}
+                        />
+
+                        <Button
+                          size="small"
+                          startIcon={<EditIcon sx={{ fontSize: 13 }} />}
+                          onClick={() => handleOpenTaskModal(proj, m)}
+                          sx={{ fontSize: '0.72rem', textTransform: 'none', fontWeight: 700, color: '#4f46e5' }}
+                        >
+                          Update & Proof
+                        </Button>
+                      </Stack>
                     </Box>
                   ))}
                 </CardContent>
@@ -291,6 +349,18 @@ export const App: React.FC = () => {
             </Grid>
           ))}
         </Grid>
+
+        {/* Interactive Update Modal */}
+        {selectedTask && selectedProject && (
+          <UpdateCsmtTaskModal
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            taskName={selectedTask.name}
+            currentProgress={selectedTask.progress}
+            supervisorName={selectedProject.supervisor}
+            onSaveSuccess={handleTaskSaved}
+          />
+        )}
       </Container>
     </Box>
   );
