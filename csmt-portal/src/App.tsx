@@ -242,23 +242,24 @@ export const App: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, minHeight: '100vh', background: '#f8fafc' }}>
-      {/* Mobile Top App Bar Navigation */}
+      {/* Premium Mobile Top App Bar Navigation */}
       <AppBar
         position="sticky"
         elevation={0}
         sx={{
           display: { xs: 'flex', md: 'none' },
           background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
-          borderBottom: '1px solid #4338ca'
+          borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
+          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)'
         }}
       >
-        <Toolbar sx={{ justifyContent: 'space-between', px: 2 }}>
+        <Toolbar sx={{ justifyContent: 'space-between', px: 2, minHeight: 56 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <IconButton onClick={() => setMobileDrawerOpen(true)} sx={{ color: '#ffffff' }}>
+            <IconButton onClick={() => setMobileDrawerOpen(true)} sx={{ color: '#ffffff', p: 1 }}>
               <MenuIcon />
             </IconButton>
-            <SchoolIcon sx={{ color: '#ffffff', fontSize: 24 }} />
-            <Typography variant="h6" sx={{ fontWeight: 900, color: '#ffffff', fontSize: '1.05rem' }}>
+            <SchoolIcon sx={{ color: '#38bdf8', fontSize: 22 }} />
+            <Typography variant="h6" sx={{ fontWeight: 900, color: '#ffffff', fontSize: '0.98rem', letterSpacing: -0.3 }}>
               CSMT Schools
             </Typography>
           </Box>
@@ -266,7 +267,14 @@ export const App: React.FC = () => {
           <Chip
             label={currentUser.role}
             size="small"
-            sx={{ background: '#4f46e5', color: '#fff', fontWeight: 800, fontSize: '0.65rem' }}
+            sx={{
+              background: '#4f46e5',
+              color: '#fff',
+              fontWeight: 800,
+              fontSize: '0.62rem',
+              height: 22,
+              px: 0.5
+            }}
           />
         </Toolbar>
       </AppBar>
@@ -303,33 +311,46 @@ export const App: React.FC = () => {
           />
         ) : (
           <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-            {/* Top Header Card */}
+            {/* Ultra-Sleek Responsive Header Banner */}
             <Paper
               elevation={0}
               sx={{
-                p: { xs: 3, md: 4 },
-                mb: 4,
+                p: { xs: 2.5, sm: 3.5, md: 4 },
+                mb: 3,
                 borderRadius: '16px',
                 background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
                 color: '#ffffff',
-                border: '1px solid #4338ca'
+                border: '1px solid #4338ca',
+                boxShadow: '0 10px 25px rgba(30, 27, 75, 0.2)'
               }}
             >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-                <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1, flexWrap: 'wrap' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
+                <Box sx={{ width: '100%', maxWidth: { xs: '100%', md: '70%' } }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
                     <Chip
-                      icon={<SchoolIcon sx={{ color: '#fff !important', fontSize: 16 }} />}
-                      label="CSMT SCHOOLS DISTRICT PORTAL"
-                      sx={{ background: '#4f46e5', color: '#fff', fontWeight: 800 }}
+                      icon={<SchoolIcon sx={{ color: '#fff !important', fontSize: 14 }} />}
+                      label="CSMT DISTRICT PORTAL"
+                      size="small"
+                      sx={{ background: '#4f46e5', color: '#fff', fontWeight: 800, fontSize: '0.62rem', height: 24 }}
                     />
                     <Chip
-                      icon={<VerifiedIcon sx={{ color: '#fff !important', fontSize: 14 }} />}
-                      label="CONNECTED TO LIVE DATABASE"
-                      sx={{ background: '#059669', color: '#fff', fontWeight: 800 }}
+                      icon={<VerifiedIcon sx={{ color: '#fff !important', fontSize: 13 }} />}
+                      label="LIVE DATABASE"
+                      size="small"
+                      sx={{ background: '#059669', color: '#fff', fontWeight: 800, fontSize: '0.62rem', height: 24 }}
                     />
                   </Box>
-                  <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.5, mb: 0.5, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
+
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontWeight: 900,
+                      letterSpacing: -0.5,
+                      mb: 1,
+                      fontSize: { xs: '1.35rem', sm: '1.8rem', md: '2.2rem' },
+                      lineHeight: 1.2
+                    }}
+                  >
                     {activeCategory === 'ALL'
                       ? 'All District Projects Portfolio'
                       : activeCategory === 'ACADEMIC_LAB'
@@ -342,18 +363,40 @@ export const App: React.FC = () => {
                       ? 'Student Hostels'
                       : 'STEM Robotics Clubs'}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#c7d2fe' }}>
+
+                  <Typography variant="body2" sx={{ color: '#c7d2fe', fontSize: { xs: '0.8rem', sm: '0.88rem' } }}>
                     Multi-Campus Educational Projects Portfolio Budgeted in Nigerian Naira (₦).
                   </Typography>
                 </Box>
 
-                <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
+                {/* Equal-Width Action Buttons Layout on Mobile */}
+                <Stack
+                  direction="row"
+                  spacing={1.5}
+                  alignItems="center"
+                  sx={{
+                    width: { xs: '100%', sm: 'auto' },
+                    mt: { xs: 1, sm: 0 },
+                    justify: { xs: 'space-between', sm: 'flex-end' }
+                  }}
+                >
                   <Button
                     variant="contained"
                     size="small"
                     startIcon={<AddCircleOutlineIcon />}
                     onClick={() => setCreateModalOpen(true)}
-                    sx={{ background: '#059669', color: '#fff', textTransform: 'none', fontWeight: 800, px: 2, py: 1, borderRadius: '10px', '&:hover': { background: '#047857' } }}
+                    sx={{
+                      flex: { xs: 1, sm: 'initial' },
+                      background: '#059669',
+                      color: '#fff',
+                      textTransform: 'none',
+                      fontWeight: 800,
+                      px: 2.5,
+                      py: 1,
+                      borderRadius: '10px',
+                      boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
+                      '&:hover': { background: '#047857' }
+                    }}
                   >
                     Create Project
                   </Button>
@@ -363,7 +406,15 @@ export const App: React.FC = () => {
                     size="small"
                     startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />}
                     onClick={fetchLiveEngineProjects}
-                    sx={{ color: '#a5f3fc', borderColor: 'rgba(255,255,255,0.3)', textTransform: 'none', fontWeight: 700, borderRadius: '10px' }}
+                    sx={{
+                      flex: { xs: 1, sm: 'initial' },
+                      color: '#a5f3fc',
+                      borderColor: 'rgba(255,255,255,0.3)',
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      borderRadius: '10px',
+                      py: 1
+                    }}
                   >
                     Sync DB
                   </Button>
@@ -372,26 +423,26 @@ export const App: React.FC = () => {
             </Paper>
 
             {alertMsg && (
-              <Alert severity="success" sx={{ mb: 4, borderRadius: '12px' }} onClose={() => setAlertMsg('')}>
+              <Alert severity="success" sx={{ mb: 3, borderRadius: '12px' }} onClose={() => setAlertMsg('')}>
                 {alertMsg}
               </Alert>
             )}
 
             {/* Role Scope Info Notification */}
             {!isAdmin && (
-              <Alert severity="info" icon={<KeyIcon />} sx={{ mb: 3, borderRadius: '12px', fontWeight: 700 }}>
+              <Alert severity="info" icon={<KeyIcon />} sx={{ mb: 3, borderRadius: '12px', fontWeight: 700, fontSize: '0.85rem' }}>
                 Logged in as <strong>{currentUser.name} ({currentUser.role})</strong>. Projects are scoped specifically to <strong>{currentUser.dept}</strong>.
               </Alert>
             )}
 
             {/* Project Cards Grid */}
             {filteredProjects.length === 0 ? (
-              <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: '16px', background: '#ffffff', border: '1px dashed #cbd5e1' }}>
-                <SchoolIcon sx={{ fontSize: 48, color: '#94a3b8', mb: 2 }} />
-                <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1 }}>
+              <Paper elevation={0} sx={{ p: 5, textAlign: 'center', borderRadius: '16px', background: '#ffffff', border: '1px dashed #cbd5e1' }}>
+                <SchoolIcon sx={{ fontSize: 44, color: '#94a3b8', mb: 2 }} />
+                <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1, fontSize: '1.05rem' }}>
                   No Active Projects Found for Category: {activeCategory}
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
+                <Typography variant="body2" sx={{ color: '#64748b', mb: 3, fontSize: '0.85rem' }}>
                   Click below to instantiate a new project baseline directly inside the UPME Engine (`CSMT-SCHOOLS-DISTRICT`).
                 </Typography>
                 <Button
@@ -404,7 +455,7 @@ export const App: React.FC = () => {
                 </Button>
               </Paper>
             ) : (
-              <Grid container spacing={3}>
+              <Grid container spacing={2.5}>
                 {filteredProjects.map((proj) => (
                   <Grid item xs={12} sm={12} md={6} key={proj.id}>
                     <Card
@@ -418,17 +469,17 @@ export const App: React.FC = () => {
                         '&:hover': { borderColor: '#4f46e5', boxShadow: '0 10px 25px rgba(79, 70, 229, 0.12)' }
                       }}
                     >
-                      <CardContent sx={{ p: 3 }}>
+                      <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, flexWrap: 'wrap', gap: 1 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                             <Box sx={{ width: 44, height: 44, borderRadius: '12px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               {renderIcon(proj.iconType)}
                             </Box>
                             <Box>
-                              <Typography variant="subtitle2" sx={{ color: '#64748b', fontWeight: 600 }}>
+                              <Typography variant="subtitle2" sx={{ color: '#64748b', fontWeight: 600, fontSize: '0.78rem' }}>
                                 {proj.schoolName}
                               </Typography>
-                              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.05rem', lineHeight: 1.2 }}>
                                 {proj.projectName}
                               </Typography>
                             </Box>
@@ -439,7 +490,8 @@ export const App: React.FC = () => {
                             size="small"
                             sx={{
                               fontWeight: 800,
-                              fontSize: '0.68rem',
+                              fontSize: '0.65rem',
+                              height: 22,
                               background: proj.healthStatus === 'ON_TRACK' ? '#ecfdf5' : '#fef3c7',
                               color: proj.healthStatus === 'ON_TRACK' ? '#047857' : '#b45309'
                             }}
@@ -448,19 +500,19 @@ export const App: React.FC = () => {
 
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, p: 2, background: '#f8fafc', borderRadius: '10px' }}>
                           <Box>
-                            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, display: 'block' }}>
+                            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, display: 'block', fontSize: '0.68rem' }}>
                               BUDGET ALLOCATED (NAIRA)
                             </Typography>
-                            <Typography variant="h5" sx={{ fontWeight: 800, color: '#059669' }}>
+                            <Typography variant="h5" sx={{ fontWeight: 800, color: '#059669', fontSize: { xs: '1.15rem', sm: '1.35rem' } }}>
                               {proj.budget}
                             </Typography>
                           </Box>
 
                           <Box sx={{ textAlign: 'right' }}>
-                            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, display: 'block' }}>
+                            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, display: 'block', fontSize: '0.68rem' }}>
                               COMPLETION PROGRESS
                             </Typography>
-                            <Typography variant="h5" sx={{ fontWeight: 800, color: '#4f46e5' }}>
+                            <Typography variant="h5" sx={{ fontWeight: 800, color: '#4f46e5', fontSize: { xs: '1.15rem', sm: '1.35rem' } }}>
                               {proj.progress}%
                             </Typography>
                           </Box>
@@ -479,7 +531,7 @@ export const App: React.FC = () => {
                         <Divider sx={{ my: 1.5 }} />
 
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 700 }}>
+                          <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 700, fontSize: '0.72rem' }}>
                             {proj.milestones?.length || 0} Milestone Stages & Audit Docs
                           </Typography>
 
@@ -492,7 +544,7 @@ export const App: React.FC = () => {
                               setSelectedDetailProject(proj);
                             }}
                             sx={{
-                              fontSize: '0.75rem',
+                              fontSize: '0.72rem',
                               textTransform: 'none',
                               fontWeight: 800,
                               background: '#4f46e5',
