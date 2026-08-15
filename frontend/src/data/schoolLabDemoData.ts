@@ -164,10 +164,7 @@ export const schoolLabEvents: ProjectEvent[] = [
     id: 901,
     eventType: 'PROJECT_HEALTH_CHANGED',
     payload: {
-      old_status: 'AT_RISK',
-      new_status: 'ON_TRACK',
-      old_score: 64.5,
-      new_score: 94.5
+      message: "Health recalculated: Status updated from AT_RISK (64.5) to ON_TRACK (94.5)."
     },
     createdAt: '2026-08-15 11:00:00'
   },

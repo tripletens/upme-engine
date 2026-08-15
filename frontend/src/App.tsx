@@ -242,19 +242,19 @@ export const App: React.FC = () => {
             </Box>
 
             {/* Audit Log Events Stream */}
-            <Box className="enterprise-card" sx={{ p: 3 }}>
+            <Box className="enterprise-card" sx={{ p: 3, overflow: 'hidden' }}>
               <Typography variant="h6" sx={{ color: '#0f172a', fontWeight: 800, mb: 2 }}>
                 📜 Audit Trail Stream
               </Typography>
               {schoolLabEvents.map((ev) => (
-                <Box key={ev.id} sx={{ mb: 2, pb: 1, borderBottom: '1px dashed #e2e8f0' }}>
-                  <Typography variant="caption" sx={{ color: '#4f46e5', fontWeight: 700 }}>
+                <Box key={ev.id} sx={{ mb: 2, pb: 1, borderBottom: '1px dashed #e2e8f0', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                  <Typography variant="caption" sx={{ color: '#4f46e5', fontWeight: 700, display: 'block' }}>
                     {ev.eventType}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#334155', fontSize: '0.78rem' }}>
+                  <Typography variant="body2" sx={{ color: '#334155', fontSize: '0.78rem', wordBreak: 'break-word', overflowWrap: 'anywhere', my: 0.5 }}>
                     {ev.payload.message || JSON.stringify(ev.payload)}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>
+                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem', display: 'block' }}>
                     {ev.createdAt}
                   </Typography>
                 </Box>
