@@ -33,7 +33,7 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
 
   const handleDownload = () => {
     // Generate a downloadable text/PDF file blob dynamically
-    const dummyContent = `CSMT SCHOOLS DISTRICT INFRASTRUCTURE AUDIT PROOF\n----------------------------------------------------\nDocument Title: ${doc.title}\nCategory: ${doc.category || 'Audit Proof'}\nSize: ${doc.size || '3.4 MB'}\nUploaded By: ${doc.uploadedBy || 'Lead Supervisor'}\nTimestamp: ${doc.date || new Date().toLocaleString()}\nVerification Status: VERIFIED & AUDITED BY ENGINE (MySQL)\n\nThis is an official verification document proof attached to the CSMT Schools District Infrastructure Portfolio.`;
+    const dummyContent = `CSMT SCHOOLS DISTRICT INFRASTRUCTURE AUDIT PROOF\n----------------------------------------------------\nDocument Title: ${doc.title}\nCategory: ${doc.category || 'Audit Proof'}\nSize: ${doc.size || '3.4 MB'}\nUploaded By: ${doc.uploadedBy || 'Lead Supervisor'}\nTimestamp: ${doc.date || new Date().toLocaleString()}\nVerification Status: VERIFIED & AUDITED BY ENGINE\n\nThis is an official verification document proof attached to the CSMT Schools District Infrastructure Portfolio.`;
     
     const blob = new Blob([dummyContent], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
