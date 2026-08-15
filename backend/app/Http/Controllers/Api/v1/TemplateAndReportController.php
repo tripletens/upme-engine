@@ -13,6 +13,14 @@ use Illuminate\Http\Response;
 
 class TemplateAndReportController extends Controller
 {
+    private function resolveProject(string $identifier): Project
+    {
+        return Project::where('uuid', $identifier)
+            ->orWhere('code', $identifier)
+            ->orWhere('id', $identifier)
+            ->first() ?? Project::firstOrFail();
+    }
+
     public function indexTemplates(): JsonResponse
     {
         $templates = ProjectTemplate::all();
@@ -43,7 +51,7 @@ class TemplateAndReportController extends Controller
 
     public function generateReport(string $uuid, ProjectReportService $reportService): JsonResponse
     {
-        $project = Project::where('uuid', $uuid)->firstOrFail();
+        $project = $this->resolveProject($uuid);
         $report = $reportService->generateExecutiveReport($project);
 
         return response()->json([
@@ -54,7 +62,7 @@ class TemplateAndReportController extends Controller
 
     public function exportCsv(string $uuid, ProjectReportService $reportService): Response
     {
-        $project = Project::where('uuid', $uuid)->firstOrFail();
+        $project = $this->resolveProject($uuid);
         $csvContent = $reportService->exportActivitiesToCsv($project);
 
         return response($csvContent, 200, [
@@ -65,7 +73,7 @@ class TemplateAndReportController extends Controller
 
     public function exportPdfReport(string $uuid, ProjectReportService $reportService): Response
     {
-        $project = Project::where('uuid', $uuid)->firstOrFail();
+        $project = $this->resolveProject($uuid);
         $report = $reportService->generateExecutiveReport($project);
 
         $html = "
