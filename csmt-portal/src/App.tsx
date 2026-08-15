@@ -54,10 +54,15 @@ export const App: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [csmtProjects, setCsmtProjects] = useState<any[]>([]);
 
-  // Logged-in Staff User State (Defaults to null so app starts on Login View)
+  // Logged-in Staff User State (Safe JSON Parse)
   const [currentUser, setCurrentUser] = useState<any>(() => {
-    const savedUser = localStorage.getItem('csmt_current_user');
-    return savedUser ? JSON.parse(savedUser) : null;
+    try {
+      const savedUser = localStorage.getItem('csmt_current_user');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch (err) {
+      localStorage.removeItem('csmt_current_user');
+      return null;
+    }
   });
 
   const handleLogout = () => {
