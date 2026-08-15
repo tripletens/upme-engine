@@ -27,25 +27,27 @@ import EditIcon from '@mui/icons-material/Edit';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DescriptionIcon from '@mui/icons-material/Description';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 import { UpdateCsmtTaskModal } from './components/UpdateCsmtTaskModal';
 import { CsmtLoginModal } from './components/CsmtLoginModal';
 import { CreateCsmtProjectModal } from './components/CreateCsmtProjectModal';
-import { StageDocumentViewerModal } from './components/StageDocumentViewerModal';
 import { CsmtLoginView } from './components/CsmtLoginView';
 import { CsmtOrgUsersModal } from './components/CsmtOrgUsersModal';
 import { CsmtSidebar } from './components/CsmtSidebar';
+import { CsmtProjectDetailView } from './components/CsmtProjectDetailView';
 
 export const App: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [docModalOpen, setDocModalOpen] = useState(false);
   const [usersModalOpen, setUsersModalOpen] = useState(false);
+
+  // Full Page Project View Navigation State
+  const [selectedDetailProject, setSelectedDetailProject] = useState<any>(null);
 
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [selectedProject, setSelectedProject] = useState<any>(null);
-  const [selectedStage, setSelectedStage] = useState<any>(null);
   const [alertMsg, setAlertMsg] = useState('');
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -71,6 +73,7 @@ export const App: React.FC = () => {
   const handleLogout = () => {
     localStorage.removeItem('csmt_current_user');
     setCurrentUser(null);
+    setSelectedDetailProject(null);
   };
 
   const handleLoginSuccess = (user: any) => {
@@ -160,12 +163,6 @@ export const App: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleOpenDocModal = (proj: any, stage: any) => {
-    setSelectedProject(proj);
-    setSelectedStage(stage);
-    setDocModalOpen(true);
-  };
-
   const handleTaskSaved = (newProgress: number, notes: string, fileName: string) => {
     if (!selectedProject || !selectedTask) return;
 
@@ -243,7 +240,10 @@ export const App: React.FC = () => {
       {/* Sleek Left Navigation Sidebar */}
       <CsmtSidebar
         activeCategory={activeCategory}
-        onSelectCategory={(cat) => setActiveCategory(cat)}
+        onSelectCategory={(cat) => {
+          setActiveCategory(cat);
+          setSelectedDetailProject(null);
+        }}
         currentUser={currentUser}
         onLogout={handleLogout}
         onOpenCreateModal={() => setCreateModalOpen(true)}
@@ -254,215 +254,227 @@ export const App: React.FC = () => {
       />
 
       {/* Main Dashboard Content Area */}
-      <Box component="main" sx={{ flexGrow: 1, p: 4, overflowX: 'hidden' }}>
-        {/* Top Header Card */}
-        <Paper
-          elevation={0}
-          sx={{
-            p: 4,
-            mb: 4,
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
-            color: '#ffffff',
-            border: '1px solid #4338ca'
-          }}
-        >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-            <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                <Chip
-                  icon={<SchoolIcon sx={{ color: '#fff !important', fontSize: 16 }} />}
-                  label="CSMT SCHOOLS DISTRICT PORTAL"
-                  sx={{ background: '#4f46e5', color: '#fff', fontWeight: 800 }}
-                />
-                <Chip
-                  icon={<VerifiedIcon sx={{ color: '#fff !important', fontSize: 14 }} />}
-                  label="CONNECTED TO LIVE DATABASE"
-                  sx={{ background: '#059669', color: '#fff', fontWeight: 800 }}
-                />
-              </Box>
-              <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.5, mb: 0.5 }}>
-                {activeCategory === 'ALL'
-                  ? 'All District Projects Portfolio'
-                  : activeCategory === 'ACADEMIC_LAB'
-                  ? 'Academic CS & AI Laboratories'
-                  : activeCategory === 'LIBRARY'
-                  ? 'Digital Library & E-Readers'
-                  : activeCategory === 'SPORTS'
-                  ? 'Sports Turf Complex'
-                  : activeCategory === 'HOSTEL'
-                  ? 'Student Hostels'
-                  : 'STEM Robotics Clubs'}
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#c7d2fe' }}>
-                Multi-Campus Educational Projects Portfolio Budgeted in Nigerian Naira (₦).
-              </Typography>
-            </Box>
-
-            <Stack direction="row" spacing={1.5} alignItems="center">
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<AddCircleOutlineIcon />}
-                onClick={() => setCreateModalOpen(true)}
-                sx={{ background: '#059669', color: '#fff', textTransform: 'none', fontWeight: 800, px: 2, py: 1, borderRadius: '10px', '&:hover': { background: '#047857' } }}
-              >
-                Create Project
-              </Button>
-
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />}
-                onClick={fetchLiveEngineProjects}
-                sx={{ color: '#a5f3fc', borderColor: 'rgba(255,255,255,0.3)', textTransform: 'none', fontWeight: 700, borderRadius: '10px' }}
-              >
-                Sync DB
-              </Button>
-            </Stack>
-          </Box>
-        </Paper>
-
-        {alertMsg && (
-          <Alert severity="success" sx={{ mb: 4, borderRadius: '12px' }} onClose={() => setAlertMsg('')}>
-            {alertMsg}
-          </Alert>
-        )}
-
-        {/* Role Scope Info Notification */}
-        {!isAdmin && (
-          <Alert severity="info" icon={<KeyIcon />} sx={{ mb: 3, borderRadius: '12px', fontWeight: 700 }}>
-            Logged in as <strong>{currentUser.name} ({currentUser.role})</strong>. Projects are scoped specifically to <strong>{currentUser.dept}</strong>.
-          </Alert>
-        )}
-
-        {/* Project Cards Grid */}
-        {filteredProjects.length === 0 ? (
-          <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: '16px', background: '#ffffff', border: '1px dashed #cbd5e1' }}>
-            <SchoolIcon sx={{ fontSize: 48, color: '#94a3b8', mb: 2 }} />
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1 }}>
-              No Active Projects Found for Category: {activeCategory}
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
-              Click below to instantiate a new project baseline directly inside the UPME Engine (`CSMT-SCHOOLS-DISTRICT`).
-            </Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddCircleOutlineIcon />}
-              onClick={() => setCreateModalOpen(true)}
-              sx={{ background: '#4f46e5', color: '#fff', borderRadius: '10px', px: 3, py: 1.2, fontWeight: 800, textTransform: 'none' }}
-            >
-              Create First Project Baseline
-            </Button>
-          </Paper>
+      <Box component="main" sx={{ flexGrow: 1, overflowX: 'hidden' }}>
+        {/* Full Page Project Detail View Routing */}
+        {selectedDetailProject ? (
+          <CsmtProjectDetailView
+            project={selectedDetailProject}
+            onBack={() => setSelectedDetailProject(null)}
+            onUpdateProject={(updatedProj) => {
+              setSelectedDetailProject(updatedProj);
+              setCsmtProjects((prev) => prev.map((p) => (p.id === updatedProj.id ? updatedProj : p)));
+            }}
+          />
         ) : (
-          <Grid container spacing={3}>
-            {filteredProjects.map((proj) => (
-              <Grid item xs={12} lg={6} key={proj.id}>
-                <Card sx={{ borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: 'none', '&:hover': { borderColor: '#4f46e5' } }}>
-                  <CardContent sx={{ p: 3 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Box sx={{ width: 44, height: 44, borderRadius: '12px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {renderIcon(proj.iconType)}
-                        </Box>
-                        <Box>
-                          <Typography variant="subtitle2" sx={{ color: '#64748b', fontWeight: 600 }}>
-                            {proj.schoolName}
-                          </Typography>
-                          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>
-                            {proj.projectName}
-                          </Typography>
-                        </Box>
-                      </Box>
-
-                      <Chip
-                        label={`ENGINE HEALTH: ${proj.healthScore}/100`}
-                        size="small"
-                        sx={{
-                          fontWeight: 800,
-                          fontSize: '0.68rem',
-                          background: proj.healthStatus === 'ON_TRACK' ? '#ecfdf5' : '#fef3c7',
-                          color: proj.healthStatus === 'ON_TRACK' ? '#047857' : '#b45309'
-                        }}
-                      />
-                    </Box>
-
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, p: 2, background: '#f8fafc', borderRadius: '10px' }}>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, display: 'block' }}>
-                          BUDGET ALLOCATED (NAIRA)
-                        </Typography>
-                        <Typography variant="h5" sx={{ fontWeight: 800, color: '#059669' }}>
-                          {proj.budget}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ textAlign: 'right' }}>
-                        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, display: 'block' }}>
-                          COMPLETION PROGRESS
-                        </Typography>
-                        <Typography variant="h5" sx={{ fontWeight: 800, color: '#4f46e5' }}>
-                          {proj.progress}%
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    <LinearProgress
-                      variant="determinate"
-                      value={proj.progress}
-                      sx={{ height: 8, borderRadius: 4, mb: 2, background: '#e2e8f0', '& .MuiLinearProgress-bar': { background: '#4f46e5' } }}
+          <Box sx={{ p: 4 }}>
+            {/* Top Header Card */}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 4,
+                mb: 4,
+                borderRadius: '16px',
+                background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
+                color: '#ffffff',
+                border: '1px solid #4338ca'
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                    <Chip
+                      icon={<SchoolIcon sx={{ color: '#fff !important', fontSize: 16 }} />}
+                      label="CSMT SCHOOLS DISTRICT PORTAL"
+                      sx={{ background: '#4f46e5', color: '#fff', fontWeight: 800 }}
                     />
+                    <Chip
+                      icon={<VerifiedIcon sx={{ color: '#fff !important', fontSize: 14 }} />}
+                      label="CONNECTED TO LIVE DATABASE"
+                      sx={{ background: '#059669', color: '#fff', fontWeight: 800 }}
+                    />
+                  </Box>
+                  <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.5, mb: 0.5 }}>
+                    {activeCategory === 'ALL'
+                      ? 'All District Projects Portfolio'
+                      : activeCategory === 'ACADEMIC_LAB'
+                      ? 'Academic CS & AI Laboratories'
+                      : activeCategory === 'LIBRARY'
+                      ? 'Digital Library & E-Readers'
+                      : activeCategory === 'SPORTS'
+                      ? 'Sports Turf Complex'
+                      : activeCategory === 'HOSTEL'
+                      ? 'Student Hostels'
+                      : 'STEM Robotics Clubs'}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#c7d2fe' }}>
+                    Multi-Campus Educational Projects Portfolio Budgeted in Nigerian Naira (₦).
+                  </Typography>
+                </Box>
 
-                    <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, display: 'block', mb: 1 }}>
-                      Lead Supervisor: <strong>{proj.supervisor}</strong>
-                    </Typography>
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<AddCircleOutlineIcon />}
+                    onClick={() => setCreateModalOpen(true)}
+                    sx={{ background: '#059669', color: '#fff', textTransform: 'none', fontWeight: 800, px: 2, py: 1, borderRadius: '10px', '&:hover': { background: '#047857' } }}
+                  >
+                    Create Project
+                  </Button>
 
-                    <Divider sx={{ my: 1.5 }} />
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />}
+                    onClick={fetchLiveEngineProjects}
+                    sx={{ color: '#a5f3fc', borderColor: 'rgba(255,255,255,0.3)', textTransform: 'none', fontWeight: 700, borderRadius: '10px' }}
+                  >
+                    Sync DB
+                  </Button>
+                </Stack>
+              </Box>
+            </Paper>
 
-                    <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 700, display: 'block', mb: 1 }}>
-                      PROJECT MILESTONES & STAGE AUDIT DOCUMENTS
-                    </Typography>
+            {alertMsg && (
+              <Alert severity="success" sx={{ mb: 4, borderRadius: '12px' }} onClose={() => setAlertMsg('')}>
+                {alertMsg}
+              </Alert>
+            )}
 
-                    {proj.milestones.map((m: any) => (
-                      <Box key={m.id || m.name} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, borderBottom: '1px dashed #f1f5f9' }}>
-                        <Box>
-                          <Typography variant="body2" sx={{ color: '#334155', fontWeight: 700, fontSize: '0.82rem' }}>
-                            {m.name}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem' }}>
-                            Progress: <strong>{m.progress}%</strong>
-                          </Typography>
+            {/* Role Scope Info Notification */}
+            {!isAdmin && (
+              <Alert severity="info" icon={<KeyIcon />} sx={{ mb: 3, borderRadius: '12px', fontWeight: 700 }}>
+                Logged in as <strong>{currentUser.name} ({currentUser.role})</strong>. Projects are scoped specifically to <strong>{currentUser.dept}</strong>.
+              </Alert>
+            )}
+
+            {/* Project Cards Grid */}
+            {filteredProjects.length === 0 ? (
+              <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: '16px', background: '#ffffff', border: '1px dashed #cbd5e1' }}>
+                <SchoolIcon sx={{ fontSize: 48, color: '#94a3b8', mb: 2 }} />
+                <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1 }}>
+                  No Active Projects Found for Category: {activeCategory}
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
+                  Click below to instantiate a new project baseline directly inside the UPME Engine (`CSMT-SCHOOLS-DISTRICT`).
+                </Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={() => setCreateModalOpen(true)}
+                  sx={{ background: '#4f46e5', color: '#fff', borderRadius: '10px', px: 3, py: 1.2, fontWeight: 800, textTransform: 'none' }}
+                >
+                  Create First Project Baseline
+                </Button>
+              </Paper>
+            ) : (
+              <Grid container spacing={3}>
+                {filteredProjects.map((proj) => (
+                  <Grid item xs={12} lg={6} key={proj.id}>
+                    <Card
+                      onClick={() => setSelectedDetailProject(proj)}
+                      sx={{
+                        borderRadius: '16px',
+                        border: '1px solid #e2e8f0',
+                        boxShadow: 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        '&:hover': { borderColor: '#4f46e5', boxShadow: '0 10px 25px rgba(79, 70, 229, 0.12)' }
+                      }}
+                    >
+                      <CardContent sx={{ p: 3 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <Box sx={{ width: 44, height: 44, borderRadius: '12px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {renderIcon(proj.iconType)}
+                            </Box>
+                            <Box>
+                              <Typography variant="subtitle2" sx={{ color: '#64748b', fontWeight: 600 }}>
+                                {proj.schoolName}
+                              </Typography>
+                              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                                {proj.projectName}
+                              </Typography>
+                            </Box>
+                          </Box>
+
+                          <Chip
+                            label={`ENGINE HEALTH: ${proj.healthScore}/100`}
+                            size="small"
+                            sx={{
+                              fontWeight: 800,
+                              fontSize: '0.68rem',
+                              background: proj.healthStatus === 'ON_TRACK' ? '#ecfdf5' : '#fef3c7',
+                              color: proj.healthStatus === 'ON_TRACK' ? '#047857' : '#b45309'
+                            }}
+                          />
                         </Box>
 
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            startIcon={<DescriptionIcon sx={{ fontSize: 13 }} />}
-                            onClick={() => handleOpenDocModal(proj, m)}
-                            sx={{ fontSize: '0.7rem', textTransform: 'none', fontWeight: 700, color: '#059669', borderColor: '#a7f3d0' }}
-                          >
-                            View Stage Docs
-                          </Button>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, p: 2, background: '#f8fafc', borderRadius: '10px' }}>
+                          <Box>
+                            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, display: 'block' }}>
+                              BUDGET ALLOCATED (NAIRA)
+                            </Typography>
+                            <Typography variant="h5" sx={{ fontWeight: 800, color: '#059669' }}>
+                              {proj.budget}
+                            </Typography>
+                          </Box>
+
+                          <Box sx={{ textAlign: 'right' }}>
+                            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, display: 'block' }}>
+                              COMPLETION PROGRESS
+                            </Typography>
+                            <Typography variant="h5" sx={{ fontWeight: 800, color: '#4f46e5' }}>
+                              {proj.progress}%
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        <LinearProgress
+                          variant="determinate"
+                          value={proj.progress}
+                          sx={{ height: 8, borderRadius: 4, mb: 2, background: '#e2e8f0', '& .MuiLinearProgress-bar': { background: '#4f46e5' } }}
+                        />
+
+                        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, display: 'block', mb: 1 }}>
+                          Lead Supervisor: <strong>{proj.supervisor}</strong>
+                        </Typography>
+
+                        <Divider sx={{ my: 1.5 }} />
+
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 700 }}>
+                            {proj.milestones?.length || 0} Milestone Stages & Audit Docs
+                          </Typography>
 
                           <Button
                             size="small"
                             variant="contained"
-                            startIcon={<EditIcon sx={{ fontSize: 13 }} />}
-                            onClick={() => handleOpenTaskModal(proj, m)}
-                            sx={{ fontSize: '0.7rem', textTransform: 'none', fontWeight: 700, background: '#4f46e5', color: '#fff' }}
+                            endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedDetailProject(proj);
+                            }}
+                            sx={{
+                              fontSize: '0.75rem',
+                              textTransform: 'none',
+                              fontWeight: 800,
+                              background: '#4f46e5',
+                              color: '#fff',
+                              borderRadius: '8px',
+                              px: 2
+                            }}
                           >
-                            Update
+                            Open Full Project Page
                           </Button>
-                        </Stack>
-                      </Box>
-                    ))}
-                  </CardContent>
-                </Card>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
               </Grid>
-            ))}
-          </Grid>
+            )}
+          </Box>
         )}
 
         {/* Interactive Update Modal */}
@@ -475,19 +487,6 @@ export const App: React.FC = () => {
             currentProgress={selectedTask.progress}
             supervisorName={selectedProject.supervisor}
             onSaveSuccess={handleTaskSaved}
-          />
-        )}
-
-        {/* Stage Documents Viewer Modal */}
-        {docModalOpen && selectedStage && selectedProject && (
-          <StageDocumentViewerModal
-            open={docModalOpen}
-            onClose={() => setDocModalOpen(false)}
-            stageId={selectedStage.id || selectedStage.name || 'stage-1'}
-            stageName={selectedStage.name || 'Milestone Stage'}
-            projectName={selectedProject.projectName || selectedProject.name || 'CSMT School Project'}
-            supervisorName={selectedProject.supervisor || 'Dr. Robert Vance'}
-            progress={selectedStage.progress || 0}
           />
         )}
 
