@@ -36,6 +36,7 @@ import { KycPortalModal } from './components/KycPortalModal';
 import { CreateTemplateModal } from './components/CreateTemplateModal';
 import { PricingSection } from './components/PricingSection';
 import { AlertsAndActionsView } from './components/AlertsAndActionsView';
+import { BaselineProgressView } from './components/BaselineProgressView';
 
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'landing' | 'dashboard'>('landing');
@@ -163,6 +164,8 @@ export const App: React.FC = () => {
             <PricingSection />
           ) : activeTab === 'alerts_actions' ? (
             <AlertsAndActionsView />
+          ) : activeTab === 'baseline' ? (
+            <BaselineProgressView />
           ) : (
             <>
               {/* Executive Alerts */}
