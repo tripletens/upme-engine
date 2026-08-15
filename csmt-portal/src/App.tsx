@@ -346,7 +346,7 @@ export const App: React.FC = () => {
                   </Typography>
                 </Box>
 
-                {/* Equal-Width Action Buttons Layout on Mobile */}
+                {/* Equal-Height Single-Line Action Buttons Layout on Mobile */}
                 <Stack
                   direction="row"
                   spacing={1.5}
@@ -364,12 +364,14 @@ export const App: React.FC = () => {
                     onClick={() => setIsCreatingProjectView(true)}
                     sx={{
                       flex: { xs: 1, sm: 'initial' },
-                      background: '#059669',
+                      height: 40,
+                      whiteSpace: 'nowrap',
+                      fontSize: { xs: '0.78rem', sm: '0.85rem' },
+                      background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                       color: '#fff',
                       textTransform: 'none',
                       fontWeight: 800,
-                      px: 2.5,
-                      py: 1,
+                      px: 2,
                       borderRadius: '10px',
                       boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
                       '&:hover': { background: '#047857' }
@@ -385,12 +387,16 @@ export const App: React.FC = () => {
                     onClick={fetchLiveEngineProjects}
                     sx={{
                       flex: { xs: 1, sm: 'initial' },
+                      height: 40,
+                      whiteSpace: 'nowrap',
+                      fontSize: { xs: '0.78rem', sm: '0.85rem' },
                       color: '#a5f3fc',
                       borderColor: 'rgba(255,255,255,0.3)',
                       textTransform: 'none',
                       fontWeight: 700,
+                      px: 2,
                       borderRadius: '10px',
-                      py: 1
+                      '&:hover': { borderColor: '#a5f3fc', background: 'rgba(255,255,255,0.05)' }
                     }}
                   >
                     Sync DB
