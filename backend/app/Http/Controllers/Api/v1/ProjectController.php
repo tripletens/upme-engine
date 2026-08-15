@@ -14,7 +14,7 @@ class ProjectController extends Controller
 {
     public function index(): JsonResponse
     {
-        $projects = Project::with('milestones.activities')->paginate(15);
+        $projects = Project::with('milestones.activities')->latest('created_at')->paginate(15);
         return response()->json([
             'status' => 'success',
             'data' => ProjectResource::collection($projects),
