@@ -18,12 +18,14 @@ class SchoolLaboratorySeeder extends Seeder
     public function run(): void
     {
         // 1. Organization
-        $org = Organization::create([
-            'uuid' => Str::uuid(),
-            'name' => 'Example International School',
-            'code' => 'EIS-SCHOOL-DISTRICT',
-            'settings' => ['theme' => 'dark', 'timezone' => 'UTC'],
-        ]);
+        $org = Organization::firstOrCreate(
+            ['code' => 'EIS-SCHOOL-DISTRICT'],
+            [
+                'uuid' => Str::uuid(),
+                'name' => 'Example International School',
+                'settings' => ['theme' => 'dark', 'timezone' => 'UTC'],
+            ]
+        );
 
         // 2. Project
         $project = Project::create([
