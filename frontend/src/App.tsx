@@ -214,7 +214,7 @@ export const App: React.FC = () => {
           ) : activeTab === 'team' ? (
             <TeamMembersView currentOrganization={currentOrganization} />
           ) : activeTab === 'api_docs' ? (
-            <ApiDocsView />
+            <ApiDocsView onGoToBilling={() => setActiveTab('billing')} />
           ) : (
             <>
               {/* Project Title Banner */}

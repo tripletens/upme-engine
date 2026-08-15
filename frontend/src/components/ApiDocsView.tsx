@@ -18,15 +18,21 @@ import {
   Alert
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import CodeIcon from '@mui/icons-material/Code';
 import DownloadIcon from '@mui/icons-material/Download';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import TerminalIcon from '@mui/icons-material/Terminal';
 import ApiIcon from '@mui/icons-material/Api';
+import LockIcon from '@mui/icons-material/Lock';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
 
-export const ApiDocsView: React.FC = () => {
+interface ApiDocsViewProps {
+  onGoToBilling?: () => void;
+}
+
+export const ApiDocsView: React.FC<ApiDocsViewProps> = ({ onGoToBilling }) => {
   const [activeLang, setActiveLang] = useState<'curl' | 'js' | 'python' | 'php'>('curl');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
 
   const endpoints = [
     {
@@ -207,11 +213,23 @@ export const ApiDocsView: React.FC = () => {
       <Box className="enterprise-card" sx={{ p: 4, mb: 4, background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <Chip
-              icon={<ApiIcon sx={{ fontSize: 16 }} />}
-              label="DEVELOPER INTEGRATION PORTAL"
-              sx={{ background: '#e0e7ff', color: '#4338ca', fontWeight: 800, mb: 1.5 }}
-            />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+              <Chip
+                icon={<ApiIcon sx={{ fontSize: 16 }} />}
+                label="DEVELOPER INTEGRATION PORTAL"
+                sx={{ background: '#e0e7ff', color: '#4338ca', fontWeight: 800 }}
+              />
+              <Chip
+                icon={isSubscribed ? <VerifiedIcon sx={{ fontSize: 14 }} /> : <LockIcon sx={{ fontSize: 14 }} />}
+                label={isSubscribed ? 'SUBSCRIBED: ENTERPRISE PLAN' : 'ENTERPRISE SUBSCRIBERS ONLY'}
+                sx={{
+                  background: isSubscribed ? '#ecfdf5' : '#fff7ed',
+                  color: isSubscribed ? '#047857' : '#c2410c',
+                  fontWeight: 800,
+                  border: isSubscribed ? '1px solid #a7f3d0' : '1px solid #fed7aa'
+                }}
+              />
+            </Box>
             <Typography variant="h4" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
               Engine REST API & OpenAPI v3.0 Documentation
             </Typography>
@@ -220,150 +238,227 @@ export const ApiDocsView: React.FC = () => {
             </Typography>
           </Box>
 
-          <Button
-            variant="contained"
-            startIcon={<DownloadIcon />}
-            onClick={handleDownloadOpenApi}
-            sx={{
-              background: '#4f46e5',
-              color: '#ffffff',
-              borderRadius: '10px',
-              px: 3,
-              py: 1.2,
-              fontWeight: 700,
-              textTransform: 'none',
-              boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
-              '&:hover': { background: '#4338ca' }
-            }}
-          >
-            Export OpenAPI v3.0 Spec (JSON)
-          </Button>
+          <Stack direction="row" spacing={1.5}>
+            {!isSubscribed ? (
+              <Button
+                variant="outlined"
+                color="success"
+                onClick={() => setIsSubscribed(true)}
+                sx={{ fontWeight: 700, textTransform: 'none' }}
+              >
+                Simulate Paid Subscriber Account
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                startIcon={<DownloadIcon />}
+                onClick={handleDownloadOpenApi}
+                sx={{
+                  background: '#4f46e5',
+                  color: '#ffffff',
+                  borderRadius: '10px',
+                  px: 3,
+                  py: 1.2,
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
+                  '&:hover': { background: '#4338ca' }
+                }}
+              >
+                Export OpenAPI v3.0 Spec (JSON)
+              </Button>
+            )}
+          </Stack>
         </Box>
       </Box>
 
-      {/* Required Headers Info Banner */}
-      <Alert severity="info" sx={{ mb: 4, borderRadius: '12px' }}>
-        <strong>Mandatory Integration Headers:</strong> All REST API calls require <code>X-Organization-Code: &lt;TENANT_CODE&gt;</code> for multi-tenant isolation.
-      </Alert>
+      {/* Subscription Lock View */}
+      {!isSubscribed ? (
+        <Card className="enterprise-card" sx={{ p: 5, textAlign: 'center', background: '#ffffff', borderColor: '#cbd5e1' }}>
+          <CardContent sx={{ maxWidth: 640, mx: 'auto' }}>
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                background: '#fff7ed',
+                border: '2px solid #fed7aa',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 3
+              }}
+            >
+              <LockIcon sx={{ fontSize: 32, color: '#c2410c' }} />
+            </Box>
 
-      {/* Code Snippet Language Selector */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>
-          📖 API Endpoints Reference ({endpoints.length})
-        </Typography>
+            <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a', mb: 1.5 }}>
+              Enterprise Subscriber Access Required
+            </Typography>
 
-        <Tabs
-          value={activeLang}
-          onChange={(_, val) => setActiveLang(val)}
-          sx={{ '& .MuiTab-root': { fontWeight: 700, textTransform: 'none' } }}
-        >
-          <Tab label="cURL" value="curl" />
-          <Tab label="JavaScript (Fetch)" value="js" />
-          <Tab label="Python (Requests)" value="python" />
-          <Tab label="PHP (Guzzle)" value="php" />
-        </Tabs>
-      </Box>
+            <Typography variant="body1" sx={{ color: '#475569', mb: 4, lineHeight: 1.6 }}>
+              Developer API Keys, Webhook Listeners, and OpenAPI v3.0 Specification Exports are exclusively available to active <strong>Enterprise Plan Subscribers</strong>. Upgrade your SaaS tier to unlock REST API keys for your engineering team.
+            </Typography>
 
-      {/* Endpoints Accordion List */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {endpoints.map((ep, idx) => {
-          const codeSnippet = generateCodeSnippet(ep, activeLang);
+            <Stack direction="row" spacing={2} justifyContent="center">
+              <Button
+                variant="contained"
+                startIcon={<CreditCardIcon />}
+                onClick={onGoToBilling}
+                sx={{
+                  background: '#4f46e5',
+                  color: '#ffffff',
+                  borderRadius: '12px',
+                  px: 4,
+                  py: 1.5,
+                  fontWeight: 800,
+                  fontSize: '0.95rem',
+                  textTransform: 'none',
+                  boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
+                  '&:hover': { background: '#4338ca' }
+                }}
+              >
+                Upgrade to Enterprise Plan ($199/mo)
+              </Button>
 
-          return (
-            <Accordion key={ep.id} defaultExpanded={idx === 0} sx={{ borderRadius: '12px !important', border: '1px solid #e2e8f0', boxShadow: 'none', '&:before': { display: 'none' } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', width: '100%' }}>
-                  <Chip
-                    label={ep.method}
-                    size="small"
-                    sx={{
-                      fontWeight: 800,
-                      width: 60,
-                      background: ep.method === 'GET' ? '#d1fae5' : '#e0e7ff',
-                      color: ep.method === 'GET' ? '#047857' : '#4338ca'
-                    }}
-                  />
-                  <Typography variant="subtitle1" fontCode sx={{ fontWeight: 800, color: '#0f172a' }}>
-                    {ep.path}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#64748b', ml: 'auto', mr: 2, display: { xs: 'none', md: 'block' } }}>
-                    {ep.title}
-                  </Typography>
-                </Box>
-              </AccordionSummary>
+              <Button
+                variant="outlined"
+                onClick={() => setIsSubscribed(true)}
+                sx={{ borderRadius: '12px', px: 3, fontWeight: 700, textTransform: 'none', borderColor: '#cbd5e1', color: '#334155' }}
+              >
+                Unlock Demo API View
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          {/* Required Headers Info Banner */}
+          <Alert severity="success" sx={{ mb: 4, borderRadius: '12px' }}>
+            <strong>Active Enterprise Subscription:</strong> REST API keys active. All endpoints require header <code>X-Organization-Code: &lt;TENANT_CODE&gt;</code>.
+          </Alert>
 
-              <AccordionDetails sx={{ borderTop: '1px solid #f1f5f9', p: 3, background: '#fafafa' }}>
-                <Typography variant="body2" sx={{ color: '#334155', mb: 2, fontWeight: 500 }}>
-                  {ep.description}
-                </Typography>
+          {/* Code Snippet Language Selector */}
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>
+              📖 API Endpoints Reference ({endpoints.length})
+            </Typography>
 
-                <Grid container spacing={3}>
-                  {/* Left Column: Code Generator Snippet */}
-                  <Grid item xs={12} lg={6}>
-                    <Box sx={{ position: 'relative' }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
-                          REQUEST CODE SNIPPET ({activeLang.toUpperCase()})
-                        </Typography>
-                        <Button
-                          size="small"
-                          startIcon={<ContentCopyIcon sx={{ fontSize: 13 }} />}
-                          onClick={() => handleCopy(codeSnippet, ep.id)}
-                          sx={{ textTransform: 'none', fontSize: '0.72rem', color: '#4f46e5' }}
-                        >
-                          {copiedIndex === ep.id ? 'Copied!' : 'Copy Code'}
-                        </Button>
-                      </Box>
-                      <Paper
-                        elevation={0}
+            <Tabs
+              value={activeLang}
+              onChange={(_, val) => setActiveLang(val)}
+              sx={{ '& .MuiTab-root': { fontWeight: 700, textTransform: 'none' } }}
+            >
+              <Tab label="cURL" value="curl" />
+              <Tab label="JavaScript (Fetch)" value="js" />
+              <Tab label="Python (Requests)" value="python" />
+              <Tab label="PHP (Guzzle)" value="php" />
+            </Tabs>
+          </Box>
+
+          {/* Endpoints Accordion List */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {endpoints.map((ep, idx) => {
+              const codeSnippet = generateCodeSnippet(ep, activeLang);
+
+              return (
+                <Accordion key={ep.id} defaultExpanded={idx === 0} sx={{ borderRadius: '12px !important', border: '1px solid #e2e8f0', boxShadow: 'none', '&:before': { display: 'none' } }}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', width: '100%' }}>
+                      <Chip
+                        label={ep.method}
+                        size="small"
                         sx={{
-                          p: 2,
-                          background: '#0f172a',
-                          color: '#38bdf8',
-                          fontFamily: 'monospace',
-                          fontSize: '0.78rem',
-                          borderRadius: '8px',
-                          overflowX: 'auto',
-                          whiteSpace: 'pre-wrap',
-                          wordBreak: 'break-all'
+                          fontWeight: 800,
+                          width: 60,
+                          background: ep.method === 'GET' ? '#d1fae5' : '#e0e7ff',
+                          color: ep.method === 'GET' ? '#047857' : '#4338ca'
                         }}
-                      >
-                        {codeSnippet}
-                      </Paper>
-                    </Box>
-                  </Grid>
-
-                  {/* Right Column: Sample Response Payload */}
-                  <Grid item xs={12} lg={6}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
-                        SAMPLE RESPONSE PAYLOAD (200 OK)
+                      />
+                      <Typography variant="subtitle1" fontCode sx={{ fontWeight: 800, color: '#0f172a' }}>
+                        {ep.path}
                       </Typography>
-                      <Chip label="APPLICATION/JSON" size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 700 }} />
+                      <Typography variant="body2" sx={{ color: '#64748b', ml: 'auto', mr: 2, display: { xs: 'none', md: 'block' } }}>
+                        {ep.title}
+                      </Typography>
                     </Box>
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: 2,
-                        background: '#1e293b',
-                        color: '#4ade80',
-                        fontFamily: 'monospace',
-                        fontSize: '0.78rem',
-                        borderRadius: '8px',
-                        overflowX: 'auto',
-                        whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-all'
-                      }}
-                    >
-                      {JSON.stringify(ep.responseBody, null, 2)}
-                    </Paper>
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-          );
-        })}
-      </Box>
+                  </AccordionSummary>
+
+                  <AccordionDetails sx={{ borderTop: '1px solid #f1f5f9', p: 3, background: '#fafafa' }}>
+                    <Typography variant="body2" sx={{ color: '#334155', mb: 2, fontWeight: 500 }}>
+                      {ep.description}
+                    </Typography>
+
+                    <Grid container spacing={3}>
+                      {/* Left Column: Code Generator Snippet */}
+                      <Grid item xs={12} lg={6}>
+                        <Box sx={{ position: 'relative' }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
+                              REQUEST CODE SNIPPET ({activeLang.toUpperCase()})
+                            </Typography>
+                            <Button
+                              size="small"
+                              startIcon={<ContentCopyIcon sx={{ fontSize: 13 }} />}
+                              onClick={() => handleCopy(codeSnippet, ep.id)}
+                              sx={{ textTransform: 'none', fontSize: '0.72rem', color: '#4f46e5' }}
+                            >
+                              {copiedIndex === ep.id ? 'Copied!' : 'Copy Code'}
+                            </Button>
+                          </Box>
+                          <Paper
+                            elevation={0}
+                            sx={{
+                              p: 2,
+                              background: '#0f172a',
+                              color: '#38bdf8',
+                              fontFamily: 'monospace',
+                              fontSize: '0.78rem',
+                              borderRadius: '8px',
+                              overflowX: 'auto',
+                              whiteSpace: 'pre-wrap',
+                              wordBreak: 'break-all'
+                            }}
+                          >
+                            {codeSnippet}
+                          </Paper>
+                        </Box>
+                      </Grid>
+
+                      {/* Right Column: Sample Response Payload */}
+                      <Grid item xs={12} lg={6}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
+                            SAMPLE RESPONSE PAYLOAD (200 OK)
+                          </Typography>
+                          <Chip label="APPLICATION/JSON" size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 700 }} />
+                        </Box>
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            p: 2,
+                            background: '#1e293b',
+                            color: '#4ade80',
+                            fontFamily: 'monospace',
+                            fontSize: '0.78rem',
+                            borderRadius: '8px',
+                            overflowX: 'auto',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-all'
+                          }}
+                        >
+                          {JSON.stringify(ep.responseBody, null, 2)}
+                        </Paper>
+                      </Grid>
+                    </Grid>
+                  </AccordionDetails>
+                </Accordion>
+              );
+            })}
+          </Box>
+        </>
+      )}
     </Box>
   );
 };
