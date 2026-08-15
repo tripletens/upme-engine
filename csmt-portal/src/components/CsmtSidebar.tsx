@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Box,
-  Drawer,
   List,
   ListItem,
   ListItemButton,
@@ -71,13 +70,11 @@ export const CsmtSidebar: React.FC<CsmtSidebarProps> = ({
       sx={{
         width: drawerWidth,
         flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          width: drawerWidth,
-          boxSizing: 'border-box',
-          background: '#0f172a',
-          color: '#ffffff',
-          borderRight: '1px solid #1e293b'
-        }
+        background: '#ffffff',
+        borderRight: '1px solid #e2e8f0',
+        color: '#0f172a',
+        boxShadow: '2px 0 10px rgba(0, 0, 0, 0.02)',
+        minHeight: '100vh'
       }}
     >
       <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -86,38 +83,46 @@ export const CsmtSidebar: React.FC<CsmtSidebarProps> = ({
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
             <Box
               sx={{
-                width: 42,
-                height: 42,
+                width: 44,
+                height: 44,
                 borderRadius: '12px',
-                background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justify: 'center',
-                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.4)'
+                boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)'
               }}
             >
-              <SchoolIcon sx={{ color: '#fff', fontSize: 24 }} />
+              <SchoolIcon sx={{ color: '#ffffff', fontSize: 26 }} />
             </Box>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.1, letterSpacing: -0.5 }}>
+              <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', lineHeight: 1.1, letterSpacing: -0.5 }}>
                 CSMT Schools
               </Typography>
-
-              <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.72rem', fontWeight: 600 }}>
+              <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.78rem', fontWeight: 700 }}>
                 Infrastructure Portal
               </Typography>
             </Box>
           </Box>
 
           <Chip
-            icon={<VerifiedIcon sx={{ color: '#fff !important', fontSize: 13 }} />}
+            icon={<VerifiedIcon sx={{ color: '#047857 !important', fontSize: 14 }} />}
             label="CONNECTED TO LIVE DATABASE"
             size="small"
-            sx={{ background: 'rgba(5, 150, 105, 0.2)', color: '#34d399', fontWeight: 800, fontSize: '0.62rem', width: '100%', mt: 1 }}
+            sx={{
+              background: '#ecfdf5',
+              border: '1px solid #a7f3d0',
+              color: '#047857',
+              fontWeight: 800,
+              fontSize: '0.65rem',
+              width: '100%',
+              mt: 1.5,
+              py: 0.5
+            }}
           />
         </Box>
 
-        <Divider sx={{ borderColor: '#1e293b', mb: 3 }} />
+        <Divider sx={{ borderColor: '#e2e8f0', mb: 3 }} />
 
         {/* User Profile Card */}
         <Paper
@@ -126,26 +131,26 @@ export const CsmtSidebar: React.FC<CsmtSidebarProps> = ({
             p: 2,
             mb: 3,
             borderRadius: '14px',
-            background: 'rgba(30, 41, 59, 0.7)',
-            border: '1px solid #334155',
-            color: '#fff'
+            background: '#f8fafc',
+            border: '1px solid #cbd5e1',
+            color: '#0f172a'
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
             {isAdmin ? (
-              <Avatar sx={{ bg: '#4f46e5', width: 36, height: 36 }}>
-                <AdminPanelSettingsIcon sx={{ color: '#fbbf24', fontSize: 20 }} />
+              <Avatar sx={{ background: '#4f46e5', width: 38, height: 38 }}>
+                <AdminPanelSettingsIcon sx={{ color: '#fbbf24', fontSize: 22 }} />
               </Avatar>
             ) : (
-              <Avatar sx={{ bg: '#059669', width: 36, height: 36 }}>
-                <AccountCircleIcon sx={{ color: '#38bdf8', fontSize: 20 }} />
+              <Avatar sx={{ background: '#059669', width: 38, height: 38 }}>
+                <AccountCircleIcon sx={{ color: '#ffffff', fontSize: 22 }} />
               </Avatar>
             )}
             <Box sx={{ overflow: 'hidden' }}>
-              <Typography variant="subtitle2" noWrap sx={{ fontWeight: 800, fontSize: '0.85rem' }}>
+              <Typography variant="subtitle2" noWrap sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
                 {currentUser?.name || 'Staff User'}
               </Typography>
-              <Typography variant="caption" noWrap sx={{ color: '#94a3b8', display: 'block', fontSize: '0.68rem' }}>
+              <Typography variant="caption" noWrap sx={{ color: '#475569', display: 'block', fontWeight: 700, fontSize: '0.72rem' }}>
                 {currentUser?.role}
               </Typography>
             </Box>
@@ -160,19 +165,19 @@ export const CsmtSidebar: React.FC<CsmtSidebarProps> = ({
             onClick={onLogout}
             sx={{
               textTransform: 'none',
-              fontSize: '0.72rem',
-              fontWeight: 700,
-              color: '#fca5a5',
-              borderColor: 'rgba(252, 165, 165, 0.3)',
+              fontSize: '0.75rem',
+              fontWeight: 800,
+              color: '#dc2626',
+              borderColor: '#fca5a5',
               borderRadius: '8px',
-              '&:hover': { background: 'rgba(239, 68, 68, 0.1)' }
+              '&:hover': { background: '#fef2f2', borderColor: '#ef4444' }
             }}
           >
             Sign Out
           </Button>
         </Paper>
 
-        <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 800, letterSpacing: 0.5, mb: 1, px: 1 }}>
+        <Typography variant="caption" sx={{ color: '#475569', fontWeight: 900, letterSpacing: 0.6, mb: 1, px: 1 }}>
           PORTFOLIO NAVIGATION
         </Typography>
 
@@ -189,21 +194,21 @@ export const CsmtSidebar: React.FC<CsmtSidebarProps> = ({
                     borderRadius: '10px',
                     py: 1.2,
                     px: 2,
-                    color: isSelected ? '#ffffff' : '#94a3b8',
-                    background: isSelected ? 'linear-gradient(90deg, #4f46e5 0%, #4338ca 100%) !important' : 'transparent',
-                    boxShadow: isSelected ? '0 4px 12px rgba(79, 70, 229, 0.3)' : 'none',
+                    color: isSelected ? '#ffffff' : '#334155',
+                    background: isSelected ? 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%) !important' : 'transparent',
+                    boxShadow: isSelected ? '0 4px 14px rgba(79, 70, 229, 0.3)' : 'none',
                     '&:hover': {
-                      background: isSelected ? 'linear-gradient(90deg, #4f46e5 0%, #4338ca 100%)' : '#1e293b',
-                      color: '#ffffff'
+                      background: isSelected ? 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)' : '#f1f5f9',
+                      color: isSelected ? '#ffffff' : '#0f172a'
                     }
                   }}
                 >
-                  <ListItemIcon sx={{ color: isSelected ? '#ffffff' : '#64748b', minWidth: 36 }}>
+                  <ListItemIcon sx={{ color: isSelected ? '#ffffff' : '#4f46e5', minWidth: 36 }}>
                     {item.icon}
                   </ListItemIcon>
                   <ListItemText
                     primary={item.label}
-                    primaryTypographyProps={{ fontSize: '0.85rem', fontWeight: isSelected ? 800 : 600 }}
+                    primaryTypographyProps={{ fontSize: '0.88rem', fontWeight: isSelected ? 800 : 700 }}
                   />
                   {item.count > 0 && (
                     <Chip
@@ -211,10 +216,10 @@ export const CsmtSidebar: React.FC<CsmtSidebarProps> = ({
                       size="small"
                       sx={{
                         height: 20,
-                        fontSize: '0.68rem',
+                        fontSize: '0.7rem',
                         fontWeight: 800,
-                        background: isSelected ? '#ffffff' : '#334155',
-                        color: isSelected ? '#4f46e5' : '#cbd5e1'
+                        background: isSelected ? '#ffffff' : '#e0e7ff',
+                        color: isSelected ? '#4f46e5' : '#4338ca'
                       }}
                     />
                   )}
@@ -224,7 +229,7 @@ export const CsmtSidebar: React.FC<CsmtSidebarProps> = ({
           })}
         </List>
 
-        <Divider sx={{ borderColor: '#1e293b', my: 2 }} />
+        <Divider sx={{ borderColor: '#e2e8f0', my: 2 }} />
 
         {/* Admin Controls & Actions */}
         <Stack spacing={1.5}>
@@ -235,14 +240,14 @@ export const CsmtSidebar: React.FC<CsmtSidebarProps> = ({
               startIcon={<PeopleIcon />}
               onClick={onOpenUsersModal}
               sx={{
-                background: 'rgba(124, 58, 237, 0.15)',
-                color: '#c084fc',
-                borderColor: '#7c3aed',
+                background: '#f3e8ff',
+                color: '#6b21a8',
+                borderColor: '#c084fc',
                 textTransform: 'none',
                 fontWeight: 800,
                 borderRadius: '10px',
                 py: 1.2,
-                '&:hover': { background: 'rgba(124, 58, 237, 0.25)' }
+                '&:hover': { background: '#e9d5ff', borderColor: '#a855f7' }
               }}
             >
               Org Staff Users
@@ -274,7 +279,7 @@ export const CsmtSidebar: React.FC<CsmtSidebarProps> = ({
             size="small"
             startIcon={syncing ? <RefreshIcon className="spin" sx={{ fontSize: 14 }} /> : <RefreshIcon sx={{ fontSize: 14 }} />}
             onClick={onSyncDb}
-            sx={{ color: '#64748b', textTransform: 'none', fontSize: '0.75rem', fontWeight: 600 }}
+            sx={{ color: '#475569', textTransform: 'none', fontSize: '0.78rem', fontWeight: 700 }}
           >
             Sync Engine Database
           </Button>
