@@ -2,19 +2,22 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Contracts\Services\ProjectServiceInterface;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateProjectRequest;
 use App\Http\Resources\ProjectResource;
-use App\Models\Project;
-use App\Services\ProjectHealthService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Str;
 
 class ProjectController extends Controller
 {
+    public function __construct(
+        private ProjectServiceInterface $projectService
+    ) {}
+
     public function index(): JsonResponse
     {
-        $projects = Project::with('milestones.activities')->paginate(15);
+        $projects = $this->projectService->listProjects(15);
+
         return response()->json([
             'status' => 'success',
             'data' => ProjectResource::collection($projects),
@@ -27,20 +30,9 @@ class ProjectController extends Controller
 
     public function store(CreateProjectRequest $request): JsonResponse
     {
-        $tenant = app('current_tenant');
+        $tenant = app()->bound('current_tenant') ? app('current_tenant') : null;
         
-        $project = Project::create([
-            'organization_id' => $tenant->id ?? 1,
-            'uuid' => Str::uuid(),
-            'code' => $request->validated('code'),
-            'name' => $request->validated('name'),
-            'description' => $request->validated('description'),
-            'planned_start_date' => $request->validated('planned_start_date'),
-            'planned_end_date' => $request->validated('planned_end_date'),
-            'status' => 'PLANNING',
-            'health_status' => 'ON_TRACK',
-            'overall_progress' => 0.0,
-        ]);
+        $project = $this->projectService->createProject($request->validated(), $tenant?->id);
 
         return response()->json([
             'status' => 'success',
@@ -51,17 +43,17 @@ class ProjectController extends Controller
 
     public function show(string $uuid): JsonResponse
     {
-        $project = Project::where('uuid', $uuid)->with('milestones.activities', 'risks', 'issues')->firstOrFail();
+        $project = $this->projectService->getProjectByUuid($uuid);
+
         return response()->json([
             'status' => 'success',
             'data' => new ProjectResource($project),
         ]);
     }
 
-    public function health(string $uuid, ProjectHealthService $healthService): JsonResponse
+    public function health(string $uuid): JsonResponse
     {
-        $project = Project::where('uuid', $uuid)->firstOrFail();
-        $healthBreakdown = $healthService->calculateHealth($project);
+        $healthBreakdown = $this->projectService->getProjectHealth($uuid);
 
         return response()->json([
             'status' => 'success',

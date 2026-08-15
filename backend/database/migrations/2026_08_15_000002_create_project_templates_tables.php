@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('organization_id')->nullable()->constrained('organizations')->onDelete('cascade');
             $table->uuid('uuid')->unique();
+            $table->string('code')->nullable();
             $table->string('name');
             $table->string('category'); // e.g., Education, Construction, Software
             $table->text('description')->nullable();

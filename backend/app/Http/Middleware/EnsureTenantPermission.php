@@ -19,12 +19,12 @@ class EnsureTenantPermission
         $user = $request->user();
         $tenant = app()->bound('current_tenant') ? app('current_tenant') : null;
 
-        if (!$user || !$tenant) {
-            // For unauthenticated/guest demo fallbacks in development, allow if tenant set
-            if ($tenant && env('APP_ENV') === 'local') {
-                return $next($request);
-            }
+        // Allow API Integration requests with X-Api-Key or active Tenant Context
+        if ($tenant && ($request->header('X-Api-Key') || env('APP_ENV') === 'local')) {
+            return $next($request);
+        }
 
+        if (!$user || !$tenant) {
             return response()->json([
                 'status' => 'error',
                 'code' => 'UNAUTHORIZED',

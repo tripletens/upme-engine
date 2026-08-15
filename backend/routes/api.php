@@ -8,6 +8,10 @@ use App\Http\Controllers\Api\v1\DeliverableEvidenceController;
 use App\Http\Controllers\Api\v1\TemplateAndReportController;
 use App\Http\Controllers\Api\v1\KycController;
 use App\Http\Controllers\Api\v1\BillingController;
+use App\Http\Controllers\Api\v1\AuthController;
+use App\Http\Controllers\Api\v1\MonitoringEngineController;
+use App\Http\Controllers\Api\v1\OrganizationUserController;
+use App\Http\Controllers\Api\v1\DocsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,6 +20,19 @@ use App\Http\Controllers\Api\v1\BillingController;
 */
 
 Route::prefix('v1')->middleware(['api', \App\Http\Middleware\TenantContextMiddleware::class])->group(function () {
+    // OpenAPI v3.0 Documentation Endpoint
+    Route::get('/docs/openapi.json', [DocsController::class, 'openApiSpec']);
+
+    // User Authentication
+    Route::post('/auth/login', [AuthController::class, 'login']);
+
+    // Multi-Tenant Company User Management & Admin API Keys
+    Route::get('/organization/users', [OrganizationUserController::class, 'index']);
+    Route::post('/organization/users/invite', [OrganizationUserController::class, 'invite']);
+    Route::post('/organization/users/{id}/permissions', [OrganizationUserController::class, 'updatePermissions']);
+    Route::get('/organization/api-key', [OrganizationUserController::class, 'getApiKey']);
+    Route::post('/organization/api-key/regenerate', [OrganizationUserController::class, 'regenerateApiKey']);
+
     // Paystack SaaS Billing & Subscriptions
     Route::post('/billing/initialize', [BillingController::class, 'initialize']);
     Route::get('/billing/verify', [BillingController::class, 'verify']);
@@ -34,14 +51,23 @@ Route::prefix('v1')->middleware(['api', \App\Http\Middleware\TenantContextMiddle
     Route::get('/projects/{uuid}', [ProjectController::class, 'show']);
     Route::get('/projects/{uuid}/health', [ProjectController::class, 'health']);
 
+    // Advanced Monitoring Engine & Intelligence Endpoints
+    Route::get('/projects/{uuid}/health/explanation', [MonitoringEngineController::class, 'explainHealth']);
+    Route::get('/projects/{uuid}/alerts', [MonitoringEngineController::class, 'indexAlerts']);
+    Route::get('/projects/{uuid}/corrective-actions', [MonitoringEngineController::class, 'indexCorrectiveActions']);
+    Route::post('/projects/{uuid}/baselines', [MonitoringEngineController::class, 'createBaselineSnapshot']);
+    Route::post('/risks/{id}/materialize', [MonitoringEngineController::class, 'materializeRisk']);
+    Route::post('/monitoring/evaluate/{uuid}', [MonitoringEngineController::class, 'evaluateMonitoring']);
+
     // Templates & Instantiation
     Route::get('/templates', [TemplateAndReportController::class, 'indexTemplates']);
     Route::post('/projects/from-template', [TemplateAndReportController::class, 'createFromTemplate'])
         ->middleware([\App\Http\Middleware\EnsureOrganizationVerified::class, \App\Http\Middleware\EnsureTenantPermission::class . ':project:create']);
 
-    // Reports & CSV Export
+    // Reports & CSV / PDF Export
     Route::get('/projects/{uuid}/report', [TemplateAndReportController::class, 'generateReport']);
     Route::get('/projects/{uuid}/report/export', [TemplateAndReportController::class, 'exportCsv']);
+    Route::get('/projects/{uuid}/report/pdf', [TemplateAndReportController::class, 'exportPdfReport']);
 
     // Activities & Delay Propagation
     Route::post('/activities/{id}/progress', [ActivityController::class, 'updateProgress'])

@@ -2,17 +2,23 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Contracts\Repositories\ProjectRepositoryInterface;
 use App\Http\Controllers\Controller;
-use App\Models\Project;
 use App\Models\ProjectTemplate;
-use App\Services\ProjectTemplateService;
 use App\Services\ProjectReportService;
+use App\Services\ProjectTemplateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class TemplateAndReportController extends Controller
 {
+    public function __construct(
+        private ProjectRepositoryInterface $projectRepository,
+        private ProjectTemplateService $templateService,
+        private ProjectReportService $reportService
+    ) {}
+
     public function indexTemplates(): JsonResponse
     {
         $templates = ProjectTemplate::all();
@@ -22,29 +28,48 @@ class TemplateAndReportController extends Controller
         ]);
     }
 
-    public function createFromTemplate(Request $request, ProjectTemplateService $templateService): JsonResponse
+    public function createFromTemplate(Request $request): JsonResponse
     {
         $request->validate([
-            'template_id' => ['required', 'integer', 'exists:project_templates,id'],
+            'template_id' => ['nullable', 'integer'],
+            'template_code' => ['nullable', 'string'],
             'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', 'string', 'max:50'],
-            'start_date' => ['required', 'date'],
+            'code' => ['nullable', 'string', 'max:50'],
+            'start_date' => ['nullable', 'date'],
         ]);
 
-        $template = ProjectTemplate::findOrFail($request->input('template_id'));
-        $project = $templateService->instantiateProject($template, $request->all());
+        $template = null;
+        if ($request->filled('template_id')) {
+            $template = ProjectTemplate::find($request->input('template_id'));
+        }
+        
+        if (!$template && $request->filled('template_code')) {
+            $template = ProjectTemplate::where('code', $request->input('template_code'))->first();
+        }
+
+        if (!$template) {
+            $template = ProjectTemplate::first();
+        }
+
+        $code = $request->input('code', 'PROJ-' . strtoupper(substr(md5(uniqid()), 0, 6)));
+        $startDate = $request->input('start_date', now()->toDateString());
+
+        $project = $this->templateService->instantiateProject($template, array_merge($request->all(), [
+            'code' => $code,
+            'start_date' => $startDate,
+        ]));
 
         return response()->json([
             'status' => 'success',
-            'message' => "Project '{$project->name}' created from template '{$template->name}'.",
+            'message' => "Project '{$project->name}' created and saved to database.",
             'data' => $project->load('milestones.activities'),
         ], 201);
     }
 
-    public function generateReport(string $uuid, ProjectReportService $reportService): JsonResponse
+    public function generateReport(string $uuid): JsonResponse
     {
-        $project = Project::where('uuid', $uuid)->firstOrFail();
-        $report = $reportService->generateExecutiveReport($project);
+        $project = $this->projectRepository->findByIdentifier($uuid);
+        $report = $this->reportService->generateExecutiveReport($project);
 
         return response()->json([
             'status' => 'success',
@@ -52,14 +77,122 @@ class TemplateAndReportController extends Controller
         ]);
     }
 
-    public function exportCsv(string $uuid, ProjectReportService $reportService): Response
+    public function exportCsv(string $uuid): Response
     {
-        $project = Project::where('uuid', $uuid)->firstOrFail();
-        $csvContent = $reportService->exportActivitiesToCsv($project);
+        $project = $this->projectRepository->findByIdentifier($uuid);
+        $csvContent = $this->reportService->exportActivitiesToCsv($project);
 
         return response($csvContent, 200, [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="project-' . $project->code . '-activities.csv"',
+        ]);
+    }
+
+    public function exportPdfReport(string $uuid): Response
+    {
+        $project = $this->projectRepository->findByIdentifier($uuid);
+        $report = $this->reportService->generateExecutiveReport($project);
+
+        $healthStatus = $report['project_summary']['health_status'] ?? $project->health_status;
+        $overallProgress = $report['project_summary']['overall_progress'] ?? $project->overall_progress;
+        $completedActivities = $report['activity_metrics']['completed'] ?? 0;
+        $totalActivities = $report['activity_metrics']['total'] ?? 0;
+
+        $html = "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='utf-8'>
+            <title>Executive Report - {$project->name}</title>
+            <style>
+                body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #0f172a; padding: 40px; background: #fff; }
+                .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+                .title { font-size: 24px; font-weight: bold; color: #0f172a; }
+                .subtitle { color: #64748b; font-size: 14px; margin-top: 5px; }
+                .grid { display: flex; gap: 20px; margin-bottom: 30px; }
+                .card { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; background: #f8fafc; }
+                .card-title { font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: bold; }
+                .card-val { font-size: 28px; font-weight: bold; color: #4f46e5; margin-top: 5px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; font-size: 13px; }
+                th { background: #f1f5f9; color: #334155; font-weight: bold; }
+                .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+                .badge-track { background: #ecfdf5; color: #047857; }
+                .btn-print { background: #4f46e5; color: #ffffff; padding: 10px 18px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; text-decoration: none; }
+                @media print {
+                    .no-print { display: none !important; }
+                    body { padding: 0; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class='header'>
+                <div>
+                    <div class='title'>UPME Executive Project Health Report</div>
+                    <div class='subtitle'>Project: {$project->name} ({$project->code})</div>
+                </div>
+                <button class='btn-print no-print' onclick='window.print()'>🖨️ Save as PDF</button>
+            </div>
+
+            <div class='grid'>
+                <div class='card'>
+                    <div class='card-title'>Health Status</div>
+                    <div class='card-val' style='color:#059669;'>{$healthStatus}</div>
+                </div>
+                <div class='card'>
+                    <div class='card-title'>Overall Progress</div>
+                    <div class='card-val'>{$overallProgress}%</div>
+                </div>
+                <div class='card'>
+                    <div class='card-title'>Activities Completed</div>
+                    <div class='card-val'>{$completedActivities} / {$totalActivities}</div>
+                </div>
+            </div>
+
+            <h3>Milestone & Activity Status</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Activity Name</th>
+                        <th>Milestone</th>
+                        <th>Status</th>
+                        <th>Progress</th>
+                        <th>Assigned To</th>
+                    </tr>
+                </thead>
+                <tbody>";
+
+        foreach ($project->milestones as $m) {
+            foreach ($m->activities as $a) {
+                $html .= "
+                    <tr>
+                        <td>{$a->name}</td>
+                        <td>{$m->name}</td>
+                        <td><span class='badge badge-track'>{$a->status}</span></td>
+                        <td>{$a->progress}%</td>
+                        <td>" . ($a->assigned_to_user_id ? 'Assigned' : 'Unassigned') . "</td>
+                    </tr>";
+            }
+        }
+
+        $html .= "
+                </tbody>
+            </table>
+
+            <script>
+                // Auto trigger print dialog to save as PDF
+                window.onload = function() {
+                    setTimeout(function() {
+                        window.print();
+                    }, 500);
+                };
+            </script>
+        </body>
+        </html>";
+
+        return response($html, 200, [
+            'Content-Type' => 'text/html',
+            'Content-Disposition' => 'inline; filename="executive-report-' . $project->code . '.html"',
         ]);
     }
 }

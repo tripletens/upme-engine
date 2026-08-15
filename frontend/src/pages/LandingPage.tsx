@@ -9,15 +9,19 @@ import SchoolIcon from '@mui/icons-material/School';
 import ConstructionIcon from '@mui/icons-material/Construction';
 import CodeIcon from '@mui/icons-material/Code';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 
 import { PricingSection } from '../components/PricingSection';
+import { LoginModal } from '../components/LoginModal';
 
 interface LandingPageProps {
   onLaunchDashboard: () => void;
+  onLoginSuccess: (user: any, organization: any) => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard, onLoginSuccess }) => {
   const [selectedDomain, setSelectedDomain] = useState<'education' | 'construction' | 'software'>('education');
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   return (
     <Box sx={{ minHeight: '100vh', background: '#ffffff', color: '#0f172a' }}>
@@ -46,11 +50,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
             </Typography>
           </Box>
 
-          <Stack direction="row" spacing={3} alignItems="center" sx={{ display: { xs: 'none', md: 'flex' } }}>
+          <Stack direction="row" spacing={2} alignItems="center" sx={{ display: { xs: 'none', md: 'flex' } }}>
             <Typography component="a" href="#features" sx={{ color: '#475569', textDecoration: 'none', fontWeight: 500, '&:hover': { color: '#4f46e5' } }}>Features</Typography>
             <Typography component="a" href="#templates" sx={{ color: '#475569', textDecoration: 'none', fontWeight: 500, '&:hover': { color: '#4f46e5' } }}>Templates</Typography>
             <Typography component="a" href="#pricing" sx={{ color: '#475569', textDecoration: 'none', fontWeight: 500, '&:hover': { color: '#4f46e5' } }}>Pricing</Typography>
             
+            <Button
+              variant="outlined"
+              onClick={() => setLoginModalOpen(true)}
+              startIcon={<LockOpenIcon />}
+              sx={{
+                color: '#4f46e5',
+                borderColor: '#c7d2fe',
+                borderRadius: '10px',
+                px: 2.5,
+                py: 0.8,
+                fontWeight: 700,
+                textTransform: 'none',
+                '&:hover': { borderColor: '#4f46e5', background: '#e0e7ff' }
+              }}
+            >
+              Sign In
+            </Button>
+
             <Button
               variant="contained"
               onClick={onLaunchDashboard}
@@ -95,8 +117,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
           <Button
             variant="contained"
             size="large"
-            onClick={onLaunchDashboard}
-            endIcon={<ArrowForwardIcon />}
+            onClick={() => setLoginModalOpen(true)}
+            startIcon={<LockOpenIcon />}
             sx={{
               background: '#4f46e5',
               color: '#ffffff',
@@ -110,14 +132,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
               '&:hover': { background: '#4338ca' }
             }}
           >
-            Launch Interactive School Lab Demo
+            Sign In with Test Account
           </Button>
 
           <Button
             variant="outlined"
             size="large"
-            component="a"
-            href="#pricing"
+            onClick={onLaunchDashboard}
+            endIcon={<ArrowForwardIcon />}
             sx={{
               color: '#0f172a',
               borderColor: '#cbd5e1',
@@ -130,7 +152,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
               '&:hover': { borderColor: '#4f46e5', background: '#f1f5f9' }
             }}
           >
-            View Paystack Subscriptions
+            Explore Live Dashboard
           </Button>
         </Stack>
       </Container>
@@ -299,7 +321,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
                   Corporate KYC & Redis RBAC Isolation
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#475569', lineHeight: 1.7 }}>
-                  Multi-tenant discriminator isolation, sub-millisecond Redis permission caching ($O(1)$ lookup speed), and corporate KYC verification state machines (`UNVERIFIED` → `VERIFIED`).
+                  Multi-tenant discriminator isolation, sub-millisecond Redis permission caching (O(1) lookup speed), and corporate KYC verification state machines (`UNVERIFIED` → `VERIFIED`).
                 </Typography>
               </CardContent>
             </Card>
@@ -320,6 +342,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchDashboard }) =
           </Typography>
         </Container>
       </Box>
+
+      {/* Sign In Modal */}
+      <LoginModal
+        open={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+        onLoginSuccess={onLoginSuccess}
+      />
     </Box>
   );
 };
