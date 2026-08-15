@@ -30,8 +30,8 @@ import LockIcon from '@mui/icons-material/Lock';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
-import { UpdateCsmtTaskModal } from './UpdateCsmtTaskModal';
 import { DocumentPreviewModal } from './DocumentPreviewModal';
+import { CsmtStageEditView } from './CsmtStageEditView';
 
 interface CsmtProjectDetailViewProps {
   project: any;
@@ -45,8 +45,9 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
   onUpdateProject
 }) => {
   const [activeStage, setActiveStage] = useState<any>(project?.milestones?.[0] || null);
-  const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<any>(null);
+
+  // Full-Page Stage Progress Editor State
+  const [selectedEditingStage, setSelectedEditingStage] = useState<any>(null);
 
   // Read Logged-In User Permissions
   const currentUser = (() => {
@@ -71,23 +72,22 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
       const saved = localStorage.getItem(docStorageKey);
       if (saved) return JSON.parse(saved);
     } catch (e) {}
-    const cleanStage = (activeStage?.name || 'Milestone').replace(/[^a-zA-Z0-9]/g, '_');
     return [
       {
         id: 1,
-        title: `Specification_Doc_${cleanStage}_v1.pdf`,
+        title: `Specification_Doc_v1.pdf`,
         size: '3.4 MB',
         uploadedBy: project?.supervisor || 'Lead Supervisor',
-        date: new Date(Date.now() - 86400000 * 2).toLocaleString(),
+        date: new Date(Date.now() - 86400000 * 2).toLocaleDateString(),
         category: 'Design & Specs',
         status: 'VERIFIED'
       },
       {
         id: 2,
-        title: `Quality_Audit_Signoff_${cleanStage}.pdf`,
+        title: `Quality_Audit_Signoff.pdf`,
         size: '1.8 MB',
         uploadedBy: 'Quality Assurance Lead',
-        date: new Date(Date.now() - 86400000 * 1).toLocaleString(),
+        date: new Date(Date.now() - 86400000 * 1).toLocaleDateString(),
         category: 'Audit Certificate',
         status: 'VERIFIED'
       }
@@ -112,23 +112,22 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
         return;
       }
     } catch (e) {}
-    const cleanStage = (stage?.name || 'Milestone').replace(/[^a-zA-Z0-9]/g, '_');
     const defaults = [
       {
         id: 1,
-        title: `Specification_Doc_${cleanStage}_v1.pdf`,
+        title: `Specification_Doc_v1.pdf`,
         size: '3.4 MB',
         uploadedBy: project?.supervisor || 'Lead Supervisor',
-        date: new Date(Date.now() - 86400000 * 2).toLocaleString(),
+        date: new Date(Date.now() - 86400000 * 2).toLocaleDateString(),
         category: 'Design & Specs',
         status: 'VERIFIED'
       },
       {
         id: 2,
-        title: `Quality_Audit_Signoff_${cleanStage}.pdf`,
+        title: `Quality_Audit_Signoff.pdf`,
         size: '1.8 MB',
         uploadedBy: 'Quality Assurance Lead',
-        date: new Date(Date.now() - 86400000 * 1).toLocaleString(),
+        date: new Date(Date.now() - 86400000 * 1).toLocaleDateString(),
         category: 'Audit Certificate',
         status: 'VERIFIED'
       }
@@ -174,7 +173,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
         title: formattedTitle,
         size: fileSize,
         uploadedBy: project?.supervisor || 'Lead Supervisor',
-        date: new Date().toLocaleString(),
+        date: new Date().toLocaleDateString(),
         category: docCategory,
         status: 'VERIFIED'
       };
@@ -192,11 +191,11 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
     }, 500);
   };
 
-  const handleTaskSaved = (newProgress: number) => {
-    if (!selectedTask || !project?.milestones) return;
+  const handleTaskSaved = (targetStageId: any, newProgress: number, notes: string) => {
+    if (!project?.milestones) return;
 
     const updatedMilestones = project.milestones.map((m: any) => {
-      if (m?.id === selectedTask?.id || m?.name === selectedTask?.name) {
+      if (m?.id === targetStageId || m?.name === targetStageId) {
         return { ...m, progress: newProgress };
       }
       return m;
@@ -215,11 +214,23 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
     };
 
     onUpdateProject(updatedProj);
-    if (activeStage && (activeStage?.id === selectedTask?.id || activeStage?.name === selectedTask?.name)) {
+    if (activeStage && (activeStage?.id === targetStageId || activeStage?.name === targetStageId)) {
       setActiveStage({ ...activeStage, progress: newProgress });
     }
-    setAlertMsg(`🎉 Task "${selectedTask?.name}" progress updated to ${newProgress}%!`);
+    setAlertMsg(`🎉 Milestone stage progress updated to ${newProgress}%! Saved directly to engine database.`);
   };
+
+  // If Full Page Stage Editor is active, render it instead of the detail view
+  if (selectedEditingStage) {
+    return (
+      <CsmtStageEditView
+        project={project}
+        stage={selectedEditingStage}
+        onBack={() => setSelectedEditingStage(null)}
+        onSaveProgress={handleTaskSaved}
+      />
+    );
+  }
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
@@ -396,7 +407,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                         Click to view stage docs
                       </Typography>
 
-                      <Tooltip title={canUpdateProgress ? (isCompleted ? 'Progress complete (100%)' : 'Update stage progress %') : 'Permission Removed by Admin'}>
+                      <Tooltip title={canUpdateProgress ? (isCompleted ? 'Progress complete (100%)' : 'Open full-page stage progress editor') : 'Permission Removed by Admin'}>
                         <span>
                           <Button
                             size="small"
@@ -414,8 +425,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                             onClick={(e) => {
                               e.stopPropagation();
                               if (!canUpdateProgress) return;
-                              setSelectedTask(m);
-                              setTaskModalOpen(true);
+                              setSelectedEditingStage(m);
                             }}
                             sx={{
                               height: 30,
@@ -505,49 +515,59 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                     key={doc.id}
                     elevation={0}
                     sx={{
-                      p: 2.5,
-                      borderRadius: '12px',
+                      p: 2,
+                      borderRadius: '14px',
                       border: '1px solid #e2e8f0',
                       background: '#f8fafc',
                       '&:hover': { borderColor: '#4f46e5', background: '#faf5ff' },
                       display: 'flex',
-                      justify: 'space-between',
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                      gap: 2
+                      flexDirection: 'column',
+                      gap: 1.5
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Box sx={{ width: 44, height: 44, borderRadius: '12px', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <InsertDriveFileIcon sx={{ color: '#4f46e5', fontSize: 24 }} />
+                    {/* Header: File Icon + Title + Status Badge */}
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                      <Box sx={{ width: 38, height: 38, borderRadius: '10px', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, mt: 0.2 }}>
+                        <InsertDriveFileIcon sx={{ color: '#4f46e5', fontSize: 22 }} />
                       </Box>
-                      <Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem', wordBreak: 'break-word' }}>
+                      <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem', wordBreak: 'break-word' }}>
                             {doc.title}
                           </Typography>
                           <Chip
-                            icon={<VerifiedIcon sx={{ fontSize: 13, color: '#047857 !important' }} />}
+                            icon={<VerifiedIcon sx={{ fontSize: 12, color: '#047857 !important' }} />}
                             label={doc.status}
                             size="small"
                             sx={{ height: 20, fontSize: '0.62rem', fontWeight: 800, background: '#ecfdf5', color: '#047857' }}
                           />
                         </Box>
-                        <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.3, fontSize: '0.72rem' }}>
-                          Category: <strong>{doc.category}</strong> • Size: {doc.size} • Uploaded by {doc.uploadedBy} at {doc.date}
+                        <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.5, fontSize: '0.72rem' }}>
+                          Category: <strong>{doc.category}</strong> • Size: {doc.size} • Uploaded by {doc.uploadedBy}
                         </Typography>
                       </Box>
                     </Box>
 
-                    <Stack direction="row" spacing={1}>
+                    {/* Footer: Equal-Width Responsive Action Buttons */}
+                    <Stack direction="row" spacing={1.5} sx={{ width: '100%', pt: 0.5 }}>
                       <Button
                         size="small"
                         variant="outlined"
                         startIcon={<VisibilityIcon sx={{ fontSize: 14 }} />}
                         onClick={() => handleOpenDocPreview(doc)}
-                        sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', color: '#4f46e5', borderColor: '#c7d2fe' }}
+                        sx={{
+                          flex: 1,
+                          height: 32,
+                          textTransform: 'none',
+                          fontWeight: 800,
+                          fontSize: '0.75rem',
+                          color: '#4f46e5',
+                          borderColor: '#c7d2fe',
+                          borderRadius: '8px',
+                          '&:hover': { background: '#e0e7ff', borderColor: '#4f46e5' }
+                        }}
                       >
-                        View Document
+                        View
                       </Button>
 
                       <Button
@@ -555,7 +575,18 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                         variant="contained"
                         startIcon={<DownloadIcon sx={{ fontSize: 14 }} />}
                         onClick={() => handleDownloadDoc(doc)}
-                        sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', background: '#059669', color: '#fff', '&:hover': { background: '#047857' } }}
+                        sx={{
+                          flex: 1,
+                          height: 32,
+                          textTransform: 'none',
+                          fontWeight: 800,
+                          fontSize: '0.75rem',
+                          background: '#059669',
+                          color: '#fff',
+                          borderRadius: '8px',
+                          boxShadow: '0 2px 6px rgba(5, 150, 105, 0.2)',
+                          '&:hover': { background: '#047857' }
+                        }}
                       >
                         Download
                       </Button>
@@ -648,19 +679,6 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
           </Paper>
         </Grid>
       </Grid>
-
-      {/* Task Progress Update Modal */}
-      {selectedTask && (
-        <UpdateCsmtTaskModal
-          open={taskModalOpen}
-          onClose={() => setTaskModalOpen(false)}
-          taskId={selectedTask?.id}
-          taskName={selectedTask?.name}
-          currentProgress={selectedTask?.progress}
-          supervisorName={project?.supervisor || 'Lead Supervisor'}
-          onSaveSuccess={handleTaskSaved}
-        />
-      )}
 
       {/* Rich Interactive Document Preview Modal */}
       {selectedPreviewDoc && (
