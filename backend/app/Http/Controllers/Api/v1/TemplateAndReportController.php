@@ -43,10 +43,12 @@ class TemplateAndReportController extends Controller
         $template = null;
         if ($request->filled('template_id')) {
             $template = ProjectTemplate::find($request->input('template_id'));
-        } elseif ($request->filled('template_code')) {
-            $template = ProjectTemplate::where('code', $request->input('template_code'))->first();
         }
         
+        if (!$template && $request->filled('template_code')) {
+            $template = ProjectTemplate::where('code', $request->input('template_code'))->first();
+        }
+
         if (!$template) {
             $template = ProjectTemplate::first();
         }
