@@ -27,6 +27,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import PersonIcon from '@mui/icons-material/Person';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import LockIcon from '@mui/icons-material/Lock';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
 import { UpdateCsmtTaskModal } from './UpdateCsmtTaskModal';
 import { DocumentPreviewModal } from './DocumentPreviewModal';
@@ -42,7 +43,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
   onBack,
   onUpdateProject
 }) => {
-  const [activeStage, setActiveStage] = useState<any>(project.milestones?.[0] || null);
+  const [activeStage, setActiveStage] = useState<any>(project?.milestones?.[0] || null);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
 
@@ -54,7 +55,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
       return {};
     }
   })();
-  const canUpdateProgress = currentUser.canUpdateProgress !== false;
+  const canUpdateProgress = currentUser?.canUpdateProgress !== false;
 
   // Document Viewer Preview Modal State
   const [previewDocModalOpen, setPreviewDocModalOpen] = useState(false);
@@ -75,7 +76,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
         id: 1,
         title: `Specification_Doc_${cleanStage}_v1.pdf`,
         size: '3.4 MB',
-        uploadedBy: project.supervisor,
+        uploadedBy: project?.supervisor || 'Lead Supervisor',
         date: new Date(Date.now() - 86400000 * 2).toLocaleString(),
         category: 'Design & Specs',
         status: 'VERIFIED'
@@ -99,8 +100,9 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
   const [alertMsg, setAlertMsg] = useState('');
 
   const handleStageSelect = (stage: any) => {
+    if (!stage) return;
     setActiveStage(stage);
-    const sId = stage.id || stage.name || 'stage-1';
+    const sId = stage?.id || stage?.name || 'stage-1';
     const sKey = `csmt_milestone_docs_${sId}`;
     try {
       const saved = localStorage.getItem(sKey);
@@ -109,13 +111,13 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
         return;
       }
     } catch (e) {}
-    const cleanStage = (stage.name || 'Milestone').replace(/[^a-zA-Z0-9]/g, '_');
+    const cleanStage = (stage?.name || 'Milestone').replace(/[^a-zA-Z0-9]/g, '_');
     const defaults = [
       {
         id: 1,
         title: `Specification_Doc_${cleanStage}_v1.pdf`,
         size: '3.4 MB',
-        uploadedBy: project.supervisor,
+        uploadedBy: project?.supervisor || 'Lead Supervisor',
         date: new Date(Date.now() - 86400000 * 2).toLocaleString(),
         category: 'Design & Specs',
         status: 'VERIFIED'
@@ -142,13 +144,13 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
   };
 
   const handleDownloadDoc = (doc: any) => {
-    const dummyContent = `CSMT SCHOOLS DISTRICT INFRASTRUCTURE AUDIT PROOF\n----------------------------------------------------\nDocument Title: ${doc.title}\nCategory: ${doc.category || 'Audit Proof'}\nSize: ${doc.size || '3.4 MB'}\nUploaded By: ${doc.uploadedBy || 'Lead Supervisor'}\nTimestamp: ${doc.date || new Date().toLocaleString()}\nVerification Status: VERIFIED & AUDITED BY ENGINE\n\nThis is an official verification document proof attached to the CSMT Schools District Infrastructure Portfolio.`;
+    const dummyContent = `CSMT SCHOOLS DISTRICT INFRASTRUCTURE AUDIT PROOF\n----------------------------------------------------\nDocument Title: ${doc?.title || 'Audit Proof'}\nCategory: ${doc?.category || 'Audit Proof'}\nSize: ${doc?.size || '3.4 MB'}\nUploaded By: ${doc?.uploadedBy || 'Lead Supervisor'}\nTimestamp: ${doc?.date || new Date().toLocaleString()}\nVerification Status: VERIFIED & AUDITED BY ENGINE\n\nThis is an official verification document proof attached to the CSMT Schools District Infrastructure Portfolio.`;
 
     const blob = new Blob([dummyContent], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = doc.title || 'document_audit_proof.pdf';
+    a.download = doc?.title || 'document_audit_proof.pdf';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -170,7 +172,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
         id: Date.now(),
         title: formattedTitle,
         size: fileSize,
-        uploadedBy: project.supervisor,
+        uploadedBy: project?.supervisor || 'Lead Supervisor',
         date: new Date().toLocaleString(),
         category: docCategory,
         status: 'VERIFIED'
@@ -190,110 +192,144 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
   };
 
   const handleTaskSaved = (newProgress: number) => {
-    if (!selectedTask) return;
+    if (!selectedTask || !project?.milestones) return;
 
     const updatedMilestones = project.milestones.map((m: any) => {
-      if (m.id === selectedTask.id || m.name === selectedTask.name) {
+      if (m?.id === selectedTask?.id || m?.name === selectedTask?.name) {
         return { ...m, progress: newProgress };
       }
       return m;
     });
 
     const avgProgress = Math.round(
-      updatedMilestones.reduce((sum: number, m: any) => sum + Number(m.progress || 0), 0) / updatedMilestones.length
+      updatedMilestones.reduce((sum: number, m: any) => sum + Number(m?.progress || 0), 0) / updatedMilestones.length
     );
 
     const updatedProj = {
       ...project,
       progress: avgProgress,
-      healthScore: avgProgress === 100 ? 100.0 : project.healthScore,
-      healthStatus: avgProgress === 100 ? 'ON_TRACK' : project.healthStatus,
+      healthScore: avgProgress === 100 ? 100.0 : project?.healthScore || 90.0,
+      healthStatus: avgProgress === 100 ? 'ON_TRACK' : project?.healthStatus || 'ON_TRACK',
       milestones: updatedMilestones
     };
 
     onUpdateProject(updatedProj);
-    if (activeStage && (activeStage.id === selectedTask.id || activeStage.name === selectedTask.name)) {
+    if (activeStage && (activeStage?.id === selectedTask?.id || activeStage?.name === selectedTask?.name)) {
       setActiveStage({ ...activeStage, progress: newProgress });
     }
-    setAlertMsg(`🎉 Task "${selectedTask.name}" progress updated to ${newProgress}%!`);
+    setAlertMsg(`🎉 Task "${selectedTask?.name}" progress updated to ${newProgress}%!`);
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
+    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
       {/* Top Back Header Navigation */}
       <Button
         variant="outlined"
         startIcon={<ArrowBackIcon />}
         onClick={onBack}
-        sx={{ mb: 3, textTransform: 'none', fontWeight: 800, color: '#334155', borderColor: '#cbd5e1', borderRadius: '10px' }}
+        sx={{ mb: 3, textTransform: 'none', fontWeight: 800, color: '#334155', borderColor: '#cbd5e1', borderRadius: '10px', fontSize: '0.85rem' }}
       >
         Back to All Projects Portfolio
       </Button>
 
       {/* Permission Lock Warning Banner */}
       {!canUpdateProgress && (
-        <Alert severity="warning" icon={<LockIcon />} sx={{ mb: 3, borderRadius: '12px', fontWeight: 700 }}>
+        <Alert severity="warning" icon={<LockIcon />} sx={{ mb: 3, borderRadius: '12px', fontWeight: 700, fontSize: '0.85rem' }}>
           <strong>PROGRESS EDITING RESTRICTED:</strong> Your Organization Admin has revoked permission to edit or update milestone progress for projects. Contact your administrator to regain access.
         </Alert>
       )}
 
-      {/* Main Project Overview Card */}
+      {/* Ultra-Modern Redesigned Responsive Project Header Banner */}
       <Paper
         elevation={0}
         sx={{
-          p: 4,
-          mb: 4,
-          borderRadius: '16px',
-          background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
+          p: { xs: 2.5, sm: 3.5, md: 4 },
+          mb: 3,
+          borderRadius: '20px',
+          background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%)',
           color: '#ffffff',
-          border: '1px solid #4338ca'
+          border: '1px solid #4338ca',
+          boxShadow: '0 12px 30px rgba(30, 27, 75, 0.25)',
+          overflow: 'hidden'
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-          <Box sx={{ maxWidth: '100%' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1, flexWrap: 'wrap' }}>
-              <Chip
-                icon={<SchoolIcon sx={{ color: '#fff !important', fontSize: 16 }} />}
-                label={project.schoolName || 'CSMT Science Campus'}
-                sx={{ background: '#4f46e5', color: '#fff', fontWeight: 800 }}
-              />
-              <Chip
-                icon={<VerifiedIcon sx={{ color: '#fff !important', fontSize: 14 }} />}
-                label={`HEALTH: ${project.healthScore}/100 (${project.healthStatus})`}
-                sx={{ background: project.healthStatus === 'ON_TRACK' ? '#059669' : '#d97706', color: '#fff', fontWeight: 800 }}
-              />
+        {/* Top Badges Row */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+          <Chip
+            icon={<SchoolIcon sx={{ color: '#fff !important', fontSize: 14 }} />}
+            label={project?.schoolName || 'CSMT Science Campus'}
+            size="small"
+            sx={{ background: '#4f46e5', color: '#fff', fontWeight: 800, fontSize: '0.68rem', height: 24 }}
+          />
+          <Chip
+            icon={<VerifiedIcon sx={{ color: '#fff !important', fontSize: 13 }} />}
+            label={`HEALTH: ${project?.healthScore || 90.0}/100`}
+            size="small"
+            sx={{ background: project?.healthStatus === 'ON_TRACK' ? '#059669' : '#d97706', color: '#fff', fontWeight: 800, fontSize: '0.68rem', height: 24 }}
+          />
+        </Box>
+
+        {/* Project Title */}
+        <Typography
+          variant="h3"
+          sx={{
+            fontWeight: 900,
+            letterSpacing: -0.5,
+            mb: 2.5,
+            fontSize: { xs: '1.35rem', sm: '1.8rem', md: '2.4rem' },
+            lineHeight: 1.2,
+            wordBreak: 'normal',
+            overflowWrap: 'break-word'
+          }}
+        >
+          {project?.projectName || 'School Infrastructure Project'}
+        </Typography>
+
+        {/* Supervisor & Location Glassmorphism Card */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: 2,
+            mb: 3,
+            borderRadius: '12px',
+            background: 'rgba(255, 255, 255, 0.08)',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            backdropFilter: 'blur(10px)'
+          }}
+        >
+          <Stack spacing={1} direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" flexWrap="wrap">
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <PersonIcon sx={{ fontSize: 18, color: '#38bdf8' }} />
+              <Typography variant="body2" sx={{ color: '#e0e7ff', fontSize: { xs: '0.78rem', sm: '0.88rem' } }}>
+                Supervisor: <strong>{project?.supervisor || 'Dr. Robert Vance (HOD CS)'}</strong>
+              </Typography>
             </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <LocationOnIcon sx={{ fontSize: 18, color: '#f472b6' }} />
+              <Typography variant="body2" sx={{ color: '#e0e7ff', fontSize: { xs: '0.78rem', sm: '0.88rem' } }}>
+                Location: <strong>{project?.location || 'Main Campus'}</strong>
+              </Typography>
+            </Box>
+          </Stack>
+        </Paper>
 
-            <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: -0.5, mb: 1, wordBreak: 'break-word' }}>
-              {project.projectName}
+        {/* Budget & Progress Bar Row */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <AccountBalanceWalletIcon sx={{ color: '#34d399', fontSize: 20 }} />
+            <Typography variant="caption" sx={{ color: '#a5f3fc', fontWeight: 800, fontSize: '0.72rem', letterSpacing: 0.5 }}>
+              ALLOCATED BUDGET: <strong style={{ color: '#34d399', fontSize: '1rem' }}>{project?.budget || '₦35,000,000'}</strong>
             </Typography>
-
-            <Stack direction="row" spacing={3} flexWrap="wrap" sx={{ color: '#c7d2fe', fontSize: '0.88rem' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <PersonIcon sx={{ fontSize: 16 }} /> Lead Supervisor: <strong>{project.supervisor}</strong>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <LocationOnIcon sx={{ fontSize: 16 }} /> Location: <strong>{project.location || 'Main Campus'}</strong>
-              </Box>
-            </Stack>
           </Box>
 
-          <Box sx={{ textAlign: 'right', background: 'rgba(255, 255, 255, 0.1)', p: 2.5, borderRadius: '14px', border: '1px solid rgba(255, 255, 255, 0.2)' }}>
-            <Typography variant="caption" sx={{ color: '#a5f3fc', fontWeight: 800, display: 'block' }}>
-              ALLOCATED BUDGET (NAIRA)
-            </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 900, color: '#34d399', my: 0.5 }}>
-              {project.budget}
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#c7d2fe', fontWeight: 700 }}>
-              Overall Completion: {project.progress}%
-            </Typography>
-          </Box>
+          <Typography variant="caption" sx={{ color: '#c7d2fe', fontWeight: 800, fontSize: '0.8rem' }}>
+            Overall Completion: <strong>{project?.progress || 0}%</strong>
+          </Typography>
         </Box>
 
         <LinearProgress
           variant="determinate"
-          value={project.progress}
+          value={project?.progress || 0}
           sx={{ height: 10, borderRadius: 5, background: 'rgba(255, 255, 255, 0.2)', '& .MuiLinearProgress-bar': { background: '#34d399' } }}
         />
       </Paper>
@@ -309,16 +345,16 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
         {/* Left Column: Milestone Stages Selector */}
         <Grid item xs={12} md={4} sx={{ pl: '0 !important', pt: '0 !important' }}>
           <Paper elevation={0} sx={{ p: 3, borderRadius: '16px', background: '#ffffff', border: '1px solid #e2e8f0' }}>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 2 }}>
-              📑 Project Milestones & Stages ({project.milestones?.length || 0})
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 2, fontSize: '1.05rem' }}>
+              📑 Project Milestones & Stages ({project?.milestones?.length || 0})
             </Typography>
 
             <Stack spacing={1.5}>
-              {(project.milestones || []).map((m: any) => {
-                const isSelected = activeStage?.id === m.id || activeStage?.name === m.name;
+              {(project?.milestones || []).map((m: any) => {
+                const isSelected = activeStage?.id === m?.id || activeStage?.name === m?.name;
                 return (
                   <Paper
-                    key={m.id || m.name}
+                    key={m?.id || m?.name}
                     elevation={0}
                     onClick={() => handleStageSelect(m)}
                     sx={{
@@ -332,29 +368,29 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                     }}
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: isSelected ? '#4f46e5' : '#0f172a' }}>
-                        {m.name}
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: isSelected ? '#4f46e5' : '#0f172a', fontSize: '0.88rem' }}>
+                        {m?.name || 'Milestone Stage'}
                       </Typography>
                       <Chip
-                        label={`${m.progress}%`}
+                        label={`${m?.progress || 0}%`}
                         size="small"
                         sx={{
                           fontWeight: 800,
                           fontSize: '0.65rem',
-                          background: m.progress >= 100 ? '#ecfdf5' : '#e0e7ff',
-                          color: m.progress >= 100 ? '#047857' : '#4338ca'
+                          background: (m?.progress || 0) >= 100 ? '#ecfdf5' : '#e0e7ff',
+                          color: (m?.progress || 0) >= 100 ? '#047857' : '#4338ca'
                         }}
                       />
                     </Box>
 
                     <LinearProgress
                       variant="determinate"
-                      value={m.progress}
-                      sx={{ height: 6, borderRadius: 3, background: '#cbd5e1', '& .MuiLinearProgress-bar': { background: m.progress >= 100 ? '#059669' : '#4f46e5' } }}
+                      value={m?.progress || 0}
+                      sx={{ height: 6, borderRadius: 3, background: '#cbd5e1', '& .MuiLinearProgress-bar': { background: (m?.progress || 0) >= 100 ? '#059669' : '#4f46e5' } }}
                     />
 
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
-                      <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, fontSize: '0.72rem' }}>
                         Click to view stage docs
                       </Typography>
 
@@ -387,16 +423,16 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
 
         {/* Right Column: Stage Details & Document Audit Hub */}
         <Grid item xs={12} md={8} sx={{ pr: '0 !important', pt: { xs: '24px !important', md: '0 !important' } }}>
-          <Paper elevation={0} sx={{ p: 4, borderRadius: '16px', background: '#ffffff', border: '1px solid #e2e8f0' }}>
+          <Paper elevation={0} sx={{ p: { xs: 2.5, sm: 3.5, md: 4 }, borderRadius: '16px', background: '#ffffff', border: '1px solid #e2e8f0' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <DescriptionIcon sx={{ color: '#4f46e5', fontSize: 32 }} />
                 <Box>
-                  <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a', fontSize: { xs: '1.1rem', sm: '1.35rem' } }}>
                     Stage Audit Documents: {activeStage?.name || 'Selected Stage'}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#64748b' }}>
-                    View and upload verification documents for milestone: <strong>{activeStage?.name}</strong>
+                  <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.82rem' }}>
+                    View and upload verification documents for milestone: <strong>{activeStage?.name || 'Selected Stage'}</strong>
                   </Typography>
                 </Box>
               </Box>
@@ -406,7 +442,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                 size="small"
                 sx={{
                   fontWeight: 800,
-                  fontSize: '0.75rem',
+                  fontSize: '0.72rem',
                   px: 1,
                   background: (activeStage?.progress || 0) >= 100 ? '#ecfdf5' : '#e0e7ff',
                   color: (activeStage?.progress || 0) >= 100 ? '#047857' : '#4338ca'
@@ -417,7 +453,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
             <Divider sx={{ my: 3 }} />
 
             {/* Attached Documents List */}
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 2, display: 'flex', alignItems: 'center', gap: 1, fontSize: '0.95rem' }}>
               <InsertDriveFileIcon sx={{ color: '#059669' }} />
               Attached Proof Documents ({documents.length})
             </Typography>
@@ -453,17 +489,17 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                       </Box>
                       <Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem', wordBreak: 'break-word' }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem', wordBreak: 'break-word' }}>
                             {doc.title}
                           </Typography>
                           <Chip
                             icon={<VerifiedIcon sx={{ fontSize: 13, color: '#047857 !important' }} />}
                             label={doc.status}
                             size="small"
-                            sx={{ height: 20, fontSize: '0.65rem', fontWeight: 800, background: '#ecfdf5', color: '#047857' }}
+                            sx={{ height: 20, fontSize: '0.62rem', fontWeight: 800, background: '#ecfdf5', color: '#047857' }}
                           />
                         </Box>
-                        <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.3 }}>
+                        <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.3, fontSize: '0.72rem' }}>
                           Category: <strong>{doc.category}</strong> • Size: {doc.size} • Uploaded by {doc.uploadedBy} at {doc.date}
                         </Typography>
                       </Box>
@@ -475,7 +511,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                         variant="outlined"
                         startIcon={<VisibilityIcon sx={{ fontSize: 14 }} />}
                         onClick={() => handleOpenDocPreview(doc)}
-                        sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.78rem', color: '#4f46e5', borderColor: '#c7d2fe' }}
+                        sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', color: '#4f46e5', borderColor: '#c7d2fe' }}
                       >
                         View Document
                       </Button>
@@ -485,7 +521,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                         variant="contained"
                         startIcon={<DownloadIcon sx={{ fontSize: 14 }} />}
                         onClick={() => handleDownloadDoc(doc)}
-                        sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.78rem', background: '#059669', color: '#fff', '&:hover': { background: '#047857' } }}
+                        sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', background: '#059669', color: '#fff', '&:hover': { background: '#047857' } }}
                       >
                         Download
                       </Button>
@@ -498,9 +534,9 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
             <Divider sx={{ my: 3 }} />
 
             {/* Document Upload Form */}
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 2, display: 'flex', alignItems: 'center', gap: 1, fontSize: '0.95rem' }}>
               <CloudUploadIcon sx={{ color: '#4f46e5' }} />
-              Upload Audit Proof Document to "{activeStage?.name}"
+              Upload Audit Proof Document to "{activeStage?.name || 'Selected Stage'}"
             </Typography>
 
             <Box component="form" onSubmit={handleUploadDoc} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -539,7 +575,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                   variant="outlined"
                   component="label"
                   startIcon={<CloudUploadIcon />}
-                  sx={{ textTransform: 'none', fontWeight: 700, borderColor: '#cbd5e1', color: '#334155' }}
+                  sx={{ textTransform: 'none', fontWeight: 700, borderColor: '#cbd5e1', color: '#334155', fontSize: '0.8rem' }}
                 >
                   Choose File from Device...
                   <input
@@ -569,7 +605,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                   variant="contained"
                   disabled={uploading}
                   startIcon={uploading ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />}
-                  sx={{ background: '#4f46e5', color: '#fff', textTransform: 'none', fontWeight: 800, ml: 'auto', px: 3, py: 1 }}
+                  sx={{ background: '#4f46e5', color: '#fff', textTransform: 'none', fontWeight: 800, ml: 'auto', px: 3, py: 1, fontSize: '0.82rem' }}
                 >
                   {uploading ? 'Uploading...' : 'Upload Document to Stage'}
                 </Button>
@@ -584,10 +620,10 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
         <UpdateCsmtTaskModal
           open={taskModalOpen}
           onClose={() => setTaskModalOpen(false)}
-          taskId={selectedTask.id}
-          taskName={selectedTask.name}
-          currentProgress={selectedTask.progress}
-          supervisorName={project.supervisor}
+          taskId={selectedTask?.id}
+          taskName={selectedTask?.name}
+          currentProgress={selectedTask?.progress}
+          supervisorName={project?.supervisor || 'Lead Supervisor'}
           onSaveSuccess={handleTaskSaved}
         />
       )}
