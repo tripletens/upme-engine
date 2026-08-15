@@ -149,14 +149,14 @@ export const LytHomesLoginView: React.FC<LytHomesLoginViewProps> = ({ onLoginSuc
               </Typography>
 
               <Typography variant="body1" sx={{ color: '#94a3b8', mb: 3, fontSize: '0.92rem', lineHeight: 1.6 }}>
-                Multi-Tenant Civil & Building Infrastructure Engine Portal (`LYTHOMES-CONSTRUCTION-CO`).
+                Multi-Tenant Civil & Building Infrastructure Management Portal.
               </Typography>
 
               <Stack spacing={1.5}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <VerifiedIcon sx={{ color: '#10b981', fontSize: 20 }} />
                   <Typography variant="body2" sx={{ color: '#cbd5e1', fontWeight: 700, fontSize: '0.85rem' }}>
-                    Live MySQL Engine Integration
+                    Live Engine Integration
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
