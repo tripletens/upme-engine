@@ -415,7 +415,7 @@ export const App: React.FC = () => {
                             {m.name}
                           </Typography>
                           <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem' }}>
-                            Progress: <strong>{m.progress}%</strong> • Audit Docs: <strong>4 Files Attached</strong>
+                            Progress: <strong>{m.progress}%</strong>
                           </Typography>
                         </Box>
 
@@ -467,6 +467,7 @@ export const App: React.FC = () => {
           <StageDocumentViewerModal
             open={docModalOpen}
             onClose={() => setDocModalOpen(false)}
+            stageId={selectedStage.id || selectedStage.name}
             stageName={selectedStage.name}
             projectName={selectedProject.projectName}
             supervisorName={selectedProject.supervisor}
