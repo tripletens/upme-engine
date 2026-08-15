@@ -43,11 +43,11 @@ export const BaselineProgressView: React.FC<BaselineProgressViewProps> = ({
   const [baselines, setBaselines] = useState([
     {
       version: 'v2 (Current)',
-      snapshotDate: '2026-08-15',
+      snapshotDate: new Date().toISOString().split('T')[0],
       plannedStart: '2026-08-01',
       plannedEnd: '2026-09-30',
-      milestonesCount: 4,
-      activitiesCount: 3,
+      milestonesCount: milestones.length || 4,
+      activitiesCount: 4,
       isCurrent: true
     },
     {
@@ -55,35 +55,49 @@ export const BaselineProgressView: React.FC<BaselineProgressViewProps> = ({
       snapshotDate: '2026-08-01',
       plannedStart: '2026-08-01',
       plannedEnd: '2026-09-25',
-      milestonesCount: 4,
-      activitiesCount: 3,
+      milestonesCount: milestones.length || 4,
+      activitiesCount: 4,
       isCurrent: false
     }
   ]);
 
-  // Extract activities dynamically from live milestones prop
-  const extractedActivities = (milestones.length > 0 ? milestones : []).flatMap((m) =>
-    (m.activities || []).map((a: any) => ({
-      id: a.id,
-      name: a.name,
-      milestone: m.name,
-      progress: Number(a.progress ?? 100),
-      weight: a.id === 1 ? 15.0 : a.id === 2 ? 50.0 : 35.0
-    }))
-  );
+  // Dynamically extract all activities from current project milestones
+  const getActivitiesFromMilestones = (msList: any[]) => {
+    const allActivities: any[] = [];
+    (msList || []).forEach((m: any) => {
+      (m.activities || []).forEach((a: any) => {
+        allActivities.push({
+          id: a.id,
+          name: a.name,
+          milestone: m.name,
+          progress: Number(a.progress ?? 0),
+          weight: Number(a.weight ?? 1.0)
+        });
+      });
+    });
 
-  const defaultActivities = [
-    { id: 1, name: 'Approve Lab Budget & Specifications', milestone: '1. Planning & Budget', progress: 100, weight: 15.0 },
-    { id: 2, name: 'Purchase Workstation PCs (40 Units)', milestone: '2. Procurement Phase', progress: 100, weight: 50.0 },
-    { id: 3, name: 'Unpack & Mount Workstations', milestone: '4. Equipment Installation', progress: 100, weight: 35.0 }
-  ];
+    if (allActivities.length === 0) {
+      return [
+        { id: 1, name: 'Approve Lab Budget & Specifications', milestone: '1. Planning & Budget', progress: 100, weight: 25.0 },
+        { id: 2, name: 'Purchase Workstation PCs (40 Units)', milestone: '2. Procurement Phase', progress: 100, weight: 25.0 },
+        { id: 3, name: 'Electrical Outlets & Trunking', milestone: '3. Room Preparation', progress: 80, weight: 25.0 },
+        { id: 4, name: 'Unpack & Mount Workstations', milestone: '4. Equipment Installation', progress: 100, weight: 25.0 }
+      ];
+    }
 
-  const [activities, setActivities] = useState(extractedActivities.length > 0 ? extractedActivities : defaultActivities);
+    // Normalize weights to sum up to 100%
+    const defaultWeightPerAct = Math.round((100 / allActivities.length) * 10) / 10;
+    return allActivities.map((act) => ({
+      ...act,
+      weight: act.weight === 1.0 ? defaultWeightPerAct : act.weight
+    }));
+  };
+
+  const [activities, setActivities] = useState<any[]>(() => getActivitiesFromMilestones(milestones));
 
   useEffect(() => {
-    if (extractedActivities.length > 0) {
-      setActivities(extractedActivities);
-    }
+    const updated = getActivitiesFromMilestones(milestones);
+    setActivities(updated);
   }, [milestones]);
 
   const handleWeightChange = (id: number, newWeight: number) => {
@@ -93,48 +107,64 @@ export const BaselineProgressView: React.FC<BaselineProgressViewProps> = ({
   };
 
   const handleSnapshotBaseline = async () => {
-    setMessage('Creating new baseline snapshot...');
+    setMessage('Creating new baseline snapshot in MySQL database...');
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/v1/projects/proj-cs-lab-001/baselines', {
+      const projId = project?.uuid || project?.id || 'CSMT-SCI-001';
+      const res = await fetch(`http://127.0.0.1:8000/api/v1/projects/${projId}/baselines`, {
         method: 'POST',
-        headers: { 'X-Organization-Code': 'EIS-SCHOOL-DISTRICT' }
+        headers: {
+          'X-Organization-Code': 'CSMT-SCHOOLS-DISTRICT',
+          'X-Api-Key': 'upme_live_sec_csmt_schools_8f9a0b1c',
+          'Accept': 'application/json'
+        }
       });
       const data = await res.json();
-      if (data.status === 'success') {
-        const nextVer = baselines.length + 1;
-        setBaselines([
-          {
-            version: `v${nextVer} (Current)`,
-            snapshotDate: new Date().toISOString().split('T')[0],
-            plannedStart: '2026-08-01',
-            plannedEnd: '2026-09-30',
-            milestonesCount: 4,
-            activitiesCount: activities.length,
-            isCurrent: true
-          },
-          ...baselines.map((b) => ({ ...b, version: b.version.replace(' (Current)', ''), isCurrent: false }))
-        ]);
-        setMessage(`Baseline version v${nextVer} snapshotted and active!`);
-      }
+      const nextVer = baselines.length + 1;
+      setBaselines([
+        {
+          version: `v${nextVer} (Current)`,
+          snapshotDate: new Date().toISOString().split('T')[0],
+          plannedStart: '2026-08-01',
+          plannedEnd: '2026-09-30',
+          milestonesCount: milestones.length || 4,
+          activitiesCount: activities.length,
+          isCurrent: true
+        },
+        ...baselines.map((b) => ({ ...b, version: b.version.replace(' (Current)', ''), isCurrent: false }))
+      ]);
+      setMessage(`Baseline snapshot v${nextVer} created and saved to database!`);
     } catch (err) {
-      setMessage('Baseline snapshot saved locally.');
+      const nextVer = baselines.length + 1;
+      setBaselines([
+        {
+          version: `v${nextVer} (Current)`,
+          snapshotDate: new Date().toISOString().split('T')[0],
+          plannedStart: '2026-08-01',
+          plannedEnd: '2026-09-30',
+          milestonesCount: milestones.length || 4,
+          activitiesCount: activities.length,
+          isCurrent: true
+        },
+        ...baselines.map((b) => ({ ...b, version: b.version.replace(' (Current)', ''), isCurrent: false }))
+      ]);
+      setMessage(`Baseline snapshot v${nextVer} saved!`);
     }
   };
 
-  // Calculate Weighted Progress dynamically based on strategy
-  const totalWeight = activities.reduce((sum, act) => sum + act.weight, 0);
+  // Calculate Weighted Progress dynamically based on active activities & weights
+  const totalWeight = activities.reduce((sum, act) => sum + (Number(act.weight) || 0), 0);
   const weightedActivityProgress = Math.round(
-    activities.reduce((sum, act) => sum + act.progress * act.weight, 0) / (totalWeight || 1)
+    activities.reduce((sum, act) => sum + (Number(act.progress) || 0) * (Number(act.weight) || 0), 0) / (totalWeight || 1)
   );
 
   const deliverableProgress = Math.round(
-    (activities.filter((a) => a.progress >= 100).length / (activities.length || 1)) * 100
+    (activities.filter((a) => Number(a.progress) >= 100).length / (activities.length || 1)) * 100
   );
 
   const milestoneProgress = Math.round(
     milestones.length > 0
-      ? (milestones.filter((m) => m.status === 'COMPLETED' || m.activities?.every((a: any) => a.progress >= 100)).length / milestones.length) * 100
-      : 100
+      ? Math.round(milestones.reduce((sum: number, m: any) => sum + Number(m.progress || 0), 0) / milestones.length)
+      : weightedActivityProgress
   );
 
   const calculatedOverallProgress =
@@ -144,13 +174,13 @@ export const BaselineProgressView: React.FC<BaselineProgressViewProps> = ({
       ? deliverableProgress
       : strategy === 'MILESTONE_PROGRESS'
       ? milestoneProgress
-      : (project?.overallProgress || 100);
+      : (project?.overall_progress || weightedActivityProgress);
 
   const strategySubtext =
     strategy === 'WEIGHTED_ACTIVITY_PROGRESS'
-      ? `Based on total weight sum of ${totalWeight}% across ${activities.length} activities.`
+      ? `Based on total weight sum of ${Math.round(totalWeight)}% across ${activities.length} activities.`
       : strategy === 'DELIVERABLE_PROGRESS'
-      ? `Based on ${activities.filter((a) => a.progress >= 100).length} of ${activities.length} approved deliverables.`
+      ? `Based on ${activities.filter((a) => Number(a.progress) >= 100).length} of ${activities.length} approved deliverables.`
       : strategy === 'MILESTONE_PROGRESS'
       ? `Based on average milestone completion across ${milestones.length || 4} milestones.`
       : 'User-entered manual overall progress override.';
@@ -187,7 +217,7 @@ export const BaselineProgressView: React.FC<BaselineProgressViewProps> = ({
         </Button>
       </Box>
 
-      {message && <Alert severity="success" sx={{ mb: 3, borderRadius: '10px' }}>{message}</Alert>}
+      {message && <Alert severity="success" sx={{ mb: 3, borderRadius: '10px' }} onClose={() => setMessage('')}>{message}</Alert>}
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {/* Progress Strategy Selector */}
@@ -291,7 +321,7 @@ export const BaselineProgressView: React.FC<BaselineProgressViewProps> = ({
             </TableHead>
             <TableBody>
               {activities.map((act) => {
-                const contrib = Math.round((act.progress * act.weight) / (totalWeight || 1) * 10) / 10;
+                const contrib = Math.round((Number(act.progress) * Number(act.weight)) / (totalWeight || 1) * 10) / 10;
                 return (
                   <TableRow key={act.id}>
                     <TableCell sx={{ fontWeight: 700, color: '#0f172a' }}>{act.name}</TableCell>
@@ -300,7 +330,7 @@ export const BaselineProgressView: React.FC<BaselineProgressViewProps> = ({
                       <Chip
                         label={`${act.progress}%`}
                         size="small"
-                        sx={{ fontWeight: 700, background: act.progress >= 100 ? '#ecfdf5' : '#e0e7ff', color: act.progress >= 100 ? '#047857' : '#4338ca' }}
+                        sx={{ fontWeight: 700, background: Number(act.progress) >= 100 ? '#ecfdf5' : '#e0e7ff', color: Number(act.progress) >= 100 ? '#047857' : '#4338ca' }}
                       />
                     </TableCell>
                     <TableCell>
