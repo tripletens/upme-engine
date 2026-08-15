@@ -209,7 +209,7 @@ export const App: React.FC = () => {
           ) : activeTab === 'alerts_actions' ? (
             <AlertsAndActionsView />
           ) : activeTab === 'baseline' ? (
-            <BaselineProgressView />
+            <BaselineProgressView project={project} milestones={milestones} onRefresh={fetchLiveProjectData} />
           ) : activeTab === 'team' ? (
             <TeamMembersView currentOrganization={currentOrganization} />
           ) : (
