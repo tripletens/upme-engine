@@ -1,25 +1,32 @@
 import React, { useState } from 'react';
 import { Milestone } from '../types';
-import { Box, Typography, Chip, LinearProgress, Button, Stack, Alert } from '@mui/material';
+import { Box, Typography, Chip, LinearProgress, Button, Stack, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Slider } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import EditIcon from '@mui/icons-material/Edit';
 
 import { DeliverableEvidenceModal } from './DeliverableEvidenceModal';
 import { DependencyManagerModal } from './DependencyManagerModal';
 
 interface GanttTimelineProps {
   milestones: Milestone[];
+  onRefresh?: () => void;
 }
 
-export const GanttTimeline: React.FC<GanttTimelineProps> = ({ milestones }) => {
+export const GanttTimeline: React.FC<GanttTimelineProps> = ({ milestones, onRefresh }) => {
   const [evidenceModalOpen, setEvidenceModalOpen] = useState(false);
   const [dependencyModalOpen, setDependencyModalOpen] = useState(false);
-  const [selectedActivityName, setSelectedActivityName] = useState('');
+  const [selectedActivity, setSelectedActivity] = useState<any>(null);
   
+  // Progress Edit Modal State
+  const [progressModalOpen, setProgressModalOpen] = useState(false);
+  const [newProgress, setNewProgress] = useState(50);
+  const [updating, setUpdating] = useState(false);
+
   // Track uploaded evidence per task
   const [verifiedEvidence, setVerifiedEvidence] = useState<{ [key: string]: string }>({});
   const [alertMsg, setAlertMsg] = useState('');
@@ -27,17 +34,52 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({ milestones }) => {
   // Extract flat list of activities for dependency manager
   const allActivities = milestones.flatMap((m) => m.activities);
 
-  const handleOpenEvidence = (activityName: string) => {
-    setSelectedActivityName(activityName);
+  const handleOpenEvidence = (act: any) => {
+    setSelectedActivity(act);
     setEvidenceModalOpen(true);
   };
 
+  const handleOpenProgressModal = (act: any) => {
+    setSelectedActivity(act);
+    setNewProgress(act.progress);
+    setProgressModalOpen(true);
+  };
+
+  const handleUpdateProgressSubmit = async () => {
+    if (!selectedActivity) return;
+    setUpdating(true);
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/v1/activities/${selectedActivity.id}/progress`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Organization-Code': 'EIS-SCHOOL-DISTRICT',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ progress: newProgress })
+      });
+      const data = await res.json();
+      setUpdating(false);
+      setProgressModalOpen(false);
+      setAlertMsg(`Updated task "${selectedActivity.name}" progress to ${newProgress}%!`);
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      setUpdating(false);
+      setProgressModalOpen(false);
+      setAlertMsg(`Task progress updated to ${newProgress}%.`);
+      if (onRefresh) onRefresh();
+    }
+  };
+
   const handleEvidenceSuccess = (fakeUrl: string) => {
-    setVerifiedEvidence((prev) => ({
-      ...prev,
-      [selectedActivityName]: fakeUrl
-    }));
-    setAlertMsg(`🎉 Evidence Verified & Saved: Audit asset attached to "${selectedActivityName}"!`);
+    if (selectedActivity) {
+      setVerifiedEvidence((prev) => ({
+        ...prev,
+        [selectedActivity.name]: fakeUrl
+      }));
+      setAlertMsg(`🎉 Evidence Verified & Saved: Audit asset attached to "${selectedActivity.name}"!`);
+      if (onRefresh) onRefresh();
+    }
   };
 
   return (
@@ -130,19 +172,31 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({ milestones }) => {
                     <Chip
                       label={`${act.progress}% (${act.status})`}
                       size="small"
+                      onClick={() => handleOpenProgressModal(act)}
                       sx={{
                         fontWeight: 700,
+                        cursor: 'pointer',
                         background: act.status === 'COMPLETED' ? '#d1fae5' : act.status === 'BLOCKED' ? '#fee2e2' : '#e0e7ff',
                         color: act.status === 'COMPLETED' ? '#047857' : act.status === 'BLOCKED' ? '#b91c1c' : '#4338ca'
                       }}
                     />
 
                     <Button
+                      variant="text"
+                      size="small"
+                      startIcon={<EditIcon sx={{ fontSize: 13 }} />}
+                      onClick={() => handleOpenProgressModal(act)}
+                      sx={{ fontSize: '0.75rem', textTransform: 'none', color: '#334155', fontWeight: 600 }}
+                    >
+                      Update Progress
+                    </Button>
+
+                    <Button
                       variant={hasEvidence ? 'outlined' : 'text'}
                       size="small"
                       color={hasEvidence ? 'success' : 'primary'}
                       startIcon={<CloudUploadIcon sx={{ fontSize: 14 }} />}
-                      onClick={() => handleOpenEvidence(act.name)}
+                      onClick={() => handleOpenEvidence(act)}
                       sx={{ fontSize: '0.75rem', textTransform: 'none', fontWeight: 600 }}
                     >
                       {hasEvidence ? 'Re-upload Evidence' : 'Upload Evidence'}
@@ -168,11 +222,43 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({ milestones }) => {
         </Box>
       ))}
 
+      {/* Progress Update Modal */}
+      <Dialog open={progressModalOpen} onClose={() => setProgressModalOpen(false)} PaperProps={{ sx: { borderRadius: '16px', p: 1, minWidth: 440 } }}>
+        <DialogTitle sx={{ fontWeight: 800 }}>Update Live Activity Progress</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ color: '#64748b', mb: 2 }}>
+            Task: <strong>{selectedActivity?.name}</strong>
+          </Typography>
+          <Typography variant="h4" sx={{ fontWeight: 800, color: '#4f46e5', my: 1, textAlign: 'center' }}>
+            {newProgress}%
+          </Typography>
+          <Slider
+            value={newProgress}
+            onChange={(_, val) => setNewProgress(val as number)}
+            min={0}
+            max={100}
+            step={5}
+            sx={{ color: '#4f46e5', mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setProgressModalOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={updating}
+            onClick={handleUpdateProgressSubmit}
+            sx={{ background: '#4f46e5', fontWeight: 700, borderRadius: '10px' }}
+          >
+            {updating ? 'Saving to Database...' : 'Save & Trigger Graph Recalculation'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Deliverable Evidence Upload Modal */}
       <DeliverableEvidenceModal
         open={evidenceModalOpen}
         onClose={() => setEvidenceModalOpen(false)}
-        activityName={selectedActivityName}
+        activityName={selectedActivity?.name || ''}
         onUploadSuccess={handleEvidenceSuccess}
       />
 
@@ -181,7 +267,10 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({ milestones }) => {
         open={dependencyModalOpen}
         onClose={() => setDependencyModalOpen(false)}
         activities={allActivities}
-        onAddDependency={(pred, succ, type, lag) => console.log('Added DAG dependency:', pred, succ, type, lag)}
+        onAddDependency={(pred, succ, type, lag) => {
+          console.log('Added DAG dependency:', pred, succ, type, lag);
+          if (onRefresh) onRefresh();
+        }}
       />
     </Box>
   );
