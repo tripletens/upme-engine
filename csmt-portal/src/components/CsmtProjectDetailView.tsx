@@ -9,14 +9,6 @@ import {
   LinearProgress,
   Divider,
   Stack,
-  Card,
-  CardContent,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Alert,
   TextField,
   MenuItem,
@@ -33,9 +25,9 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import PersonIcon from '@mui/icons-material/Person';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
 import { UpdateCsmtTaskModal } from './UpdateCsmtTaskModal';
+import { DocumentPreviewModal } from './DocumentPreviewModal';
 
 interface CsmtProjectDetailViewProps {
   project: any;
@@ -51,6 +43,10 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
   const [activeStage, setActiveStage] = useState<any>(project.milestones?.[0] || null);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
+
+  // Document Viewer Preview Modal State
+  const [previewDocModalOpen, setPreviewDocModalOpen] = useState(false);
+  const [selectedPreviewDoc, setSelectedPreviewDoc] = useState<any>(null);
 
   // Per-stage document storage key
   const stageId = activeStage?.id || activeStage?.name || 'stage-1';
@@ -128,6 +124,25 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
     } catch (e) {}
   };
 
+  const handleOpenDocPreview = (doc: any) => {
+    setSelectedPreviewDoc(doc);
+    setPreviewDocModalOpen(true);
+  };
+
+  const handleDownloadDoc = (doc: any) => {
+    const dummyContent = `CSMT SCHOOLS DISTRICT INFRASTRUCTURE AUDIT PROOF\n----------------------------------------------------\nDocument Title: ${doc.title}\nCategory: ${doc.category || 'Audit Proof'}\nSize: ${doc.size || '3.4 MB'}\nUploaded By: ${doc.uploadedBy || 'Lead Supervisor'}\nTimestamp: ${doc.date || new Date().toLocaleString()}\nVerification Status: VERIFIED & AUDITED BY ENGINE\n\nThis is an official verification document proof attached to the CSMT Schools District Infrastructure Portfolio.`;
+
+    const blob = new Blob([dummyContent], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = doc.title || 'document_audit_proof.pdf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const handleUploadDoc = (e: React.FormEvent) => {
     e.preventDefault();
     const fileName = selectedFile ? selectedFile.name : docTitle.trim();
@@ -185,14 +200,14 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
     };
 
     onUpdateProject(updatedProj);
-    if (activeStage && (activeStage.id === selectedTask.id || activeStage.name === selectedTask.name)) {
+    if (activeStage && (activeStage.id === selectedTask.id || activeStage.name === selectedStage.name)) {
       setActiveStage({ ...activeStage, progress: newProgress });
     }
     setAlertMsg(`🎉 Task "${selectedTask.name}" progress updated to ${newProgress}%!`);
   };
 
   return (
-    <Box sx={{ p: 4, width: '100%', maxWidth: 1400, mx: 'auto' }}>
+    <Box sx={{ p: { xs: 2, md: 4 }, width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
       {/* Top Back Header Navigation */}
       <Button
         variant="outlined"
@@ -216,8 +231,8 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-          <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+          <Box sx={{ maxWidth: '100%' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1, flexWrap: 'wrap' }}>
               <Chip
                 icon={<SchoolIcon sx={{ color: '#fff !important', fontSize: 16 }} />}
                 label={project.schoolName || 'CSMT Science Campus'}
@@ -230,11 +245,11 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
               />
             </Box>
 
-            <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: -0.5, mb: 1 }}>
+            <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: -0.5, mb: 1, wordBreak: 'break-word' }}>
               {project.projectName}
             </Typography>
 
-            <Stack direction="row" spacing={3} sx={{ color: '#c7d2fe', fontSize: '0.88rem' }}>
+            <Stack direction="row" spacing={3} flexWrap="wrap" sx={{ color: '#c7d2fe', fontSize: '0.88rem' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <PersonIcon sx={{ fontSize: 16 }} /> Lead Supervisor: <strong>{project.supervisor}</strong>
               </Box>
@@ -271,9 +286,9 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
       )}
 
       {/* Main Content Layout Grid */}
-      <Grid container spacing={3}>
+      <Grid container spacing={3} sx={{ width: '100%', m: 0 }}>
         {/* Left Column: Milestone Stages Selector */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={4} sx={{ pl: '0 !important', pt: '0 !important' }}>
           <Paper elevation={0} sx={{ p: 3, borderRadius: '16px', background: '#ffffff', border: '1px solid #e2e8f0' }}>
             <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 2 }}>
               📑 Project Milestones & Stages ({project.milestones?.length || 0})
@@ -346,9 +361,9 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
         </Grid>
 
         {/* Right Column: Stage Details & Document Audit Hub */}
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={8} sx={{ pr: '0 !important', pt: { xs: '24px !important', md: '0 !important' } }}>
           <Paper elevation={0} sx={{ p: 4, borderRadius: '16px', background: '#ffffff', border: '1px solid #e2e8f0' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <DescriptionIcon sx={{ color: '#4f46e5', fontSize: 32 }} />
                 <Box>
@@ -412,8 +427,8 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                         <InsertDriveFileIcon sx={{ color: '#4f46e5', fontSize: 24 }} />
                       </Box>
                       <Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem', wordBreak: 'break-word' }}>
                             {doc.title}
                           </Typography>
                           <Chip
@@ -434,7 +449,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                         size="small"
                         variant="outlined"
                         startIcon={<VisibilityIcon sx={{ fontSize: 14 }} />}
-                        onClick={() => alert(`Previewing "${doc.title}"...`)}
+                        onClick={() => handleOpenDocPreview(doc)}
                         sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.78rem', color: '#4f46e5', borderColor: '#c7d2fe' }}
                       >
                         View Document
@@ -444,7 +459,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                         size="small"
                         variant="contained"
                         startIcon={<DownloadIcon sx={{ fontSize: 14 }} />}
-                        onClick={() => alert(`Downloading "${doc.title}"...`)}
+                        onClick={() => handleDownloadDoc(doc)}
                         sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.78rem', background: '#059669', color: '#fff', '&:hover': { background: '#047857' } }}
                       >
                         Download
@@ -549,6 +564,15 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
           currentProgress={selectedTask.progress}
           supervisorName={project.supervisor}
           onSaveSuccess={handleTaskSaved}
+        />
+      )}
+
+      {/* Rich Interactive Document Preview Modal */}
+      {selectedPreviewDoc && (
+        <DocumentPreviewModal
+          open={previewDocModalOpen}
+          onClose={() => setPreviewDocModalOpen(false)}
+          document={selectedPreviewDoc}
         />
       )}
     </Box>
