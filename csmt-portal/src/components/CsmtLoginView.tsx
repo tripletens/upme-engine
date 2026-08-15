@@ -18,23 +18,25 @@ import LockIcon from '@mui/icons-material/Lock';
 import KeyIcon from '@mui/icons-material/Key';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
 interface CsmtLoginViewProps {
   onLoginSuccess: (user: any) => void;
 }
 
 export const CsmtLoginView: React.FC<CsmtLoginViewProps> = ({ onLoginSuccess }) => {
-  const [email, setEmail] = useState('dr.vance@csmt.edu.ng');
+  const [email, setEmail] = useState('admin@csmt.edu.ng');
   const [password, setPassword] = useState('Password123!');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   const demoAccounts = [
-    { name: 'Dr. Robert Vance', email: 'dr.vance@csmt.edu.ng', role: 'HOD Computer Science', dept: 'CS & AI Labs' },
-    { name: 'Mrs. Clara Hughes', email: 'clara.hughes@csmt.edu.ng', role: 'Head Librarian', dept: 'Digital Library' },
-    { name: 'Coach Marcus Miller', email: 'marcus.miller@csmt.edu.ng', role: 'Sports Director', dept: 'Sports Complex' },
-    { name: 'Engr. David Opara', email: 'david.opara@csmt.edu.ng', role: 'Facilities Manager', dept: 'Hostels' },
-    { name: 'Prof. Alex Chen', email: 'alex.chen@csmt.edu.ng', role: 'Robotics Patron', dept: 'STEM Clubs' }
+    { name: 'Dr. Clement Eze', email: 'admin@csmt.edu.ng', role: 'District Admin / Principal', dept: 'CSMT Executive Admin', isSystemAdmin: true, allowedCategory: 'ALL' },
+    { name: 'Dr. Robert Vance', email: 'dr.vance@csmt.edu.ng', role: 'HOD Computer Science', dept: 'CS & AI Labs', allowedCategory: 'ACADEMIC_LAB' },
+    { name: 'Mrs. Clara Hughes', email: 'clara.hughes@csmt.edu.ng', role: 'Head Librarian', dept: 'Digital Library', allowedCategory: 'LIBRARY' },
+    { name: 'Coach Marcus Miller', email: 'marcus.miller@csmt.edu.ng', role: 'Sports Director', dept: 'Sports Complex', allowedCategory: 'SPORTS' },
+    { name: 'Engr. David Opara', email: 'david.opara@csmt.edu.ng', role: 'Facilities Manager', dept: 'Hostels', allowedCategory: 'HOSTEL' },
+    { name: 'Prof. Alex Chen', email: 'alex.chen@csmt.edu.ng', role: 'Robotics Patron', dept: 'STEM Clubs', allowedCategory: 'CLUBS' }
   ];
 
   const handleSelectDemo = (acc: any) => {
@@ -69,17 +71,20 @@ export const CsmtLoginView: React.FC<CsmtLoginViewProps> = ({ onLoginSuccess }) 
         name: email.split('@')[0].toUpperCase(),
         email: email,
         role: 'SCHOOL_STAFF',
-        dept: 'CSMT Schools'
+        dept: 'CSMT Schools',
+        allowedCategory: 'ALL'
       };
 
       onLoginSuccess(loggedUser);
     } catch (err) {
       setLoading(false);
       const loggedUser = demoAccounts.find((a) => a.email === email) || {
-        name: 'Dr. Robert Vance',
-        email: 'dr.vance@csmt.edu.ng',
-        role: 'HOD Computer Science',
-        dept: 'CS & AI Labs'
+        name: 'Dr. Clement Eze',
+        email: 'admin@csmt.edu.ng',
+        role: 'District Admin / Principal',
+        dept: 'CSMT Executive Admin',
+        isSystemAdmin: true,
+        allowedCategory: 'ALL'
       };
       onLoginSuccess(loggedUser);
     }
@@ -121,7 +126,7 @@ export const CsmtLoginView: React.FC<CsmtLoginViewProps> = ({ onLoginSuccess }) 
                   Staff & Admin Portal Sign In
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#64748b', lineHeight: 1.6 }}>
-                  Access the multi-campus project monitoring dashboard, stage audit documents, and Naira budget management.
+                  Role-Scoped Infrastructure Dashboard & UPME Engine Organization Admin Controls.
                 </Typography>
               </Box>
 
@@ -129,7 +134,7 @@ export const CsmtLoginView: React.FC<CsmtLoginViewProps> = ({ onLoginSuccess }) 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <VerifiedUserIcon sx={{ color: '#059669', fontSize: 22 }} />
                   <Typography variant="caption" sx={{ color: '#334155', fontWeight: 700 }}>
-                    Powered by Live MySQL UPME Engine
+                    Role-Based Access Control (RBAC) Enabled
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -141,10 +146,10 @@ export const CsmtLoginView: React.FC<CsmtLoginViewProps> = ({ onLoginSuccess }) 
               </Stack>
 
               <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, display: 'block', mb: 1.5 }}>
-                PRE-CONFIGURED STAFF ACCOUNTS:
+                PRE-CONFIGURED STAFF & ADMIN ACCOUNTS:
               </Typography>
 
-              <Stack spacing={1}>
+              <Stack spacing={1} sx={{ maxHeight: 320, overflowY: 'auto' }}>
                 {demoAccounts.map((acc) => (
                   <Paper
                     key={acc.email}
@@ -164,7 +169,11 @@ export const CsmtLoginView: React.FC<CsmtLoginViewProps> = ({ onLoginSuccess }) 
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <AccountCircleIcon sx={{ color: email === acc.email ? '#4f46e5' : '#94a3b8', fontSize: 20 }} />
+                      {acc.isSystemAdmin ? (
+                        <AdminPanelSettingsIcon sx={{ color: '#4f46e5', fontSize: 20 }} />
+                      ) : (
+                        <AccountCircleIcon sx={{ color: email === acc.email ? '#4f46e5' : '#94a3b8', fontSize: 20 }} />
+                      )}
                       <Box>
                         <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.8rem', lineHeight: 1.1 }}>
                           {acc.name}
@@ -174,7 +183,17 @@ export const CsmtLoginView: React.FC<CsmtLoginViewProps> = ({ onLoginSuccess }) 
                         </Typography>
                       </Box>
                     </Box>
-                    <Chip label={acc.dept} size="small" sx={{ height: 18, fontSize: '0.58rem', fontWeight: 800 }} />
+                    <Chip
+                      label={acc.dept}
+                      size="small"
+                      sx={{
+                        height: 18,
+                        fontSize: '0.58rem',
+                        fontWeight: 800,
+                        background: acc.isSystemAdmin ? '#e0e7ff' : undefined,
+                        color: acc.isSystemAdmin ? '#4338ca' : undefined
+                      }}
+                    />
                   </Paper>
                 ))}
               </Stack>
@@ -184,10 +203,10 @@ export const CsmtLoginView: React.FC<CsmtLoginViewProps> = ({ onLoginSuccess }) 
             <Grid item xs={12} md={7}>
               <Paper elevation={0} sx={{ p: 4, borderRadius: '16px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                 <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
-                  Sign In to Your Staff Account
+                  Sign In to Your Account
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
-                  Enter your school email credentials below:
+                  Each staff role will see only projects relevant to their scope:
                 </Typography>
 
                 {errorMsg && <Alert severity="error" sx={{ mb: 3, borderRadius: '10px' }}>{errorMsg}</Alert>}

@@ -6,7 +6,9 @@ use App\Models\Organization;
 use App\Models\Project;
 use App\Models\Milestone;
 use App\Models\Activity;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class CsmtSchoolSeeder extends Seeder
@@ -21,6 +23,53 @@ class CsmtSchoolSeeder extends Seeder
                 'settings' => ['kyc_status' => 'VERIFIED', 'plan' => 'ENTERPRISE'],
             ]
         );
+
+        // Seed Organization Users & Staff Members
+        $usersData = [
+            [
+                'name' => 'Dr. Clement Eze (District Admin)',
+                'email' => 'admin@csmt.edu.ng',
+                'role' => 'ADMIN',
+            ],
+            [
+                'name' => 'Dr. Robert Vance',
+                'email' => 'dr.vance@csmt.edu.ng',
+                'role' => 'PROJECT_MANAGER',
+            ],
+            [
+                'name' => 'Mrs. Clara Hughes',
+                'email' => 'clara.hughes@csmt.edu.ng',
+                'role' => 'SUPERVISOR',
+            ],
+            [
+                'name' => 'Coach Marcus Miller',
+                'email' => 'marcus.miller@csmt.edu.ng',
+                'role' => 'SUPERVISOR',
+            ],
+            [
+                'name' => 'Engr. David Opara',
+                'email' => 'david.opara@csmt.edu.ng',
+                'role' => 'CONTRACTOR',
+            ],
+            [
+                'name' => 'Prof. Alex Chen',
+                'email' => 'alex.chen@csmt.edu.ng',
+                'role' => 'SUPERVISOR',
+            ],
+        ];
+
+        foreach ($usersData as $uData) {
+            User::updateOrCreate(
+                ['email' => $uData['email']],
+                [
+                    'organization_id' => $organization->id,
+                    'name' => $uData['name'],
+                    'password' => Hash::make('Password123!'),
+                    'role' => $uData['role'],
+                    'api_token' => 'upme_token_' . Str::random(20),
+                ]
+            );
+        }
 
         $projectsData = [
             [

@@ -32,19 +32,22 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DescriptionIcon from '@mui/icons-material/Description';
+import PeopleIcon from '@mui/icons-material/People';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
 import { UpdateCsmtTaskModal } from './components/UpdateCsmtTaskModal';
 import { CsmtLoginModal } from './components/CsmtLoginModal';
 import { CreateCsmtProjectModal } from './components/CreateCsmtProjectModal';
 import { StageDocumentViewerModal } from './components/StageDocumentViewerModal';
 import { CsmtLoginView } from './components/CsmtLoginView';
+import { CsmtOrgUsersModal } from './components/CsmtOrgUsersModal';
 
 export const App: React.FC = () => {
-  const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [modalOpen, setModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [docModalOpen, setDocModalOpen] = useState(false);
+  const [usersModalOpen, setUsersModalOpen] = useState(false);
 
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [selectedProject, setSelectedProject] = useState<any>(null);
@@ -65,6 +68,12 @@ export const App: React.FC = () => {
     }
   });
 
+  const [activeCategory, setActiveCategory] = useState<string>(() => {
+    return currentUser?.allowedCategory || 'ALL';
+  });
+
+  const isAdmin = currentUser?.isSystemAdmin || currentUser?.role?.includes('Admin');
+
   const handleLogout = () => {
     localStorage.removeItem('csmt_current_user');
     setCurrentUser(null);
@@ -73,6 +82,7 @@ export const App: React.FC = () => {
   const handleLoginSuccess = (user: any) => {
     localStorage.setItem('csmt_current_user', JSON.stringify(user));
     setCurrentUser(user);
+    setActiveCategory(user.allowedCategory || 'ALL');
     setLoginModalOpen(false);
   };
 
@@ -208,7 +218,15 @@ export const App: React.FC = () => {
     }
   };
 
+  // Role-Based Filtering Logic:
+  // Admins see all projects or filtered by active category tab.
+  // Department Staff see ONLY projects matching their allowed department category!
+  const userAllowedCategory = currentUser?.allowedCategory || 'ALL';
+
   const filteredProjects = csmtProjects.filter((p) => {
+    if (!isAdmin && userAllowedCategory !== 'ALL' && p.category !== userAllowedCategory) {
+      return false;
+    }
     if (activeCategory === 'ALL') return true;
     return p.category === activeCategory;
   });
@@ -257,6 +275,18 @@ export const App: React.FC = () => {
 
             <Stack direction="column" spacing={1.5} alignItems="flex-end">
               <Stack direction="row" spacing={1}>
+                {isAdmin && (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<PeopleIcon />}
+                    onClick={() => setUsersModalOpen(true)}
+                    sx={{ background: '#7c3aed', color: '#fff', textTransform: 'none', fontWeight: 800, '&:hover': { background: '#6d28d9' } }}
+                  >
+                    View Org Users
+                  </Button>
+                )}
+
                 <Button
                   variant="contained"
                   size="small"
@@ -279,7 +309,7 @@ export const App: React.FC = () => {
               </Stack>
 
               <Paper elevation={0} sx={{ p: 1.5, px: 2, background: 'rgba(255,255,255,0.1)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <AccountCircleIcon sx={{ color: '#38bdf8' }} />
+                {isAdmin ? <AdminPanelSettingsIcon sx={{ color: '#fbbf24' }} /> : <AccountCircleIcon sx={{ color: '#38bdf8' }} />}
                 <Box>
                   <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.1 }}>
                     {currentUser.name}
@@ -309,28 +339,37 @@ export const App: React.FC = () => {
           </Alert>
         )}
 
-        {/* Category Filter Tabs */}
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
-          <Tabs
-            value={activeCategory}
-            onChange={(_, val) => setActiveCategory(val)}
-            sx={{ '& .MuiTab-root': { fontWeight: 700, textTransform: 'none', fontSize: '0.95rem' } }}
-          >
-            <Tab label={`All Projects (${csmtProjects.length})`} value="ALL" />
-            <Tab label="Academic CS Labs" value="ACADEMIC_LAB" />
-            <Tab label="Digital Library" value="LIBRARY" />
-            <Tab label="Sports Turf Complex" value="SPORTS" />
-            <Tab label="Student Hostels" value="HOSTEL" />
-            <Tab label="STEM Robotics Clubs" value="CLUBS" />
-          </Tabs>
-        </Box>
+        {/* Role Scope Info Notification */}
+        {!isAdmin && (
+          <Alert severity="info" icon={<KeyIcon />} sx={{ mb: 3, borderRadius: '12px', fontWeight: 700 }}>
+            Logged in as <strong>{currentUser.name} ({currentUser.role})</strong>. You are currently viewing projects scoped specifically to <strong>{currentUser.dept}</strong>.
+          </Alert>
+        )}
+
+        {/* Category Filter Tabs (Visible to Admins or for Department Scope) */}
+        {isAdmin && (
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
+            <Tabs
+              value={activeCategory}
+              onChange={(_, val) => setActiveCategory(val)}
+              sx={{ '& .MuiTab-root': { fontWeight: 700, textTransform: 'none', fontSize: '0.95rem' } }}
+            >
+              <Tab label={`All District Projects (${csmtProjects.length})`} value="ALL" />
+              <Tab label="Academic CS Labs" value="ACADEMIC_LAB" />
+              <Tab label="Digital Library" value="LIBRARY" />
+              <Tab label="Sports Turf Complex" value="SPORTS" />
+              <Tab label="Student Hostels" value="HOSTEL" />
+              <Tab label="STEM Robotics Clubs" value="CLUBS" />
+            </Tabs>
+          </Box>
+        )}
 
         {/* Project Cards Grid */}
         {filteredProjects.length === 0 ? (
           <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: '16px', background: '#ffffff', border: '1px dashed #cbd5e1' }}>
             <SchoolIcon sx={{ fontSize: 48, color: '#94a3b8', mb: 2 }} />
             <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1 }}>
-              No Active Projects Found in Live Engine Database
+              No Active Projects Found for Your Role Scope
             </Typography>
             <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
               Click below to instantiate your first real project baseline directly inside the UPME Engine (`CSMT-SCHOOLS-DISTRICT`).
@@ -488,6 +527,12 @@ export const App: React.FC = () => {
             setCsmtProjects((prev) => [newProj, ...prev]);
             setAlertMsg(`🎉 Real School Project "${newProj.projectName}" created in MySQL database!`);
           }}
+        />
+
+        {/* Admin Organization Users Inspector Modal */}
+        <CsmtOrgUsersModal
+          open={usersModalOpen}
+          onClose={() => setUsersModalOpen(false)}
         />
 
         {/* School Staff Login Modal */}
