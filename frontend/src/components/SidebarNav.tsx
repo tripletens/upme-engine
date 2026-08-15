@@ -22,6 +22,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import GroupIcon from '@mui/icons-material/Group';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
+import TerminalIcon from '@mui/icons-material/Terminal';
 
 interface SidebarNavProps {
   activeTab: string;
@@ -53,6 +54,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
     { id: 'baseline', label: 'Baseline & Progress Engine', icon: <AccountTreeIcon /> },
     { id: 'health_rules', label: 'Health & Rules Engine', icon: <CalculateIcon /> },
     { id: 'alerts_actions', label: 'Alerts & Corrective Actions', icon: <NotificationsActiveIcon /> },
+    { id: 'api_docs', label: 'API & Developer Docs', icon: <TerminalIcon /> },
     { id: 'kyc', label: 'Corporate KYC Portal', icon: <VerifiedUserIcon /> },
     { id: 'billing', label: 'Paystack SaaS Subscriptions', icon: <CreditCardIcon /> },
   ];

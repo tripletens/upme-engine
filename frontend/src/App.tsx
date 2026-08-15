@@ -40,6 +40,7 @@ import { AlertsAndActionsView } from './components/AlertsAndActionsView';
 import { BaselineProgressView } from './components/BaselineProgressView';
 import { TeamMembersView } from './components/TeamMembersView';
 import { ClientPortalView } from './components/ClientPortalView';
+import { ApiDocsView } from './components/ApiDocsView';
 
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'landing' | 'dashboard'>('landing');
@@ -212,6 +213,8 @@ export const App: React.FC = () => {
             <BaselineProgressView project={project} milestones={milestones} onRefresh={fetchLiveProjectData} />
           ) : activeTab === 'team' ? (
             <TeamMembersView currentOrganization={currentOrganization} />
+          ) : activeTab === 'api_docs' ? (
+            <ApiDocsView />
           ) : (
             <>
               {/* Project Title Banner */}

@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\v1\BillingController;
 use App\Http\Controllers\Api\v1\AuthController;
 use App\Http\Controllers\Api\v1\MonitoringEngineController;
 use App\Http\Controllers\Api\v1\OrganizationUserController;
+use App\Http\Controllers\Api\v1\DocsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,6 +20,9 @@ use App\Http\Controllers\Api\v1\OrganizationUserController;
 */
 
 Route::prefix('v1')->middleware(['api', \App\Http\Middleware\TenantContextMiddleware::class])->group(function () {
+    // OpenAPI v3.0 Documentation Endpoint
+    Route::get('/docs/openapi.json', [DocsController::class, 'openApiSpec']);
+
     // User Authentication
     Route::post('/auth/login', [AuthController::class, 'login']);
 
