@@ -38,6 +38,7 @@ import { CreateTemplateModal } from './components/CreateTemplateModal';
 import { PricingSection } from './components/PricingSection';
 import { AlertsAndActionsView } from './components/AlertsAndActionsView';
 import { BaselineProgressView } from './components/BaselineProgressView';
+import { TeamMembersView } from './components/TeamMembersView';
 
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'landing' | 'dashboard'>('landing');
@@ -111,7 +112,6 @@ export const App: React.FC = () => {
       }
     } catch (err) {
       setLoading(false);
-      console.log('Live backend API query failed, utilizing active state.');
     }
   };
 
@@ -255,6 +255,8 @@ export const App: React.FC = () => {
             <AlertsAndActionsView />
           ) : activeTab === 'baseline' ? (
             <BaselineProgressView />
+          ) : activeTab === 'team' ? (
+            <TeamMembersView currentOrganization={currentOrganization} />
           ) : (
             <>
               {/* Executive Alerts */}

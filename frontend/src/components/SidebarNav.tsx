@@ -20,6 +20,7 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import HomeIcon from '@mui/icons-material/Home';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import GroupIcon from '@mui/icons-material/Group';
 
 interface SidebarNavProps {
   activeTab: string;
@@ -46,6 +47,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
 }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard & Timeline', icon: <DashboardIcon /> },
+    { id: 'team', label: 'Team & User Accounts', icon: <GroupIcon /> },
     { id: 'baseline', label: 'Baseline & Progress Engine', icon: <AccountTreeIcon /> },
     { id: 'health_rules', label: 'Health & Rules Engine', icon: <CalculateIcon /> },
     { id: 'alerts_actions', label: 'Alerts & Corrective Actions', icon: <NotificationsActiveIcon /> },

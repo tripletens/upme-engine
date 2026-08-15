@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\v1\KycController;
 use App\Http\Controllers\Api\v1\BillingController;
 use App\Http\Controllers\Api\v1\AuthController;
 use App\Http\Controllers\Api\v1\MonitoringEngineController;
+use App\Http\Controllers\Api\v1\OrganizationUserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,6 +21,10 @@ use App\Http\Controllers\Api\v1\MonitoringEngineController;
 Route::prefix('v1')->middleware(['api', \App\Http\Middleware\TenantContextMiddleware::class])->group(function () {
     // User Authentication
     Route::post('/auth/login', [AuthController::class, 'login']);
+
+    // Multi-Tenant Company User Management
+    Route::get('/organization/users', [OrganizationUserController::class, 'index']);
+    Route::post('/organization/users/invite', [OrganizationUserController::class, 'invite']);
 
     // Paystack SaaS Billing & Subscriptions
     Route::post('/billing/initialize', [BillingController::class, 'initialize']);
