@@ -37,6 +37,7 @@ import { UpdateCsmtTaskModal } from './components/UpdateCsmtTaskModal';
 import { CsmtLoginModal } from './components/CsmtLoginModal';
 import { CreateCsmtProjectModal } from './components/CreateCsmtProjectModal';
 import { StageDocumentViewerModal } from './components/StageDocumentViewerModal';
+import { CsmtLoginView } from './components/CsmtLoginView';
 
 export const App: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
@@ -53,7 +54,7 @@ export const App: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [csmtProjects, setCsmtProjects] = useState<any[]>([]);
 
-  // Logged-in Staff User State (Defaults to null until user logs in)
+  // Logged-in Staff User State (Defaults to null so app starts on Login View)
   const [currentUser, setCurrentUser] = useState<any>(() => {
     const savedUser = localStorage.getItem('csmt_current_user');
     return savedUser ? JSON.parse(savedUser) : null;
@@ -139,14 +140,12 @@ export const App: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchLiveEngineProjects();
-  }, []);
+    if (currentUser) {
+      fetchLiveEngineProjects();
+    }
+  }, [currentUser]);
 
   const handleOpenTaskModal = (proj: any, task: any) => {
-    if (!currentUser) {
-      setLoginModalOpen(true);
-      return;
-    }
     setSelectedProject(proj);
     setSelectedTask(task);
     setModalOpen(true);
@@ -209,6 +208,11 @@ export const App: React.FC = () => {
     return p.category === activeCategory;
   });
 
+  // Render Fullscreen Staff Login Screen if User is Not Logged In
+  if (!currentUser) {
+    return <CsmtLoginView onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <Box sx={{ minHeight: '100vh', background: '#f8fafc', py: 5 }}>
       <Container maxWidth="xl">
@@ -252,13 +256,7 @@ export const App: React.FC = () => {
                   variant="contained"
                   size="small"
                   startIcon={<AddCircleOutlineIcon />}
-                  onClick={() => {
-                    if (!currentUser) {
-                      setLoginModalOpen(true);
-                      return;
-                    }
-                    setCreateModalOpen(true);
-                  }}
+                  onClick={() => setCreateModalOpen(true)}
                   sx={{ background: '#059669', color: '#fff', textTransform: 'none', fontWeight: 800, '&:hover': { background: '#047857' } }}
                 >
                   Create School Project
@@ -275,38 +273,27 @@ export const App: React.FC = () => {
                 </Button>
               </Stack>
 
-              {currentUser ? (
-                <Paper elevation={0} sx={{ p: 1.5, px: 2, background: 'rgba(255,255,255,0.1)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <AccountCircleIcon sx={{ color: '#38bdf8' }} />
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.1 }}>
-                      {currentUser.name}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#94a3b8' }}>
-                      {currentUser.email} ({currentUser.role})
-                    </Typography>
-                  </Box>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    color="error"
-                    startIcon={<LogoutIcon sx={{ fontSize: 13 }} />}
-                    onClick={handleLogout}
-                    sx={{ textTransform: 'none', ml: 1, color: '#fca5a5', borderColor: '#fca5a5', fontSize: '0.72rem' }}
-                  >
-                    Logout
-                  </Button>
-                </Paper>
-              ) : (
+              <Paper elevation={0} sx={{ p: 1.5, px: 2, background: 'rgba(255,255,255,0.1)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <AccountCircleIcon sx={{ color: '#38bdf8' }} />
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.1 }}>
+                    {currentUser.name}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                    {currentUser.email} ({currentUser.role})
+                  </Typography>
+                </Box>
                 <Button
-                  variant="contained"
-                  startIcon={<LockIcon />}
-                  onClick={() => setLoginModalOpen(true)}
-                  sx={{ background: '#4f46e5', color: '#fff', fontWeight: 800, textTransform: 'none', px: 3, py: 1, borderRadius: '10px' }}
+                  size="small"
+                  variant="outlined"
+                  color="error"
+                  startIcon={<LogoutIcon sx={{ fontSize: 13 }} />}
+                  onClick={handleLogout}
+                  sx={{ textTransform: 'none', ml: 1, color: '#fca5a5', borderColor: '#fca5a5', fontSize: '0.72rem' }}
                 >
-                  School Staff Login
+                  Logout
                 </Button>
-              )}
+              </Paper>
             </Stack>
           </Box>
         </Paper>
@@ -346,13 +333,7 @@ export const App: React.FC = () => {
             <Button
               variant="contained"
               startIcon={<AddCircleOutlineIcon />}
-              onClick={() => {
-                if (!currentUser) {
-                  setLoginModalOpen(true);
-                  return;
-                }
-                setCreateModalOpen(true);
-              }}
+              onClick={() => setCreateModalOpen(true)}
               sx={{ background: '#4f46e5', color: '#fff', borderRadius: '10px', px: 3, py: 1.2, fontWeight: 800, textTransform: 'none' }}
             >
               Create First CSMT School Project
