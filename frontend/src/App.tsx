@@ -24,6 +24,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DownloadIcon from '@mui/icons-material/Download';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 import {
   schoolLabProjectDemo,
@@ -34,6 +35,7 @@ import {
 } from './data/schoolLabDemoData';
 import { GanttTimeline } from './components/GanttTimeline';
 import { LandingPage } from './pages/LandingPage';
+import { HealthBreakdownModal } from './components/HealthBreakdownModal';
 
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'landing' | 'dashboard'>('landing');
@@ -42,6 +44,7 @@ export const App: React.FC = () => {
 
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [currentOrganization, setCurrentOrganization] = useState<any>(null);
+  const [healthModalOpen, setHealthModalOpen] = useState(false);
 
   const handleLoginSuccess = (user: any, organization: any) => {
     setCurrentUser(user);
@@ -155,7 +158,8 @@ export const App: React.FC = () => {
               <Chip
                 label={`HEALTH: ${project.healthStatus} (${project.overallHealthScore}/100)`}
                 className="badge-on-track"
-                sx={{ fontWeight: 700 }}
+                onClick={() => setHealthModalOpen(true)}
+                sx={{ fontWeight: 700, cursor: 'pointer' }}
               />
             </Box>
             <Typography variant="body2" sx={{ color: '#64748b' }}>
@@ -214,7 +218,11 @@ export const App: React.FC = () => {
         {/* Top Metric Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
-            <Card className="enterprise-card">
+            <Card
+              className="enterprise-card"
+              onClick={() => setHealthModalOpen(true)}
+              sx={{ cursor: 'pointer', position: 'relative', '&:hover': { borderColor: '#4f46e5' } }}
+            >
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>Overall Health Score</Typography>
@@ -223,7 +231,12 @@ export const App: React.FC = () => {
                 <Typography variant="h4" sx={{ color: '#059669', fontWeight: 800 }}>
                   {project.overallHealthScore} / 100
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#64748b' }}>Status: ON_TRACK</Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 0.5 }}>
+                  <Typography variant="caption" sx={{ color: '#64748b' }}>Status: ON_TRACK</Typography>
+                  <Typography variant="caption" sx={{ color: '#4f46e5', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.3 }}>
+                    <InfoOutlinedIcon sx={{ fontSize: 13 }} /> Formula Breakdown
+                  </Typography>
+                </Box>
               </CardContent>
             </Card>
           </Grid>
@@ -343,6 +356,14 @@ export const App: React.FC = () => {
           </Grid>
         </Grid>
       </Container>
+
+      {/* Health Formula Breakdown Modal */}
+      <HealthBreakdownModal
+        open={healthModalOpen}
+        onClose={() => setHealthModalOpen(false)}
+        overallScore={project.overallHealthScore}
+        healthStatus={project.healthStatus}
+      />
     </Box>
   );
 };
