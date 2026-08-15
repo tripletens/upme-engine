@@ -76,6 +76,11 @@ class TemplateAndReportController extends Controller
         $project = $this->resolveProject($uuid);
         $report = $reportService->generateExecutiveReport($project);
 
+        $healthStatus = $report['project_summary']['health_status'] ?? $project->health_status;
+        $overallProgress = $report['project_summary']['overall_progress'] ?? $project->overall_progress;
+        $completedActivities = $report['activity_metrics']['completed'] ?? 0;
+        $totalActivities = $report['activity_metrics']['total'] ?? 0;
+
         $html = "
         <!DOCTYPE html>
         <html>
@@ -106,16 +111,16 @@ class TemplateAndReportController extends Controller
 
             <div class='grid'>
                 <div class='card'>
-                    <div class='card-title'>Overall Health Score</div>
-                    <div class='card-val' style='color:#059669;'>{$report['metrics']['health_score']}/100</div>
+                    <div class='card-title'>Health Status</div>
+                    <div class='card-val' style='color:#059669;'>{$healthStatus}</div>
                 </div>
                 <div class='card'>
                     <div class='card-title'>Overall Progress</div>
-                    <div class='card-val'>{$report['metrics']['overall_progress']}%</div>
+                    <div class='card-val'>{$overallProgress}%</div>
                 </div>
                 <div class='card'>
-                    <div class='card-title'>Schedule Variance</div>
-                    <div class='card-val'>{$report['metrics']['schedule_variance_days']} Days</div>
+                    <div class='card-title'>Activities Completed</div>
+                    <div class='card-val'>{$completedActivities} / {$totalActivities}</div>
                 </div>
             </div>
 
