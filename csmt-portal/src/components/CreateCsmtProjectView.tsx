@@ -137,7 +137,7 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
       };
 
       onProjectCreated(newProj);
-      setSuccessMsg(`🎉 Project "${projectName}" successfully instantiated inside UPME Engine!`);
+      setSuccessMsg(`🎉 Project "${projectName}" successfully created!`);
       setTimeout(() => {
         onBack();
       }, 1000);
@@ -445,11 +445,22 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
           <Divider sx={{ my: 1 }} />
 
           {/* Action Buttons */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5, flexWrap: 'wrap', mt: 1 }}>
             <Button
               variant="outlined"
               onClick={onBack}
-              sx={{ flex: { xs: 1, sm: 'initial' }, textTransform: 'none', fontWeight: 800, color: '#64748b', px: 3, height: 42 }}
+              sx={{
+                flex: { xs: 1, sm: 'initial' },
+                height: 42,
+                whiteSpace: 'nowrap',
+                fontSize: '0.85rem',
+                textTransform: 'none',
+                fontWeight: 800,
+                color: '#64748b',
+                borderColor: '#cbd5e1',
+                px: 3,
+                borderRadius: '10px'
+              }}
             >
               Cancel
             </Button>
@@ -462,17 +473,19 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
               sx={{
                 flex: { xs: 1, sm: 'initial' },
                 height: 42,
+                whiteSpace: 'nowrap',
+                fontSize: '0.85rem',
                 background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                 color: '#ffffff',
                 textTransform: 'none',
                 fontWeight: 800,
-                px: 4,
+                px: 3,
                 borderRadius: '10px',
                 boxShadow: '0 4px 14px rgba(5, 150, 105, 0.3)',
                 '&:hover': { background: '#047857' }
               }}
             >
-              {loading ? 'Instantiating...' : 'Instantiate Project'}
+              {loading ? 'Creating Project...' : 'Create Project'}
             </Button>
           </Box>
 
