@@ -8,8 +8,6 @@ import {
   CardContent,
   Chip,
   Button,
-  Tabs,
-  Tab,
   LinearProgress,
   Stack,
   Divider,
@@ -26,14 +24,9 @@ import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturi
 import VerifiedIcon from '@mui/icons-material/Verified';
 import KeyIcon from '@mui/icons-material/Key';
 import EditIcon from '@mui/icons-material/Edit';
-import LockIcon from '@mui/icons-material/Lock';
-import LogoutIcon from '@mui/icons-material/Logout';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DescriptionIcon from '@mui/icons-material/Description';
-import PeopleIcon from '@mui/icons-material/People';
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
 import { UpdateCsmtTaskModal } from './components/UpdateCsmtTaskModal';
 import { CsmtLoginModal } from './components/CsmtLoginModal';
@@ -41,6 +34,7 @@ import { CreateCsmtProjectModal } from './components/CreateCsmtProjectModal';
 import { StageDocumentViewerModal } from './components/StageDocumentViewerModal';
 import { CsmtLoginView } from './components/CsmtLoginView';
 import { CsmtOrgUsersModal } from './components/CsmtOrgUsersModal';
+import { CsmtSidebar } from './components/CsmtSidebar';
 
 export const App: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -218,9 +212,17 @@ export const App: React.FC = () => {
     }
   };
 
+  // Compute Project Counts per Category for Sidebar Badges
+  const projectCounts: Record<string, number> = {
+    ALL: csmtProjects.length,
+    ACADEMIC_LAB: csmtProjects.filter((p) => p.category === 'ACADEMIC_LAB').length,
+    LIBRARY: csmtProjects.filter((p) => p.category === 'LIBRARY').length,
+    SPORTS: csmtProjects.filter((p) => p.category === 'SPORTS').length,
+    HOSTEL: csmtProjects.filter((p) => p.category === 'HOSTEL').length,
+    CLUBS: csmtProjects.filter((p) => p.category === 'CLUBS').length
+  };
+
   // Role-Based Filtering Logic:
-  // Admins see all projects or filtered by active category tab.
-  // Department Staff see ONLY projects matching their allowed department category!
   const userAllowedCategory = currentUser?.allowedCategory || 'ALL';
 
   const filteredProjects = csmtProjects.filter((p) => {
@@ -237,9 +239,23 @@ export const App: React.FC = () => {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', background: '#f8fafc', py: 5 }}>
-      <Container maxWidth="xl">
-        {/* Top Header Navigation Bar */}
+    <Box sx={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
+      {/* Sleek Left Navigation Sidebar */}
+      <CsmtSidebar
+        activeCategory={activeCategory}
+        onSelectCategory={(cat) => setActiveCategory(cat)}
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onOpenCreateModal={() => setCreateModalOpen(true)}
+        onOpenUsersModal={() => setUsersModalOpen(true)}
+        onSyncDb={fetchLiveEngineProjects}
+        syncing={loading}
+        projectCounts={projectCounts}
+      />
+
+      {/* Main Dashboard Content Area */}
+      <Box component="main" sx={{ flexGrow: 1, p: 4, overflowX: 'hidden' }}>
+        {/* Top Header Card */}
         <Paper
           elevation={0}
           sx={{
@@ -253,7 +269,7 @@ export const App: React.FC = () => {
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
             <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
                 <Chip
                   icon={<SchoolIcon sx={{ color: '#fff !important', fontSize: 16 }} />}
                   label="CSMT SCHOOLS DISTRICT PORTAL"
@@ -261,74 +277,48 @@ export const App: React.FC = () => {
                 />
                 <Chip
                   icon={<VerifiedIcon sx={{ color: '#fff !important', fontSize: 14 }} />}
-                  label="CONNECTED TO MYSQL DATABASE"
+                  label="LIVE MYSQL ENGINE"
                   sx={{ background: '#059669', color: '#fff', fontWeight: 800 }}
                 />
               </Box>
-              <Typography variant="h3" sx={{ fontWeight: 800, letterSpacing: -0.5, mb: 0.5 }}>
-                CSMT Schools Infrastructure & Projects Portal
+              <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.5, mb: 0.5 }}>
+                {activeCategory === 'ALL'
+                  ? 'All District Projects Portfolio'
+                  : activeCategory === 'ACADEMIC_LAB'
+                  ? 'Academic CS & AI Laboratories'
+                  : activeCategory === 'LIBRARY'
+                  ? 'Digital Library & E-Readers'
+                  : activeCategory === 'SPORTS'
+                  ? 'Sports Turf Complex'
+                  : activeCategory === 'HOSTEL'
+                  ? 'Student Hostels'
+                  : 'STEM Robotics Clubs'}
               </Typography>
-              <Typography variant="body1" sx={{ color: '#c7d2fe' }}>
+              <Typography variant="body2" sx={{ color: '#c7d2fe' }}>
                 Multi-Campus Educational Projects Portfolio Budgeted in Nigerian Naira (₦).
               </Typography>
             </Box>
 
-            <Stack direction="column" spacing={1.5} alignItems="flex-end">
-              <Stack direction="row" spacing={1}>
-                {isAdmin && (
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<PeopleIcon />}
-                    onClick={() => setUsersModalOpen(true)}
-                    sx={{ background: '#7c3aed', color: '#fff', textTransform: 'none', fontWeight: 800, '&:hover': { background: '#6d28d9' } }}
-                  >
-                    View Org Users
-                  </Button>
-                )}
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddCircleOutlineIcon />}
+                onClick={() => setCreateModalOpen(true)}
+                sx={{ background: '#059669', color: '#fff', textTransform: 'none', fontWeight: 800, px: 2, py: 1, borderRadius: '10px', '&:hover': { background: '#047857' } }}
+              >
+                Create Project
+              </Button>
 
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={() => setCreateModalOpen(true)}
-                  sx={{ background: '#059669', color: '#fff', textTransform: 'none', fontWeight: 800, '&:hover': { background: '#047857' } }}
-                >
-                  Create School Project
-                </Button>
-
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />}
-                  onClick={fetchLiveEngineProjects}
-                  sx={{ color: '#a5f3fc', borderColor: 'rgba(255,255,255,0.3)', textTransform: 'none', fontWeight: 700 }}
-                >
-                  Sync Engine DB
-                </Button>
-              </Stack>
-
-              <Paper elevation={0} sx={{ p: 1.5, px: 2, background: 'rgba(255,255,255,0.1)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                {isAdmin ? <AdminPanelSettingsIcon sx={{ color: '#fbbf24' }} /> : <AccountCircleIcon sx={{ color: '#38bdf8' }} />}
-                <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.1 }}>
-                    {currentUser.name}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>
-                    {currentUser.email} ({currentUser.role})
-                  </Typography>
-                </Box>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="error"
-                  startIcon={<LogoutIcon sx={{ fontSize: 13 }} />}
-                  onClick={handleLogout}
-                  sx={{ textTransform: 'none', ml: 1, color: '#fca5a5', borderColor: '#fca5a5', fontSize: '0.72rem' }}
-                >
-                  Logout
-                </Button>
-              </Paper>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />}
+                onClick={fetchLiveEngineProjects}
+                sx={{ color: '#a5f3fc', borderColor: 'rgba(255,255,255,0.3)', textTransform: 'none', fontWeight: 700, borderRadius: '10px' }}
+              >
+                Sync DB
+              </Button>
             </Stack>
           </Box>
         </Paper>
@@ -342,26 +332,8 @@ export const App: React.FC = () => {
         {/* Role Scope Info Notification */}
         {!isAdmin && (
           <Alert severity="info" icon={<KeyIcon />} sx={{ mb: 3, borderRadius: '12px', fontWeight: 700 }}>
-            Logged in as <strong>{currentUser.name} ({currentUser.role})</strong>. You are currently viewing projects scoped specifically to <strong>{currentUser.dept}</strong>.
+            Logged in as <strong>{currentUser.name} ({currentUser.role})</strong>. Projects are scoped specifically to <strong>{currentUser.dept}</strong>.
           </Alert>
-        )}
-
-        {/* Category Filter Tabs (Visible to Admins or for Department Scope) */}
-        {isAdmin && (
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
-            <Tabs
-              value={activeCategory}
-              onChange={(_, val) => setActiveCategory(val)}
-              sx={{ '& .MuiTab-root': { fontWeight: 700, textTransform: 'none', fontSize: '0.95rem' } }}
-            >
-              <Tab label={`All District Projects (${csmtProjects.length})`} value="ALL" />
-              <Tab label="Academic CS Labs" value="ACADEMIC_LAB" />
-              <Tab label="Digital Library" value="LIBRARY" />
-              <Tab label="Sports Turf Complex" value="SPORTS" />
-              <Tab label="Student Hostels" value="HOSTEL" />
-              <Tab label="STEM Robotics Clubs" value="CLUBS" />
-            </Tabs>
-          </Box>
         )}
 
         {/* Project Cards Grid */}
@@ -369,10 +341,10 @@ export const App: React.FC = () => {
           <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: '16px', background: '#ffffff', border: '1px dashed #cbd5e1' }}>
             <SchoolIcon sx={{ fontSize: 48, color: '#94a3b8', mb: 2 }} />
             <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1 }}>
-              No Active Projects Found for Your Role Scope
+              No Active Projects Found for Category: {activeCategory}
             </Typography>
             <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
-              Click below to instantiate your first real project baseline directly inside the UPME Engine (`CSMT-SCHOOLS-DISTRICT`).
+              Click below to instantiate a new project baseline directly inside the UPME Engine (`CSMT-SCHOOLS-DISTRICT`).
             </Typography>
             <Button
               variant="contained"
@@ -380,13 +352,13 @@ export const App: React.FC = () => {
               onClick={() => setCreateModalOpen(true)}
               sx={{ background: '#4f46e5', color: '#fff', borderRadius: '10px', px: 3, py: 1.2, fontWeight: 800, textTransform: 'none' }}
             >
-              Create First CSMT School Project
+              Create First Project Baseline
             </Button>
           </Paper>
         ) : (
           <Grid container spacing={3}>
             {filteredProjects.map((proj) => (
-              <Grid item xs={12} md={6} key={proj.id}>
+              <Grid item xs={12} lg={6} key={proj.id}>
                 <Card sx={{ borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: 'none', '&:hover': { borderColor: '#4f46e5' } }}>
                   <CardContent sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
@@ -541,7 +513,7 @@ export const App: React.FC = () => {
           onClose={() => setLoginModalOpen(false)}
           onLoginSuccess={handleLoginSuccess}
         />
-      </Container>
+      </Box>
     </Box>
   );
 };
