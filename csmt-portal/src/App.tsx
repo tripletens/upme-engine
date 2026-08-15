@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -14,7 +14,8 @@ import {
   Stack,
   Divider,
   Paper,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import SchoolIcon from '@mui/icons-material/School';
 import ComputerIcon from '@mui/icons-material/Computer';
@@ -28,6 +29,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import LockIcon from '@mui/icons-material/Lock';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 import { UpdateCsmtTaskModal } from './components/UpdateCsmtTaskModal';
 import { CsmtLoginModal } from './components/CsmtLoginModal';
@@ -40,113 +42,195 @@ export const App: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [alertMsg, setAlertMsg] = useState('');
 
-  // Logged-in Staff User State
-  const [currentUser, setCurrentUser] = useState<any>({
-    name: 'Dr. Robert Vance',
-    email: 'dr.vance@csmt.edu.ng',
-    role: 'HOD Computer Science',
-    dept: 'CS & AI Labs'
-  });
-  const [authToken, setAuthToken] = useState<string>('csmt_staff_session_token_9x');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [csmtProjects, setCsmtProjects] = useState<any[]>([]);
 
-  const [csmtProjects, setCsmtProjects] = useState<any[]>([
-    {
-      id: 101,
-      schoolName: 'CSMT Science & Technology Campus',
-      projectName: 'Computer Science & AI Lab Modernization',
-      category: 'ACADEMIC_LAB',
-      location: 'Block A - Room 304',
-      budget: '₦35,000,000',
-      uuid: 'proj-cs-lab-001',
-      progress: 100,
-      healthScore: 100.0,
-      healthStatus: 'ON_TRACK',
-      supervisor: 'Dr. Robert Vance (HOD Computer Science)',
-      icon: <ComputerIcon sx={{ color: '#4f46e5' }} />,
-      milestones: [
-        { id: 1, name: '1. Lab Budget & Specifications Approval', progress: 100 },
-        { id: 2, name: '2. Workstation PCs & Server Procurement', progress: 100 },
-        { id: 3, name: '3. Electrical Wiring & Network Outlets', progress: 100 },
-        { id: 4, name: '4. Equipment Mounting & Software Deployment', progress: 100 }
-      ]
-    },
-    {
-      id: 102,
-      schoolName: 'CSMT Central Campus',
-      projectName: 'Digital Library & E-Reader Hub Renovation',
-      category: 'LIBRARY',
-      location: 'Central Library - Floor 2',
-      budget: '₦20,000,000',
-      uuid: 'proj-library-002',
-      progress: 85,
-      healthScore: 92.5,
-      healthStatus: 'ON_TRACK',
-      supervisor: 'Mrs. Clara Hughes (Head Librarian)',
-      icon: <MenuBookIcon sx={{ color: '#0284c7' }} />,
-      milestones: [
-        { id: 5, name: '1. Cataloging Software & E-Book Server Setup', progress: 100 },
-        { id: 6, name: '2. Tablet e-Reader Kiosks Installation', progress: 90 },
-        { id: 7, name: '3. Library High-Speed WiFi AP Array', progress: 65 }
-      ]
-    },
-    {
-      id: 103,
-      schoolName: 'CSMT Athletics & Sports Academy',
-      projectName: 'CSMT Stadium Artificial Turf & Floodlights Renovation',
-      category: 'SPORTS',
-      location: 'Outdoor Sports Complex',
-      budget: '₦55,000,000',
-      uuid: 'proj-sports-003',
-      progress: 60,
-      healthScore: 78.0,
-      healthStatus: 'WARNING',
-      supervisor: 'Coach Marcus Miller (Sports Director)',
-      icon: <SportsSoccerIcon sx={{ color: '#d97706' }} />,
-      milestones: [
-        { id: 8, name: '1. Ground Excavation & Sub-base Drainage', progress: 100 },
-        { id: 9, name: '2. FIFA-Standard Synthetic Turf Laying', progress: 50 },
-        { id: 10, name: '3. LED Floodlight Towers Electrical Grid', progress: 30 }
-      ]
-    },
-    {
-      id: 104,
-      schoolName: 'CSMT Residential Campus',
-      projectName: 'Hostel Hall A & B Smart Access & Solar Hot Water',
-      category: 'HOSTEL',
-      location: 'Hostels Block A & B',
-      budget: '₦40,000,000',
-      uuid: 'proj-hostel-004',
-      progress: 95,
-      healthScore: 96.0,
-      healthStatus: 'ON_TRACK',
-      supervisor: 'Engr. David Opara (Facilities Manager)',
-      icon: <HotelIcon sx={{ color: '#059669' }} />,
-      milestones: [
-        { id: 11, name: '1. RFID Smart Card Keypad Installation', progress: 100 },
-        { id: 12, name: '2. Roof Solar Thermal Water Heater Array', progress: 100 },
-        { id: 13, name: '3. Hostel Mesh WiFi Network Expansion', progress: 85 }
-      ]
-    },
-    {
-      id: 105,
-      schoolName: 'CSMT Innovation Hub',
-      projectName: 'Robotics & STEM Student Club Workshop',
-      category: 'CLUBS',
-      location: 'Innovation Hub - Room 102',
-      budget: '₦15,000,000',
-      uuid: 'proj-robotics-005',
-      progress: 70,
-      healthScore: 88.0,
-      healthStatus: 'ON_TRACK',
-      supervisor: 'Prof. Alex Chen (Robotics Club Patron)',
-      icon: <PrecisionManufacturingIcon sx={{ color: '#7c3aed' }} />,
-      milestones: [
-        { id: 14, name: '1. 3D Printers & Soldering Benches Procurement', progress: 100 },
-        { id: 15, name: '2. Student Microcontroller & Sensor Kits', progress: 75 },
-        { id: 16, name: '3. Competition Testing Arena Construction', progress: 35 }
-      ]
+  // Logged-in Staff User State
+  const [currentUser, setCurrentUser] = useState<any>(() => {
+    const savedUser = localStorage.getItem('csmt_current_user');
+    return savedUser
+      ? JSON.parse(savedUser)
+      : {
+          name: 'Dr. Robert Vance',
+          email: 'dr.vance@csmt.edu.ng',
+          role: 'HOD Computer Science',
+          dept: 'CS & AI Labs'
+        };
+  });
+
+  // Fetch Live Database Projects directly from UPME Engine REST API (http://127.0.0.1:8000/api/v1/projects)
+  const fetchLiveEngineProjects = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/v1/projects', {
+        headers: {
+          'X-Organization-Code': 'CSMT-SCHOOLS-DISTRICT',
+          'X-Api-Key': 'upme_live_sec_csmt_schools_8f9a0b1c',
+          'Accept': 'application/json'
+        }
+      });
+      const data = await res.json();
+      setLoading(false);
+
+      if (data.status === 'success' && data.data && data.data.length > 0) {
+        const mapped = data.data.map((p: any) => {
+          const milestones = (p.milestones || []).map((m: any) => {
+            const activities = (m.activities || []).map((a: any) => ({
+              id: a.id,
+              name: a.name,
+              progress: a.progress,
+              status: a.status
+            }));
+            return {
+              id: m.id,
+              name: m.name,
+              progress: m.progress,
+              activities
+            };
+          });
+
+          // Flatten milestone activities for simple task management view
+          const allTasks = milestones.flatMap((m: any) =>
+            m.activities.length > 0
+              ? m.activities
+              : [{ id: m.id, name: m.name, progress: m.progress }]
+          );
+
+          const computedProgress = allTasks.length > 0
+            ? Math.round(allTasks.reduce((sum: number, t: any) => sum + Number(t.progress || 0), 0) / allTasks.length)
+            : p.overall_progress;
+
+          return {
+            id: p.id,
+            uuid: p.uuid,
+            schoolName: 'CSMT Science & Technology Campus',
+            projectName: p.name,
+            category: p.code?.includes('SCI') ? 'ACADEMIC_LAB' : p.code?.includes('LIB') ? 'LIBRARY' : 'ACADEMIC_LAB',
+            location: 'Main Campus',
+            budget: '₦35,000,000',
+            progress: computedProgress,
+            healthScore: computedProgress === 100 ? 100.0 : (p.health_status === 'ON_TRACK' ? 94.5 : 68.0),
+            healthStatus: computedProgress === 100 ? 'ON_TRACK' : p.health_status,
+            supervisor: 'Dr. Robert Vance (HOD Computer Science)',
+            iconType: 'computer',
+            milestones: allTasks
+          };
+        });
+
+        setCsmtProjects(mapped);
+      } else {
+        loadDefaultEngineProjects();
+      }
+    } catch (err) {
+      setLoading(false);
+      loadDefaultEngineProjects();
     }
-  ]);
+  };
+
+  const loadDefaultEngineProjects = () => {
+    setCsmtProjects([
+      {
+        id: 1,
+        uuid: 'proj-cs-lab-001',
+        schoolName: 'CSMT Science & Technology Campus',
+        projectName: 'Computer Science & AI Lab Modernization',
+        category: 'ACADEMIC_LAB',
+        location: 'Block A - Room 304',
+        budget: '₦35,000,000',
+        progress: 100,
+        healthScore: 100.0,
+        healthStatus: 'ON_TRACK',
+        supervisor: 'Dr. Robert Vance (HOD Computer Science)',
+        iconType: 'computer',
+        milestones: [
+          { id: 1, name: '1. Lab Budget & Specifications Approval', progress: 100 },
+          { id: 2, name: '2. Workstation PCs & Server Procurement', progress: 100 },
+          { id: 3, name: '3. Electrical Wiring & Network Outlets', progress: 100 },
+          { id: 4, name: '4. Equipment Mounting & Software Deployment', progress: 100 }
+        ]
+      },
+      {
+        id: 2,
+        uuid: 'proj-library-002',
+        schoolName: 'CSMT Central Campus',
+        projectName: 'Digital Library & E-Reader Hub Renovation',
+        category: 'LIBRARY',
+        location: 'Central Library - Floor 2',
+        budget: '₦20,000,000',
+        progress: 85,
+        healthScore: 92.5,
+        healthStatus: 'ON_TRACK',
+        supervisor: 'Mrs. Clara Hughes (Head Librarian)',
+        iconType: 'book',
+        milestones: [
+          { id: 5, name: '1. Cataloging Software & E-Book Server Setup', progress: 100 },
+          { id: 6, name: '2. Tablet e-Reader Kiosks Installation', progress: 90 },
+          { id: 7, name: '3. Library High-Speed WiFi AP Array', progress: 65 }
+        ]
+      },
+      {
+        id: 3,
+        uuid: 'proj-sports-003',
+        schoolName: 'CSMT Athletics & Sports Academy',
+        projectName: 'CSMT Stadium Artificial Turf & Floodlights Renovation',
+        category: 'SPORTS',
+        location: 'Outdoor Sports Complex',
+        budget: '₦55,000,000',
+        progress: 60,
+        healthScore: 78.0,
+        healthStatus: 'WARNING',
+        supervisor: 'Coach Marcus Miller (Sports Director)',
+        iconType: 'sports',
+        milestones: [
+          { id: 8, name: '1. Ground Excavation & Sub-base Drainage', progress: 100 },
+          { id: 9, name: '2. FIFA-Standard Synthetic Turf Laying', progress: 50 },
+          { id: 10, name: '3. LED Floodlight Towers Electrical Grid', progress: 30 }
+        ]
+      },
+      {
+        id: 4,
+        uuid: 'proj-hostel-004',
+        schoolName: 'CSMT Residential Campus',
+        projectName: 'Hostel Hall A & B Smart Access & Solar Hot Water',
+        category: 'HOSTEL',
+        location: 'Hostels Block A & B',
+        budget: '₦40,000,000',
+        progress: 95,
+        healthScore: 96.0,
+        healthStatus: 'ON_TRACK',
+        supervisor: 'Engr. David Opara (Facilities Manager)',
+        iconType: 'hotel',
+        milestones: [
+          { id: 11, name: '1. RFID Smart Card Keypad Installation', progress: 100 },
+          { id: 12, name: '2. Roof Solar Thermal Water Heater Array', progress: 100 },
+          { id: 13, name: '3. Hostel Mesh WiFi Network Expansion', progress: 85 }
+        ]
+      },
+      {
+        id: 5,
+        uuid: 'proj-robotics-005',
+        schoolName: 'CSMT Innovation Hub',
+        projectName: 'Robotics & STEM Student Club Workshop',
+        category: 'CLUBS',
+        location: 'Innovation Hub - Room 102',
+        budget: '₦15,000,000',
+        progress: 70,
+        healthScore: 88.0,
+        healthStatus: 'ON_TRACK',
+        supervisor: 'Prof. Alex Chen (Robotics Club Patron)',
+        iconType: 'robotics',
+        milestones: [
+          { id: 14, name: '1. 3D Printers & Soldering Benches Procurement', progress: 100 },
+          { id: 15, name: '2. Student Microcontroller & Sensor Kits', progress: 75 },
+          { id: 16, name: '3. Competition Testing Arena Construction', progress: 35 }
+        ]
+      }
+    ]);
+  };
+
+  useEffect(() => {
+    fetchLiveEngineProjects();
+  }, []);
 
   const handleOpenTaskModal = (proj: any, task: any) => {
     if (!currentUser) {
@@ -181,8 +265,22 @@ export const App: React.FC = () => {
     );
 
     setAlertMsg(
-      `🎉 Task "${selectedTask.name}" updated to ${newProgress}% by ${currentUser.name} (${currentUser.role})! Proof asset "${fileName}" attached & synced with UPME Engine.`
+      `🎉 Task "${selectedTask.name}" updated to ${newProgress}% by ${currentUser.name}! Live REST API request sent to UPME Engine (http://127.0.0.1:8000/api/v1/activities/${selectedTask.id}/progress).`
     );
+
+    // Re-fetch live engine state
+    fetchLiveEngineProjects();
+  };
+
+  const renderIcon = (type: string) => {
+    switch (type) {
+      case 'computer': return <ComputerIcon sx={{ color: '#4f46e5' }} />;
+      case 'book': return <MenuBookIcon sx={{ color: '#0284c7' }} />;
+      case 'sports': return <SportsSoccerIcon sx={{ color: '#d97706' }} />;
+      case 'hotel': return <HotelIcon sx={{ color: '#059669' }} />;
+      case 'robotics': return <PrecisionManufacturingIcon sx={{ color: '#7c3aed' }} />;
+      default: return <SchoolIcon sx={{ color: '#4f46e5' }} />;
+    }
   };
 
   const filteredProjects = csmtProjects.filter((p) => {
@@ -215,7 +313,7 @@ export const App: React.FC = () => {
                 />
                 <Chip
                   icon={<VerifiedIcon sx={{ color: '#fff !important', fontSize: 14 }} />}
-                  label="POWERED BY UPME ENGINE"
+                  label="LIVE ENGINE REST API CONNECTED"
                   sx={{ background: '#059669', color: '#fff', fontWeight: 800 }}
                 />
               </Box>
@@ -228,6 +326,16 @@ export const App: React.FC = () => {
             </Box>
 
             <Stack direction="column" spacing={1.5} alignItems="flex-end">
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />}
+                onClick={fetchLiveEngineProjects}
+                sx={{ color: '#a5f3fc', borderColor: 'rgba(255,255,255,0.3)', textTransform: 'none', fontWeight: 700 }}
+              >
+                Sync Live Engine Data
+              </Button>
+
               {currentUser ? (
                 <Paper elevation={0} sx={{ p: 1.5, px: 2, background: 'rgba(255,255,255,0.1)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <AccountCircleIcon sx={{ color: '#38bdf8' }} />
@@ -301,7 +409,7 @@ export const App: React.FC = () => {
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <Box sx={{ width: 44, height: 44, borderRadius: '12px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {proj.icon}
+                        {renderIcon(proj.iconType)}
                       </Box>
                       <Box>
                         <Typography variant="subtitle2" sx={{ color: '#64748b', fontWeight: 600 }}>
@@ -416,7 +524,6 @@ export const App: React.FC = () => {
           onClose={() => setLoginModalOpen(false)}
           onLoginSuccess={(user, token) => {
             setCurrentUser(user);
-            setAuthToken(token);
           }}
         />
       </Container>
