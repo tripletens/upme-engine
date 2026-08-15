@@ -9,9 +9,7 @@ import {
   Button,
   Chip,
   Paper,
-  IconButton,
-  Divider,
-  Stack
+  IconButton
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
@@ -52,16 +50,17 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="md"
+      maxWidth="sm"
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '16px',
+          borderRadius: { xs: '14px', sm: '20px' },
           overflow: 'hidden',
-          minHeight: 620
+          m: { xs: 1.5, sm: 2 }
         }
       }}
     >
+      {/* Sleek Modal Header Banner */}
       <DialogTitle
         sx={{
           display: 'flex',
@@ -70,44 +69,66 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
           background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
           color: '#ffffff',
           py: 2,
-          px: 3
+          px: { xs: 2, sm: 3 }
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <PictureAsPdfIcon sx={{ color: '#38bdf8', fontSize: 28 }} />
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0, pr: 1 }}>
+          <PictureAsPdfIcon sx={{ color: '#38bdf8', fontSize: 26, flexShrink: 0 }} />
+          <Box sx={{ minWidth: 0 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 900,
+                lineHeight: 1.2,
+                fontSize: { xs: '0.88rem', sm: '1.05rem' },
+                wordBreak: 'break-word'
+              }}
+            >
               {doc.title}
             </Typography>
-            <Typography variant="caption" sx={{ color: '#c7d2fe' }}>
-              Document Category: {doc.category || 'Audit Proof'} • Size: {doc.size || '3.4 MB'}
+            <Typography variant="caption" sx={{ color: '#c7d2fe', display: 'block', fontSize: '0.68rem', mt: 0.2 }}>
+              Category: {doc.category || 'Audit Proof'} • Size: {doc.size || '3.4 MB'}
             </Typography>
           </Box>
         </Box>
-        <IconButton onClick={onClose} sx={{ color: '#ffffff' }} size="small">
+        <IconButton onClick={onClose} sx={{ color: '#ffffff', flexShrink: 0 }} size="small">
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ p: 3, background: '#f8fafc' }}>
+      <DialogContent sx={{ p: { xs: 2, sm: 3 }, background: '#f8fafc' }}>
         {/* Document Metadata Bar */}
-        <Paper elevation={0} sx={{ p: 2, mb: 3, borderRadius: '12px', background: '#ffffff', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: 1.5,
+            mb: 2.5,
+            borderRadius: '12px',
+            background: '#ffffff',
+            border: '1px solid #e2e8f0',
+            display: 'flex',
+            justify: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 1
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
             <Chip
-              icon={<VerifiedIcon sx={{ color: '#047857 !important', fontSize: 14 }} />}
-              label="VERIFIED STAGE PROOF"
+              icon={<VerifiedIcon sx={{ color: '#047857 !important', fontSize: 13 }} />}
+              label="VERIFIED PROOF"
               size="small"
-              sx={{ background: '#ecfdf5', color: '#047857', fontWeight: 800, border: '1px solid #a7f3d0' }}
+              sx={{ background: '#ecfdf5', color: '#047857', fontWeight: 800, fontSize: '0.62rem', height: 22 }}
             />
             <Chip
-              icon={<SecurityIcon sx={{ color: '#4338ca !important', fontSize: 14 }} />}
-              label="TAMPER-PROOF AUDIT HASH"
+              icon={<SecurityIcon sx={{ color: '#4338ca !important', fontSize: 13 }} />}
+              label="TAMPER-PROOF HASH"
               size="small"
-              sx={{ background: '#e0e7ff', color: '#4338ca', fontWeight: 800 }}
+              sx={{ background: '#e0e7ff', color: '#4338ca', fontWeight: 800, fontSize: '0.62rem', height: 22 }}
             />
           </Box>
 
-          <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700 }}>
+          <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, fontSize: '0.7rem' }}>
             Uploaded by <strong>{doc.uploadedBy}</strong> on {doc.date}
           </Typography>
         </Paper>
@@ -116,11 +137,10 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
         <Paper
           elevation={0}
           sx={{
-            p: 4,
+            p: { xs: 2.5, sm: 3.5 },
             borderRadius: '14px',
             background: '#ffffff',
             border: '1px solid #cbd5e1',
-            minHeight: 380,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -131,42 +151,54 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
           <Box
             sx={{
               width: '100%',
-              maxWidth: 550,
-              p: 4,
+              p: { xs: 2.5, sm: 3.5 },
               borderRadius: '12px',
               border: '2px dashed #a5b4fc',
               background: '#f5f3ff',
-              textAlign: 'center'
+              textAlign: 'center',
+              boxSizing: 'border-box'
             }}
           >
-            <PictureAsPdfIcon sx={{ fontSize: 64, color: '#4f46e5', mb: 2 }} />
+            <PictureAsPdfIcon sx={{ fontSize: 52, color: '#4f46e5', mb: 1.5 }} />
             
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 900,
+                color: '#0f172a',
+                mb: 1,
+                fontSize: { xs: '0.92rem', sm: '1.1rem' },
+                wordBreak: 'break-word'
+              }}
+            >
               {doc.title}
             </Typography>
 
-            <Typography variant="body2" sx={{ color: '#475569', mb: 3 }}>
+            <Typography variant="body2" sx={{ color: '#475569', mb: 2.5, fontSize: { xs: '0.75rem', sm: '0.85rem' }, lineHeight: 1.4 }}>
               Official Infrastructure Audit Proof Document attached to CSMT Schools District Portfolio. Signed & Verified by {doc.uploadedBy}.
             </Typography>
 
-            <Stack direction="row" spacing={2} justifyContent="center">
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1.5, justifyContent: 'center', width: '100%' }}>
               <Button
                 variant="contained"
                 startIcon={<DownloadIcon />}
                 onClick={handleDownload}
                 sx={{
+                  width: { xs: '100%', sm: 'auto' },
+                  height: 40,
+                  whiteSpace: 'nowrap',
                   background: '#059669',
                   color: '#ffffff',
                   fontWeight: 800,
+                  fontSize: '0.8rem',
                   textTransform: 'none',
                   borderRadius: '10px',
                   px: 3,
-                  py: 1,
                   boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
                   '&:hover': { background: '#047857' }
                 }}
               >
-                Download Official PDF
+                Download PDF
               </Button>
 
               <Button
@@ -174,9 +206,13 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
                 startIcon={<PrintIcon />}
                 onClick={() => window.print()}
                 sx={{
+                  width: { xs: '100%', sm: 'auto' },
+                  height: 40,
+                  whiteSpace: 'nowrap',
                   color: '#4f46e5',
                   borderColor: '#c7d2fe',
                   fontWeight: 800,
+                  fontSize: '0.8rem',
                   textTransform: 'none',
                   borderRadius: '10px',
                   px: 2.5
@@ -184,13 +220,13 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
               >
                 Print Document
               </Button>
-            </Stack>
+            </Box>
           </Box>
         </Paper>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, py: 2, background: '#ffffff', borderTop: '1px solid #e2e8f0' }}>
-        <Button onClick={onClose} sx={{ color: '#64748b', fontWeight: 700 }}>
+      <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: 1.5, background: '#ffffff', borderTop: '1px solid #e2e8f0', justifyContent: 'center' }}>
+        <Button onClick={onClose} sx={{ color: '#64748b', fontWeight: 800, textTransform: 'none', fontSize: '0.85rem' }}>
           Close Preview
         </Button>
       </DialogActions>
