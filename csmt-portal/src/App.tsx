@@ -35,21 +35,21 @@ import MenuIcon from '@mui/icons-material/Menu';
 
 import { UpdateCsmtTaskModal } from './components/UpdateCsmtTaskModal';
 import { CsmtLoginModal } from './components/CsmtLoginModal';
-import { CreateCsmtProjectModal } from './components/CreateCsmtProjectModal';
 import { CsmtLoginView } from './components/CsmtLoginView';
 import { CsmtOrgUsersModal } from './components/CsmtOrgUsersModal';
 import { CsmtSidebar } from './components/CsmtSidebar';
 import { CsmtProjectDetailView } from './components/CsmtProjectDetailView';
+import { CreateCsmtProjectView } from './components/CreateCsmtProjectView';
 
 export const App: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
-  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [usersModalOpen, setUsersModalOpen] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
-  // Full Page Project View Navigation State
+  // Full Page Navigation States
   const [selectedDetailProject, setSelectedDetailProject] = useState<any>(null);
+  const [isCreatingProjectView, setIsCreatingProjectView] = useState(false);
 
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [selectedProject, setSelectedProject] = useState<any>(null);
@@ -80,6 +80,7 @@ export const App: React.FC = () => {
     localStorage.removeItem('csmt_current_user');
     setCurrentUser(null);
     setSelectedDetailProject(null);
+    setIsCreatingProjectView(false);
   };
 
   const handleLoginSuccess = (user: any) => {
@@ -163,47 +164,6 @@ export const App: React.FC = () => {
     }
   }, [currentUser]);
 
-  const handleOpenTaskModal = (proj: any, task: any) => {
-    setSelectedProject(proj);
-    setSelectedTask(task);
-    setModalOpen(true);
-  };
-
-  const handleTaskSaved = (newProgress: number, notes: string, fileName: string) => {
-    if (!selectedProject || !selectedTask) return;
-
-    setCsmtProjects((prev) => {
-      const updated = prev.map((p) => {
-        if (p.id !== selectedProject.id) return p;
-
-        const updatedMilestones = p.milestones.map((m: any) => {
-          if (m.id === selectedTask.id || m.name === selectedTask.name) {
-            return { ...m, progress: newProgress };
-          }
-          return m;
-        });
-
-        const avgProgress = Math.round(
-          updatedMilestones.reduce((sum: number, m: any) => sum + Number(m.progress || 0), 0) / updatedMilestones.length
-        );
-
-        return {
-          ...p,
-          progress: avgProgress,
-          healthScore: avgProgress === 100 ? 100.0 : p.healthScore,
-          healthStatus: avgProgress === 100 ? 'ON_TRACK' : p.healthStatus,
-          milestones: updatedMilestones
-        };
-      });
-
-      return updated;
-    });
-
-    setAlertMsg(
-      `🎉 Task "${selectedTask.name}" updated to ${newProgress}% by ${currentUser.name}! Saved directly to live database.`
-    );
-  };
-
   const renderIcon = (type: string) => {
     switch (type) {
       case 'computer': return <ComputerIcon sx={{ color: '#4f46e5' }} />;
@@ -216,13 +176,11 @@ export const App: React.FC = () => {
   };
 
   // Role-Based Projects Filtering:
-  // Non-admin staff users are strictly isolated to projects within their assigned allowedCategory!
   const accessibleProjects = csmtProjects.filter((p) => {
     if (isAdmin || userAllowedCategory === 'ALL') return true;
     return p.category === userAllowedCategory;
   });
 
-  // Compute Project Counts per Category based on Role Scoping
   const projectCounts: Record<string, number> = {
     ALL: accessibleProjects.length,
     ACADEMIC_LAB: accessibleProjects.filter((p) => p.category === 'ACADEMIC_LAB').length,
@@ -237,7 +195,7 @@ export const App: React.FC = () => {
       if (activeCategory === 'ALL') return true;
       return p.category === activeCategory;
     }
-    return true; // Non-admin only sees their allowedCategory projects
+    return true;
   });
 
   // Render Fullscreen Staff Login Screen if User is Not Logged In
@@ -290,10 +248,14 @@ export const App: React.FC = () => {
         onSelectCategory={(cat) => {
           setActiveCategory(cat);
           setSelectedDetailProject(null);
+          setIsCreatingProjectView(false);
         }}
         currentUser={currentUser}
         onLogout={handleLogout}
-        onOpenCreateModal={() => setCreateModalOpen(true)}
+        onOpenCreateModal={() => {
+          setSelectedDetailProject(null);
+          setIsCreatingProjectView(true);
+        }}
         onOpenUsersModal={() => setUsersModalOpen(true)}
         onSyncDb={fetchLiveEngineProjects}
         syncing={loading}
@@ -304,8 +266,16 @@ export const App: React.FC = () => {
 
       {/* Main Dashboard Content Area */}
       <Box component="main" sx={{ flexGrow: 1, minWidth: 0, overflowX: 'hidden' }}>
-        {/* Full Page Project Detail View Routing */}
-        {selectedDetailProject ? (
+        {/* Full Page Navigation Routing */}
+        {isCreatingProjectView ? (
+          <CreateCsmtProjectView
+            onBack={() => setIsCreatingProjectView(false)}
+            onProjectCreated={(newProj) => {
+              setCsmtProjects((prev) => [newProj, ...prev]);
+              setAlertMsg(`🎉 Real School Project "${newProj.projectName}" created in live database!`);
+            }}
+          />
+        ) : selectedDetailProject ? (
           <CsmtProjectDetailView
             project={selectedDetailProject}
             onBack={() => setSelectedDetailProject(null)}
@@ -391,7 +361,7 @@ export const App: React.FC = () => {
                     variant="contained"
                     size="small"
                     startIcon={<AddCircleOutlineIcon />}
-                    onClick={() => setCreateModalOpen(true)}
+                    onClick={() => setIsCreatingProjectView(true)}
                     sx={{
                       flex: { xs: 1, sm: 'initial' },
                       background: '#059669',
@@ -455,7 +425,7 @@ export const App: React.FC = () => {
                 <Button
                   variant="contained"
                   startIcon={<AddCircleOutlineIcon />}
-                  onClick={() => setCreateModalOpen(true)}
+                  onClick={() => setIsCreatingProjectView(true)}
                   sx={{ background: '#4f46e5', color: '#fff', borderRadius: '10px', px: 3, py: 1.2, fontWeight: 800, textTransform: 'none' }}
                 >
                   Create First Project Baseline
@@ -537,30 +507,39 @@ export const App: React.FC = () => {
 
                         <Divider sx={{ my: 1.5 }} />
 
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 700, fontSize: '0.72rem' }}>
+                        {/* Redesigned Sleek Card Action Button */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1.5, mt: 1 }}>
+                          <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, fontSize: '0.75rem' }}>
                             {proj.milestones?.length || 0} Milestone Stages & Audit Docs
                           </Typography>
 
                           <Button
                             size="small"
                             variant="contained"
-                            endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
+                            endIcon={<ArrowForwardIcon sx={{ fontSize: 15, transition: 'transform 0.2s ease' }} />}
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedDetailProject(proj);
                             }}
                             sx={{
-                              fontSize: '0.72rem',
+                              fontSize: '0.78rem',
                               textTransform: 'none',
                               fontWeight: 800,
-                              background: '#4f46e5',
-                              color: '#fff',
-                              borderRadius: '8px',
-                              px: 2
+                              whiteSpace: 'nowrap',
+                              height: 36,
+                              px: 2.5,
+                              borderRadius: '10px',
+                              background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)',
+                              color: '#ffffff',
+                              boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
+                              width: { xs: '100%', sm: 'auto' },
+                              '&:hover': {
+                                background: 'linear-gradient(135deg, #4338ca 0%, #1e1b4b 100%)',
+                                '& .MuiSvgIcon-root': { transform: 'translateX(3px)' }
+                              }
                             }}
                           >
-                            Open Full Project Page
+                            View Project Details
                           </Button>
                         </Box>
                       </CardContent>
@@ -571,29 +550,6 @@ export const App: React.FC = () => {
             )}
           </Box>
         )}
-
-        {/* Interactive Update Modal */}
-        {modalOpen && selectedTask && selectedProject && (
-          <UpdateCsmtTaskModal
-            open={modalOpen}
-            onClose={() => setModalOpen(false)}
-            taskId={selectedTask.id}
-            taskName={selectedTask.name}
-            currentProgress={selectedTask.progress}
-            supervisorName={selectedProject.supervisor}
-            onSaveSuccess={handleTaskSaved}
-          />
-        )}
-
-        {/* Create Project Modal */}
-        <CreateCsmtProjectModal
-          open={createModalOpen}
-          onClose={() => setCreateModalOpen(false)}
-          onProjectCreated={(newProj) => {
-            setCsmtProjects((prev) => [newProj, ...prev]);
-            setAlertMsg(`🎉 Real School Project "${newProj.projectName}" created in live database!`);
-          }}
-        />
 
         {/* Admin Organization Users Inspector Modal */}
         <CsmtOrgUsersModal
