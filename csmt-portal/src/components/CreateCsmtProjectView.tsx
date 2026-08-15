@@ -12,10 +12,6 @@ import {
   Stack,
   Alert,
   CircularProgress,
-  FormControlLabel,
-  Radio,
-  RadioGroup,
-  FormControl,
   IconButton
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -25,6 +21,8 @@ import VerifiedIcon from '@mui/icons-material/Verified';
 import LayersIcon from '@mui/icons-material/Layers';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import AddIcon from '@mui/icons-material/Add';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 
 interface CreateCsmtProjectViewProps {
   onBack: () => void;
@@ -171,7 +169,7 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
   };
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, width: '100%', maxWidth: 1000, mx: 'auto', boxSizing: 'border-box' }}>
+    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, width: '100%', maxWidth: 1000, mx: 'auto', boxSizing: 'border-box', overflowX: 'hidden' }}>
       {/* Top Back Navigation Button */}
       <Button
         variant="outlined"
@@ -186,8 +184,8 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
       <Paper
         elevation={0}
         sx={{
-          p: { xs: 3, md: 4 },
-          mb: 4,
+          p: { xs: 2.5, sm: 3.5, md: 4 },
+          mb: 3,
           borderRadius: '20px',
           background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
           color: '#ffffff',
@@ -209,11 +207,11 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
           />
         </Box>
 
-        <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: -0.5, mb: 1, fontSize: { xs: '1.4rem', sm: '2.2rem' } }}>
+        <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: -0.5, mb: 1, fontSize: { xs: '1.35rem', sm: '2.1rem' } }}>
           Instantiate New District Project Baseline
         </Typography>
 
-        <Typography variant="body2" sx={{ color: '#a7f3d0' }}>
+        <Typography variant="body2" sx={{ color: '#a7f3d0', fontSize: { xs: '0.8rem', sm: '0.88rem' } }}>
           Register a new educational infrastructure project inside the UPME Engine database (`CSMT-SCHOOLS-DISTRICT`).
         </Typography>
       </Paper>
@@ -231,7 +229,7 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
       )}
 
       {/* Main Creation Form Card */}
-      <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, borderRadius: '20px', background: '#ffffff', border: '1px solid #e2e8f0' }}>
+      <Paper elevation={0} sx={{ p: { xs: 2.5, sm: 3.5, md: 4 }, borderRadius: '20px', background: '#ffffff', border: '1px solid #e2e8f0' }}>
         <Box component="form" onSubmit={handleCreateProject} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           
           <Grid container spacing={2.5}>
@@ -312,67 +310,92 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
 
           <Divider sx={{ my: 1 }} />
 
-          {/* Milestone Structure Strategy (Standard vs Custom) */}
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: '14px', background: '#f8fafc', border: '1px solid #cbd5e1' }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+          {/* Ultra Mobile-Friendly Milestone Strategy Selectable Cards */}
+          <Paper elevation={0} sx={{ p: { xs: 2, sm: 3 }, borderRadius: '16px', background: '#f8fafc', border: '1px solid #cbd5e1' }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 2, display: 'flex', alignItems: 'center', gap: 1, fontSize: '0.95rem' }}>
               <LayersIcon sx={{ color: '#4f46e5' }} />
               Milestone Structure Strategy
             </Typography>
 
-            <FormControl component="fieldset" fullWidth>
-              <RadioGroup
-                value={milestoneStrategy}
-                onChange={(e) => setMilestoneStrategy(e.target.value as 'STANDARD' | 'CUSTOM')}
-              >
-                <FormControlLabel
-                  value="STANDARD"
-                  control={<Radio size="small" />}
-                  label={
-                    <Box sx={{ py: 0.5 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 800, color: '#0f172a' }}>
-                        ⚡ Use Recommended Standard School Milestones
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>
-                        Auto-generates 5 standard audit stages (Inspection, Hardware, LAN Setup, Software, Final Audit).
-                      </Typography>
-                    </Box>
-                  }
-                  sx={{ mb: 1 }}
-                />
+            <Grid container spacing={2}>
+              {/* Option A: Standard Milestones Card */}
+              <Grid item xs={12} sm={6}>
+                <Paper
+                  elevation={0}
+                  onClick={() => setMilestoneStrategy('STANDARD')}
+                  sx={{
+                    p: 2,
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    border: milestoneStrategy === 'STANDARD' ? '2px solid #4f46e5' : '1px solid #cbd5e1',
+                    background: milestoneStrategy === 'STANDARD' ? '#f5f3ff' : '#ffffff',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: milestoneStrategy === 'STANDARD' ? '#4f46e5' : '#0f172a', fontSize: '0.88rem' }}>
+                      ⚡ Recommended Standard
+                    </Typography>
+                    {milestoneStrategy === 'STANDARD' ? (
+                      <CheckCircleIcon sx={{ color: '#4f46e5', fontSize: 20 }} />
+                    ) : (
+                      <RadioButtonUncheckedIcon sx={{ color: '#94a3b8', fontSize: 20 }} />
+                    )}
+                  </Box>
+                  <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.72rem', lineHeight: 1.3 }}>
+                    Auto-generates 5 standard audit stages (Inspection, Hardware, LAN, Software, Audit).
+                  </Typography>
+                </Paper>
+              </Grid>
 
-                <FormControlLabel
-                  value="CUSTOM"
-                  control={<Radio size="small" />}
-                  label={
-                    <Box sx={{ py: 0.5 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 800, color: '#0f172a' }}>
-                        🛠 Define Custom Milestone Stages
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>
-                        Define specific custom milestone stage titles tailored to this project's scope.
-                      </Typography>
-                    </Box>
-                  }
-                />
-              </RadioGroup>
-            </FormControl>
+              {/* Option B: Custom Milestones Card */}
+              <Grid item xs={12} sm={6}>
+                <Paper
+                  elevation={0}
+                  onClick={() => setMilestoneStrategy('CUSTOM')}
+                  sx={{
+                    p: 2,
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    border: milestoneStrategy === 'CUSTOM' ? '2px solid #4f46e5' : '1px solid #cbd5e1',
+                    background: milestoneStrategy === 'CUSTOM' ? '#f5f3ff' : '#ffffff',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: milestoneStrategy === 'CUSTOM' ? '#4f46e5' : '#0f172a', fontSize: '0.88rem' }}>
+                      🛠 Custom Stages Builder
+                    </Typography>
+                    {milestoneStrategy === 'CUSTOM' ? (
+                      <CheckCircleIcon sx={{ color: '#4f46e5', fontSize: 20 }} />
+                    ) : (
+                      <RadioButtonUncheckedIcon sx={{ color: '#94a3b8', fontSize: 20 }} />
+                    )}
+                  </Box>
+                  <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.72rem', lineHeight: 1.3 }}>
+                    Define specific custom milestone stage titles tailored to this project's scope.
+                  </Typography>
+                </Paper>
+              </Grid>
+            </Grid>
 
-            {/* Custom Milestones Dynamic Builder */}
+            {/* Custom Milestones Full-Width Mobile Dynamic Builder */}
             {milestoneStrategy === 'CUSTOM' && (
-              <Box sx={{ mt: 2.5, pl: { xs: 0, sm: 4 } }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: '#4338ca', display: 'block', mb: 1.5, letterSpacing: 0.5 }}>
-                  DEFINE CUSTOM MILESTONE STAGES ({customMilestones.length}):
+              <Box sx={{ mt: 3, pt: 2, borderTop: '1px dashed #cbd5e1' }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#4338ca', display: 'block', mb: 1.5, letterSpacing: 0.5, fontSize: '0.75rem' }}>
+                  DEFINE CUSTOM STAGES ({customMilestones.length}):
                 </Typography>
 
                 <Stack spacing={1.5} sx={{ mb: 2 }}>
                   {customMilestones.map((m, idx) => (
-                    <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
                       <TextField
                         fullWidth
                         size="small"
                         value={m}
                         onChange={(e) => handleCustomMilestoneChange(idx, e.target.value)}
                         placeholder={`Stage ${idx + 1} Title`}
+                        inputProps={{ style: { fontSize: '0.82rem', padding: '8.5px 12px' } }}
                         sx={{ background: '#ffffff' }}
                       />
                       {customMilestones.length > 1 && (
@@ -380,7 +403,15 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
                           size="small"
                           color="error"
                           onClick={() => handleRemoveCustomMilestone(idx)}
-                          sx={{ background: '#fef2f2', border: '1px solid #fca5a5', '&:hover': { background: '#fee2e2' } }}
+                          sx={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: '8px',
+                            background: '#fef2f2',
+                            border: '1px solid #fca5a5',
+                            flexShrink: 0,
+                            '&:hover': { background: '#fee2e2' }
+                          }}
                         >
                           <DeleteOutlineIcon sx={{ fontSize: 18 }} />
                         </IconButton>
@@ -390,13 +421,22 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
                 </Stack>
 
                 <Button
-                  size="small"
+                  fullWidth
                   variant="outlined"
                   startIcon={<AddIcon />}
                   onClick={handleAddCustomMilestone}
-                  sx={{ textTransform: 'none', fontWeight: 800, fontSize: '0.78rem', color: '#4f46e5', borderColor: '#c7d2fe' }}
+                  sx={{
+                    height: 38,
+                    textTransform: 'none',
+                    fontWeight: 800,
+                    fontSize: '0.78rem',
+                    color: '#4f46e5',
+                    borderColor: '#c7d2fe',
+                    borderRadius: '10px',
+                    '&:hover': { background: '#e0e7ff', borderColor: '#4f46e5' }
+                  }}
                 >
-                  Add Milestone Stage
+                  Add Another Milestone Stage
                 </Button>
               </Box>
             )}
@@ -409,7 +449,7 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
             <Button
               variant="outlined"
               onClick={onBack}
-              sx={{ textTransform: 'none', fontWeight: 800, color: '#64748b', px: 3 }}
+              sx={{ flex: { xs: 1, sm: 'initial' }, textTransform: 'none', fontWeight: 800, color: '#64748b', px: 3, height: 42 }}
             >
               Cancel
             </Button>
@@ -418,20 +458,21 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
               type="submit"
               variant="contained"
               disabled={loading}
-              startIcon={<AddCircleOutlineIcon />}
+              startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <AddCircleOutlineIcon />}
               sx={{
+                flex: { xs: 1, sm: 'initial' },
+                height: 42,
                 background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                 color: '#ffffff',
                 textTransform: 'none',
                 fontWeight: 800,
                 px: 4,
-                py: 1.2,
                 borderRadius: '10px',
                 boxShadow: '0 4px 14px rgba(5, 150, 105, 0.3)',
                 '&:hover': { background: '#047857' }
               }}
             >
-              {loading ? 'Instantiating in Engine...' : 'Instantiate Project Baseline'}
+              {loading ? 'Instantiating...' : 'Instantiate Project'}
             </Button>
           </Box>
 
