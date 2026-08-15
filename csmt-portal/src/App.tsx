@@ -74,6 +74,7 @@ export const App: React.FC = () => {
   });
 
   const isAdmin = currentUser?.isSystemAdmin || currentUser?.role?.includes('Admin');
+  const userAllowedCategory = currentUser?.allowedCategory || 'ALL';
 
   const handleLogout = () => {
     localStorage.removeItem('csmt_current_user');
@@ -214,25 +215,29 @@ export const App: React.FC = () => {
     }
   };
 
-  // Compute Project Counts per Category for Sidebar Badges
+  // Role-Based Projects Filtering:
+  // Non-admin staff users are strictly isolated to projects within their assigned allowedCategory!
+  const accessibleProjects = csmtProjects.filter((p) => {
+    if (isAdmin || userAllowedCategory === 'ALL') return true;
+    return p.category === userAllowedCategory;
+  });
+
+  // Compute Project Counts per Category based on Role Scoping
   const projectCounts: Record<string, number> = {
-    ALL: csmtProjects.length,
-    ACADEMIC_LAB: csmtProjects.filter((p) => p.category === 'ACADEMIC_LAB').length,
-    LIBRARY: csmtProjects.filter((p) => p.category === 'LIBRARY').length,
-    SPORTS: csmtProjects.filter((p) => p.category === 'SPORTS').length,
-    HOSTEL: csmtProjects.filter((p) => p.category === 'HOSTEL').length,
-    CLUBS: csmtProjects.filter((p) => p.category === 'CLUBS').length
+    ALL: accessibleProjects.length,
+    ACADEMIC_LAB: accessibleProjects.filter((p) => p.category === 'ACADEMIC_LAB').length,
+    LIBRARY: accessibleProjects.filter((p) => p.category === 'LIBRARY').length,
+    SPORTS: accessibleProjects.filter((p) => p.category === 'SPORTS').length,
+    HOSTEL: accessibleProjects.filter((p) => p.category === 'HOSTEL').length,
+    CLUBS: accessibleProjects.filter((p) => p.category === 'CLUBS').length
   };
 
-  // Role-Based Filtering Logic:
-  const userAllowedCategory = currentUser?.allowedCategory || 'ALL';
-
-  const filteredProjects = csmtProjects.filter((p) => {
-    if (!isAdmin && userAllowedCategory !== 'ALL' && p.category !== userAllowedCategory) {
-      return false;
+  const filteredProjects = accessibleProjects.filter((p) => {
+    if (isAdmin || userAllowedCategory === 'ALL') {
+      if (activeCategory === 'ALL') return true;
+      return p.category === activeCategory;
     }
-    if (activeCategory === 'ALL') return true;
-    return p.category === activeCategory;
+    return true; // Non-admin only sees their allowedCategory projects
   });
 
   // Render Fullscreen Staff Login Screen if User is Not Logged In
@@ -351,17 +356,19 @@ export const App: React.FC = () => {
                       lineHeight: 1.2
                     }}
                   >
-                    {activeCategory === 'ALL'
-                      ? 'All District Projects Portfolio'
-                      : activeCategory === 'ACADEMIC_LAB'
-                      ? 'Academic CS & AI Laboratories'
-                      : activeCategory === 'LIBRARY'
-                      ? 'Digital Library & E-Readers'
-                      : activeCategory === 'SPORTS'
-                      ? 'Sports Turf Complex'
-                      : activeCategory === 'HOSTEL'
-                      ? 'Student Hostels'
-                      : 'STEM Robotics Clubs'}
+                    {isAdmin
+                      ? activeCategory === 'ALL'
+                        ? 'All District Projects Portfolio'
+                        : activeCategory === 'ACADEMIC_LAB'
+                        ? 'Academic CS & AI Laboratories'
+                        : activeCategory === 'LIBRARY'
+                        ? 'Digital Library & E-Readers'
+                        : activeCategory === 'SPORTS'
+                        ? 'Sports Turf Complex'
+                        : activeCategory === 'HOSTEL'
+                        ? 'Student Hostels'
+                        : 'STEM Robotics Clubs'
+                      : `${currentUser.dept} Projects Portfolio`}
                   </Typography>
 
                   <Typography variant="body2" sx={{ color: '#c7d2fe', fontSize: { xs: '0.8rem', sm: '0.88rem' } }}>
@@ -431,7 +438,7 @@ export const App: React.FC = () => {
             {/* Role Scope Info Notification */}
             {!isAdmin && (
               <Alert severity="info" icon={<KeyIcon />} sx={{ mb: 3, borderRadius: '12px', fontWeight: 700, fontSize: '0.85rem' }}>
-                Logged in as <strong>{currentUser.name} ({currentUser.role})</strong>. Projects are scoped specifically to <strong>{currentUser.dept}</strong>.
+                Logged in as <strong>{currentUser.name} ({currentUser.role})</strong>. Projects are scoped specifically to <strong>{currentUser.dept}</strong> ({accessibleProjects.length} Active Projects).
               </Alert>
             )}
 

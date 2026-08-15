@@ -60,15 +60,23 @@ export const CsmtSidebar: React.FC<CsmtSidebarProps> = ({
   onMobileClose
 }) => {
   const isAdmin = currentUser?.isSystemAdmin || currentUser?.role?.includes('Admin');
+  const userAllowedCategory = currentUser?.allowedCategory || 'ALL';
 
-  const menuItems = [
-    { label: 'All Projects', value: 'ALL', icon: <DashboardIcon />, count: projectCounts['ALL'] || 0 },
+  const allMenuItems = [
+    { label: 'All District Projects', value: 'ALL', icon: <DashboardIcon />, count: projectCounts['ALL'] || 0 },
     { label: 'Academic CS Labs', value: 'ACADEMIC_LAB', icon: <ComputerIcon />, count: projectCounts['ACADEMIC_LAB'] || 0 },
     { label: 'Digital Library', value: 'LIBRARY', icon: <MenuBookIcon />, count: projectCounts['LIBRARY'] || 0 },
     { label: 'Sports Turf Complex', value: 'SPORTS', icon: <SportsSoccerIcon />, count: projectCounts['SPORTS'] || 0 },
     { label: 'Student Hostels', value: 'HOSTEL', icon: <HotelIcon />, count: projectCounts['HOSTEL'] || 0 },
     { label: 'STEM Robotics Clubs', value: 'CLUBS', icon: <PrecisionManufacturingIcon />, count: projectCounts['CLUBS'] || 0 }
   ];
+
+  // Role-Based Sidebar Category Scoping:
+  // Admins see all menu items. Non-admins only see menu items matching their assigned allowedCategory.
+  const menuItems = allMenuItems.filter((item) => {
+    if (isAdmin || userAllowedCategory === 'ALL') return true;
+    return item.value === userAllowedCategory;
+  });
 
   const drawerContent = (
     <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%', width: drawerWidth, boxSizing: 'border-box' }}>
@@ -172,7 +180,7 @@ export const CsmtSidebar: React.FC<CsmtSidebarProps> = ({
       </Paper>
 
       <Typography variant="caption" sx={{ color: '#475569', fontWeight: 900, letterSpacing: 0.6, mb: 1, px: 1 }}>
-        PORTFOLIO NAVIGATION
+        {isAdmin ? 'ALL PORTFOLIO CATEGORIES' : 'YOUR DEPARTMENT PORTFOLIO'}
       </Typography>
 
       {/* Sidebar Menu Items */}
