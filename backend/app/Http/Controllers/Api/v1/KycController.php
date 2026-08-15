@@ -2,33 +2,28 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Contracts\Services\KycServiceInterface;
 use App\Http\Controllers\Controller;
-use App\Models\Organization;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
 
 class KycController extends Controller
 {
+    public function __construct(
+        private KycServiceInterface $kycService
+    ) {}
+
     /**
      * Get current tenant KYC verification status.
      */
     public function status(): JsonResponse
     {
         $tenant = app('current_tenant');
-        $settings = $tenant->settings ?? [];
+        $status = $this->kycService->getStatus($tenant);
 
         return response()->json([
             'status' => 'success',
-            'data' => [
-                'organization_id' => $tenant->id,
-                'organization_name' => $tenant->name,
-                'code' => $tenant->code,
-                'kyc_status' => $settings['kyc_status'] ?? 'UNVERIFIED',
-                'documents' => $settings['kyc_documents'] ?? [],
-                'submitted_at' => $settings['kyc_submitted_at'] ?? null,
-                'verified_at' => $settings['kyc_verified_at'] ?? null,
-            ]
+            'data' => $status,
         ]);
     }
 
@@ -44,29 +39,17 @@ class KycController extends Controller
         ]);
 
         $tenant = app('current_tenant');
-        $file = $request->file('certificate_file');
-        $path = $file->store('kyc_vault/' . $tenant->uuid, 'local');
-
-        $settings = $tenant->settings ?? [];
-        $settings['kyc_status'] = 'PENDING_REVIEW';
-        $settings['kyc_submitted_at'] = Carbon::now()->toIso8601String();
-        $settings['kyc_documents'] = [
-            'tin' => $request->input('tax_identification_number'),
-            'rc_number' => $request->input('registration_number'),
-            'file_path' => $path,
-            'file_name' => $file->getClientOriginalName(),
-        ];
-
-        $tenant->settings = $settings;
-        $tenant->save();
+        $result = $this->kycService->submitKyc(
+            $tenant,
+            $request->input('tax_identification_number'),
+            $request->input('registration_number'),
+            $request->file('certificate_file')
+        );
 
         return response()->json([
             'status' => 'success',
             'message' => 'Corporate KYC verification documents submitted successfully. Status: PENDING_REVIEW.',
-            'data' => [
-                'kyc_status' => 'PENDING_REVIEW',
-                'submitted_at' => $settings['kyc_submitted_at'],
-            ]
+            'data' => $result,
         ]);
     }
 
@@ -81,27 +64,17 @@ class KycController extends Controller
         ]);
 
         $tenant = app('current_tenant');
-        $action = $request->input('action');
-        $settings = $tenant->settings ?? [];
-
-        if ($action === 'APPROVE') {
-            $settings['kyc_status'] = 'VERIFIED';
-            $settings['kyc_verified_at'] = Carbon::now()->toIso8601String();
-            $msg = 'Corporate KYC verified successfully. All project execution features are unlocked.';
-        } else {
-            $settings['kyc_status'] = 'REJECTED';
-            $settings['kyc_rejection_reason'] = $request->input('reason');
-            $msg = 'Corporate KYC verification rejected: ' . $request->input('reason');
-        }
-
-        $tenant->settings = $settings;
-        $tenant->save();
+        $result = $this->kycService->reviewKyc(
+            $tenant,
+            $request->input('action'),
+            $request->input('reason')
+        );
 
         return response()->json([
             'status' => 'success',
-            'message' => $msg,
+            'message' => $result['message'],
             'data' => [
-                'kyc_status' => $settings['kyc_status'],
+                'kyc_status' => $result['kyc_status'],
             ]
         ]);
     }

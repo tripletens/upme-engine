@@ -14,6 +14,10 @@ use Illuminate\Http\JsonResponse;
 
 class ActivityController extends Controller
 {
+    public function __construct(
+        private ActivityServiceInterface $activityService
+    ) {}
+
     public function updateProgress(
         int $id,
         UpdateActivityProgressRequest $request,

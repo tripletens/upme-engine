@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Contracts\Services\BillingServiceInterface;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
-use App\Services\PaystackService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use InvalidArgumentException;
 
 class BillingController extends Controller
 {
-    public function __construct(private PaystackService $paystackService) {}
+    public function __construct(
+        private BillingServiceInterface $billingService
+    ) {}
 
     /**
      * Initialize Paystack subscription payment.
@@ -27,7 +30,7 @@ class BillingController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Tenant not found.'], 404);
         }
 
-        $result = $this->paystackService->initializeSubscription(
+        $result = $this->billingService->initializeSubscription(
             $tenant,
             $request->input('plan_tier'),
             $request->input('email')
@@ -46,7 +49,7 @@ class BillingController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Reference query parameter required.'], 400);
         }
 
-        $result = $this->paystackService->verifyPayment($reference);
+        $result = $this->billingService->verifyPayment($reference);
         return response()->json($result);
     }
 
@@ -55,24 +58,18 @@ class BillingController extends Controller
      */
     public function webhook(Request $request): JsonResponse
     {
-        $paystackSignature = $request->header('x-paystack-signature');
-        $secretKey = env('PAYSTACK_SECRET_KEY', 'sk_test_mock_paystack_secret_key');
+        $paystackSignature = $request->header('x-paystack-signature') ?? '';
 
-        // Signature validation
-        if ($paystackSignature && hash_hmac('sha512', $request->getContent(), $secretKey) !== $paystackSignature) {
-            return response()->json(['status' => 'error', 'message' => 'Invalid webhook signature.'], 400);
+        try {
+            $result = $this->billingService->handleWebhook(
+                $paystackSignature,
+                $request->getContent(),
+                $request->all()
+            );
+
+            return response()->json($result);
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
         }
-
-        $event = $request->input('event');
-        $data = $request->input('data');
-
-        if ($event === 'charge.success') {
-            $reference = $data['reference'] ?? null;
-            if ($reference) {
-                $this->paystackService->verifyPayment($reference);
-            }
-        }
-
-        return response()->json(['status' => 'success']);
     }
 }

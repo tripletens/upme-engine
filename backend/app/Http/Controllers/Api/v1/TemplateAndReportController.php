@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Contracts\Repositories\ProjectRepositoryInterface;
 use App\Http\Controllers\Controller;
-use App\Models\Project;
 use App\Models\ProjectTemplate;
-use App\Services\ProjectTemplateService;
 use App\Services\ProjectReportService;
+use App\Services\ProjectTemplateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -30,7 +30,7 @@ class TemplateAndReportController extends Controller
         ]);
     }
 
-    public function createFromTemplate(Request $request, ProjectTemplateService $templateService): JsonResponse
+    public function createFromTemplate(Request $request): JsonResponse
     {
         $request->validate([
             'template_id' => ['nullable', 'integer'],
@@ -68,7 +68,7 @@ class TemplateAndReportController extends Controller
         ], 201);
     }
 
-    public function generateReport(string $uuid, ProjectReportService $reportService): JsonResponse
+    public function generateReport(string $uuid): JsonResponse
     {
         $project = $this->resolveProject($uuid);
         $report = $reportService->generateExecutiveReport($project);
@@ -79,7 +79,7 @@ class TemplateAndReportController extends Controller
         ]);
     }
 
-    public function exportCsv(string $uuid, ProjectReportService $reportService): Response
+    public function exportCsv(string $uuid): Response
     {
         $project = $this->resolveProject($uuid);
         $csvContent = $reportService->exportActivitiesToCsv($project);

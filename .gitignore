@@ -1,0 +1,31 @@
+# Environment & Secrets
+.env
+.env.backup
+.env.production
+*.env
+
+# Node & Frontend Build
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+package-lock.json.bak
+
+# PHP & Laravel Runtime / Cache
+backend/.env
+backend/storage/*.key
+backend/storage/logs/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/bootstrap/cache/*
+backend/database/*.sqlite
+*.result.cache
+.phpunit.result.cache
+backend/.phpunit.result.cache
+backend/vendor/bin/.phpunit.result.cache
+backend/vendor/composer/tmp-*
+*.zip~
+
+# Operating System Files
+.DS_Store
+Thumbs.db

@@ -2,44 +2,26 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Contracts\Services\DeliverableServiceInterface;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\UploadEvidenceRequest;
 use App\Http\Requests\ApproveEvidenceRequest;
-use App\Models\Deliverable;
-use App\Models\Evidence;
-use App\Models\ProjectEvent;
+use App\Http\Requests\UploadEvidenceRequest;
 use Illuminate\Http\JsonResponse;
 
 class DeliverableEvidenceController extends Controller
 {
+    public function __construct(
+        private DeliverableServiceInterface $deliverableService
+    ) {}
+
     public function upload(int $deliverableId, UploadEvidenceRequest $request): JsonResponse
     {
-        $deliverable = Deliverable::findOrFail($deliverableId);
-        $file = $request->file('file');
-
-        $path = $file->store('evidence', 'public');
-
-        $evidence = Evidence::create([
-            'deliverable_id' => $deliverable->id,
-            'uploaded_by_user_id' => 1, // Current authenticated user ID
-            'file_path' => $path,
-            'file_type' => $file->getClientMimeType(),
-            'file_size' => $file->getSize(),
-            'notes' => $request->validated('notes'),
-        ]);
-
-        $deliverable->status = 'SUBMITTED';
-        $deliverable->save();
-
-        ProjectEvent::create([
-            'project_id' => $deliverable->activity->project_id,
-            'event_type' => 'DELIVERABLE_SUBMITTED',
-            'payload' => [
-                'deliverable_id' => $deliverable->id,
-                'deliverable_title' => $deliverable->title,
-                'message' => "Evidence uploaded for deliverable '{$deliverable->title}'. Awaiting supervisor sign-off."
-            ]
-        ]);
+        $evidence = $this->deliverableService->uploadEvidence(
+            $deliverableId,
+            $request->file('file'),
+            $request->validated('notes'),
+            1 // Current authenticated user ID / context
+        );
 
         return response()->json([
             'status' => 'success',
@@ -50,34 +32,11 @@ class DeliverableEvidenceController extends Controller
 
     public function approve(int $deliverableId, ApproveEvidenceRequest $request): JsonResponse
     {
-        $deliverable = Deliverable::findOrFail($deliverableId);
-        $action = $request->validated('action');
-
-        if ($action === 'APPROVE') {
-            $deliverable->status = 'APPROVED';
-            $deliverable->activity->progress = 100.0;
-            $deliverable->activity->status = 'COMPLETED';
-            $deliverable->activity->save();
-
-            $eventType = 'DELIVERABLE_APPROVED';
-            $msg = "Deliverable '{$deliverable->title}' approved by supervisor.";
-        } else {
-            $deliverable->status = 'REJECTED';
-            $eventType = 'DELIVERABLE_REJECTED';
-            $msg = "Deliverable '{$deliverable->title}' rejected: " . $request->validated('comments');
-        }
-
-        $deliverable->save();
-
-        ProjectEvent::create([
-            'project_id' => $deliverable->activity->project_id,
-            'event_type' => $eventType,
-            'payload' => [
-                'deliverable_id' => $deliverable->id,
-                'deliverable_title' => $deliverable->title,
-                'message' => $msg,
-            ]
-        ]);
+        $deliverable = $this->deliverableService->approveOrRejectEvidence(
+            $deliverableId,
+            $request->validated('action'),
+            $request->validated('comments')
+        );
 
         return response()->json([
             'status' => 'success',
