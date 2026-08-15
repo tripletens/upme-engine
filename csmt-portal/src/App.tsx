@@ -466,7 +466,7 @@ export const App: React.FC = () => {
         )}
 
         {/* Interactive Update Modal */}
-        {selectedTask && selectedProject && (
+        {modalOpen && selectedTask && selectedProject && (
           <UpdateCsmtTaskModal
             open={modalOpen}
             onClose={() => setModalOpen(false)}
@@ -479,15 +479,15 @@ export const App: React.FC = () => {
         )}
 
         {/* Stage Documents Viewer Modal */}
-        {selectedStage && selectedProject && (
+        {docModalOpen && selectedStage && selectedProject && (
           <StageDocumentViewerModal
             open={docModalOpen}
             onClose={() => setDocModalOpen(false)}
-            stageId={selectedStage.id || selectedStage.name}
-            stageName={selectedStage.name}
-            projectName={selectedProject.projectName}
-            supervisorName={selectedProject.supervisor}
-            progress={selectedStage.progress}
+            stageId={selectedStage.id || selectedStage.name || 'stage-1'}
+            stageName={selectedStage.name || 'Milestone Stage'}
+            projectName={selectedProject.projectName || selectedProject.name || 'CSMT School Project'}
+            supervisorName={selectedProject.supervisor || 'Dr. Robert Vance'}
+            progress={selectedStage.progress || 0}
           />
         )}
 
