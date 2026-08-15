@@ -30,11 +30,11 @@ import PersonIcon from '@mui/icons-material/Person';
 interface StageDocumentViewerModalProps {
   open: boolean;
   onClose: () => void;
-  stageId: string | number;
-  stageName: string;
-  projectName: string;
-  supervisorName: string;
-  progress: number;
+  stageId?: string | number;
+  stageName?: string;
+  projectName?: string;
+  supervisorName?: string;
+  progress?: number;
   startDate?: string;
   endDate?: string;
 }
@@ -42,39 +42,47 @@ interface StageDocumentViewerModalProps {
 export const StageDocumentViewerModal: React.FC<StageDocumentViewerModalProps> = ({
   open,
   onClose,
-  stageId,
-  stageName,
-  projectName,
-  supervisorName,
-  progress,
+  stageId = 'stage-1',
+  stageName = 'Milestone Stage',
+  projectName = 'CSMT School Project',
+  supervisorName = 'Dr. Robert Vance (HOD Computer Science)',
+  progress = 80,
   startDate = '2026-08-01',
   endDate = '2026-08-25'
 }) => {
+  const safeStageName = stageName || 'Milestone Stage';
+  const safeProjectName = projectName || 'CSMT School Project';
+  const safeSupervisorName = supervisorName || 'Dr. Robert Vance';
+  const safeProgress = Number(progress || 0);
+
   const docStorageKey = `csmt_milestone_docs_${stageId}`;
 
   // Default seed documents per milestone stage
-  const getDefaultDocs = () => [
-    {
-      id: 1,
-      title: `Blueprint_${stageName.replace(/[^a-zA-Z0-9]/g, '_')}_v1.pdf`,
-      type: 'PDF Blueprint',
-      size: '3.4 MB',
-      uploadedBy: supervisorName,
-      date: new Date(Date.now() - 86400000 * 3).toLocaleString(),
-      category: 'Design & Specification',
-      status: 'VERIFIED'
-    },
-    {
-      id: 2,
-      title: `Safety_Compliance_Pass_${stageName.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
-      type: 'PDF Certificate',
-      size: '1.2 MB',
-      uploadedBy: 'Engr. Quality Auditor',
-      date: new Date(Date.now() - 86400000 * 1).toLocaleString(),
-      category: 'Inspection Certificate',
-      status: 'VERIFIED'
-    }
-  ];
+  const getDefaultDocs = () => {
+    const cleanStage = safeStageName.replace(/[^a-zA-Z0-9]/g, '_');
+    return [
+      {
+        id: 1,
+        title: `Blueprint_${cleanStage}_v1.pdf`,
+        type: 'PDF Blueprint',
+        size: '3.4 MB',
+        uploadedBy: safeSupervisorName,
+        date: new Date(Date.now() - 86400000 * 3).toLocaleString(),
+        category: 'Design & Specification',
+        status: 'VERIFIED'
+      },
+      {
+        id: 2,
+        title: `Safety_Compliance_Pass_${cleanStage}.pdf`,
+        type: 'PDF Certificate',
+        size: '1.2 MB',
+        uploadedBy: 'Engr. Quality Auditor',
+        date: new Date(Date.now() - 86400000 * 1).toLocaleString(),
+        category: 'Inspection Certificate',
+        status: 'VERIFIED'
+      }
+    ];
+  };
 
   const [documents, setDocuments] = useState<any[]>([]);
   const [docTitle, setDocTitle] = useState('');
@@ -85,16 +93,20 @@ export const StageDocumentViewerModal: React.FC<StageDocumentViewerModalProps> =
 
   useEffect(() => {
     if (open) {
-      const saved = localStorage.getItem(docStorageKey);
-      if (saved) {
-        setDocuments(JSON.parse(saved));
-      } else {
-        const defaults = getDefaultDocs();
-        setDocuments(defaults);
-        localStorage.setItem(docStorageKey, JSON.stringify(defaults));
+      try {
+        const saved = localStorage.getItem(docStorageKey);
+        if (saved) {
+          setDocuments(JSON.parse(saved));
+        } else {
+          const defaults = getDefaultDocs();
+          setDocuments(defaults);
+          localStorage.setItem(docStorageKey, JSON.stringify(defaults));
+        }
+      } catch (err) {
+        setDocuments(getDefaultDocs());
       }
     }
-  }, [open, stageId]);
+  }, [open, stageId, safeStageName]);
 
   const handleUploadNewDoc = (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,7 +125,7 @@ export const StageDocumentViewerModal: React.FC<StageDocumentViewerModalProps> =
         title: formattedTitle,
         type: fileType,
         size: fileSize,
-        uploadedBy: supervisorName,
+        uploadedBy: safeSupervisorName,
         date: new Date().toLocaleString(),
         category,
         status: 'VERIFIED'
@@ -121,12 +133,14 @@ export const StageDocumentViewerModal: React.FC<StageDocumentViewerModalProps> =
 
       const updatedDocs = [newDoc, ...documents];
       setDocuments(updatedDocs);
-      localStorage.setItem(docStorageKey, JSON.stringify(updatedDocs));
+      try {
+        localStorage.setItem(docStorageKey, JSON.stringify(updatedDocs));
+      } catch (err) {}
 
       setUploading(false);
       setDocTitle('');
       setSelectedFile(null);
-      setAlertMsg(`🎉 Document "${formattedTitle}" uploaded to milestone "${stageName}" at ${newDoc.date}!`);
+      setAlertMsg(`🎉 Document "${formattedTitle}" uploaded to milestone "${safeStageName}" at ${newDoc.date}!`);
     }, 600);
   };
 
@@ -137,10 +151,10 @@ export const StageDocumentViewerModal: React.FC<StageDocumentViewerModalProps> =
           <DescriptionIcon sx={{ color: '#4f46e5', fontSize: 28 }} />
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
-              Stage Audit Documents: {stageName}
+              Stage Audit Documents: {safeStageName}
             </Typography>
             <Typography variant="caption" sx={{ color: '#64748b' }}>
-              Project: {projectName}
+              Project: {safeProjectName}
             </Typography>
           </Box>
         </Box>
@@ -152,22 +166,22 @@ export const StageDocumentViewerModal: React.FC<StageDocumentViewerModalProps> =
         <Paper elevation={0} sx={{ p: 3, mb: 3, background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1e293b' }}>
-              Milestone Stage: {stageName}
+              Milestone Stage: {safeStageName}
             </Typography>
             <Chip
-              label={`${progress}% COMPLETE`}
+              label={`${safeProgress}% COMPLETE`}
               size="small"
               sx={{
                 fontWeight: 800,
-                background: progress >= 100 ? '#ecfdf5' : '#e0e7ff',
-                color: progress >= 100 ? '#047857' : '#4338ca'
+                background: safeProgress >= 100 ? '#ecfdf5' : '#e0e7ff',
+                color: safeProgress >= 100 ? '#047857' : '#4338ca'
               }}
             />
           </Box>
 
           <LinearProgress
             variant="determinate"
-            value={progress}
+            value={safeProgress}
             sx={{ height: 8, borderRadius: 4, mb: 2, background: '#cbd5e1', '& .MuiLinearProgress-bar': { background: '#4f46e5' } }}
           />
 
@@ -179,7 +193,7 @@ export const StageDocumentViewerModal: React.FC<StageDocumentViewerModalProps> =
             </Grid>
             <Grid item xs={12} sm={6}>
               <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <PersonIcon sx={{ fontSize: 13 }} /> Stage Supervisor: {supervisorName}
+                <PersonIcon sx={{ fontSize: 13 }} /> Stage Supervisor: {safeSupervisorName}
               </Typography>
             </Grid>
           </Grid>
