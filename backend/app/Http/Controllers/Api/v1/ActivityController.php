@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateActivityProgressRequest;
 use App\Http\Resources\ActivityResource;
+use App\Jobs\ProcessGraphDelayJob;
 use App\Models\Activity;
 use App\Services\DependencyEvaluationService;
 use App\Services\ProjectHealthService;
@@ -37,18 +38,19 @@ class ActivityController extends Controller
 
         $activity->save();
 
-        // Propagate potential downstream delays across graph
-        $impactedActivities = $dependencyService->propagateDelay($activity);
+        // Dispatch asynchronous background DAG delay propagation job
+        ProcessGraphDelayJob::dispatch($activity->id);
 
-        // Recalculate project health score
-        $project = $activity->project;
-        $healthService->calculateHealth($project);
+        // Immediate recalculation for active HTTP response payload
+        $impactedActivities = $dependencyService->propagateDelay($activity);
+        $healthService->calculateHealth($activity->project);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Activity progress updated successfully.',
             'data' => new ActivityResource($activity),
             'downstream_impact' => $impactedActivities,
+            'job_dispatched' => true,
         ]);
     }
 }

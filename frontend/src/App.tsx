@@ -11,15 +11,19 @@ import {
   CardContent,
   Alert,
   Divider,
-  Button
+  Button,
+  Stack
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
-import WarningIcon from '@mui/icons-material/Warning';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import HomeIcon from '@mui/icons-material/Home';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PersonIcon from '@mui/icons-material/Person';
+import LogoutIcon from '@mui/icons-material/Logout';
+import DownloadIcon from '@mui/icons-material/Download';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
 import {
   schoolLabProjectDemo,
@@ -36,8 +40,36 @@ export const App: React.FC = () => {
   const [project] = useState(schoolLabProjectDemo);
   const [milestones] = useState(schoolLabMilestones);
 
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentOrganization, setCurrentOrganization] = useState<any>(null);
+
+  const handleLoginSuccess = (user: any, organization: any) => {
+    setCurrentUser(user);
+    setCurrentOrganization(organization);
+    setCurrentView('dashboard');
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setCurrentOrganization(null);
+    setCurrentView('landing');
+  };
+
+  const handleExportCsv = () => {
+    window.open('http://127.0.0.1:8000/api/v1/projects/proj-cs-lab-001/report/export', '_blank');
+  };
+
+  const handleExportPdf = () => {
+    window.open('http://127.0.0.1:8000/api/v1/projects/proj-cs-lab-001/report/pdf', '_blank');
+  };
+
   if (currentView === 'landing') {
-    return <LandingPage onLaunchDashboard={() => setCurrentView('dashboard')} />;
+    return (
+      <LandingPage
+        onLaunchDashboard={() => setCurrentView('dashboard')}
+        onLoginSuccess={handleLoginSuccess}
+      />
+    );
   }
 
   return (
@@ -67,7 +99,7 @@ export const App: React.FC = () => {
             </Typography>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
             <Button
               variant="outlined"
               size="small"
@@ -75,13 +107,38 @@ export const App: React.FC = () => {
               onClick={() => setCurrentView('landing')}
               sx={{ color: '#475569', borderColor: '#cbd5e1', textTransform: 'none', fontWeight: 600 }}
             >
-              Back to Landing & Pricing
+              Landing & Pricing
             </Button>
 
-            <Chip
-              label="Tenant: Example International School"
-              sx={{ background: '#e0e7ff', color: '#4338ca', fontWeight: 700, border: '1px solid #c7d2fe' }}
-            />
+            {currentUser ? (
+              <>
+                <Chip
+                  icon={<PersonIcon sx={{ fontSize: 16 }} />}
+                  label={`${currentUser.name} (${currentUser.role})`}
+                  sx={{ background: '#e0e7ff', color: '#4338ca', fontWeight: 700 }}
+                />
+
+                <Chip
+                  label={`Tenant: ${currentOrganization?.name || 'Enterprise'}`}
+                  sx={{ background: '#ecfdf5', color: '#047857', fontWeight: 700, border: '1px solid #a7f3d0' }}
+                />
+
+                <Button
+                  variant="text"
+                  size="small"
+                  startIcon={<LogoutIcon />}
+                  onClick={handleLogout}
+                  sx={{ color: '#dc2626', fontWeight: 600, textTransform: 'none' }}
+                >
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <Chip
+                label="Tenant: Example International School"
+                sx={{ background: '#e0e7ff', color: '#4338ca', fontWeight: 700, border: '1px solid #c7d2fe' }}
+              />
+            )}
           </Box>
         </Toolbar>
       </AppBar>
@@ -106,21 +163,44 @@ export const App: React.FC = () => {
             </Typography>
           </Box>
 
-          <Button
-            variant="contained"
-            startIcon={<RefreshIcon />}
-            sx={{
-              background: '#4f46e5',
-              color: '#ffffff',
-              borderRadius: '10px',
-              textTransform: 'none',
-              fontWeight: 700,
-              boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)',
-              '&:hover': { background: '#4338ca' }
-            }}
-          >
-            Recalculate Health & Variance
-          </Button>
+          <Stack direction="row" spacing={1.5}>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<DownloadIcon />}
+              onClick={handleExportCsv}
+              sx={{ color: '#334155', borderColor: '#cbd5e1', textTransform: 'none', fontWeight: 600 }}
+            >
+              Export CSV
+            </Button>
+
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<PictureAsPdfIcon />}
+              onClick={handleExportPdf}
+              sx={{ color: '#0284c7', borderColor: '#bae6fd', textTransform: 'none', fontWeight: 600 }}
+            >
+              Executive PDF
+            </Button>
+
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<RefreshIcon />}
+              sx={{
+                background: '#4f46e5',
+                color: '#ffffff',
+                borderRadius: '8px',
+                textTransform: 'none',
+                fontWeight: 700,
+                boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)',
+                '&:hover': { background: '#4338ca' }
+              }}
+            >
+              Recalculate
+            </Button>
+          </Stack>
         </Box>
 
         {/* Executive Alerts */}

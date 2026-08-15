@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\v1\DeliverableEvidenceController;
 use App\Http\Controllers\Api\v1\TemplateAndReportController;
 use App\Http\Controllers\Api\v1\KycController;
 use App\Http\Controllers\Api\v1\BillingController;
+use App\Http\Controllers\Api\v1\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,6 +17,9 @@ use App\Http\Controllers\Api\v1\BillingController;
 */
 
 Route::prefix('v1')->middleware(['api', \App\Http\Middleware\TenantContextMiddleware::class])->group(function () {
+    // User Authentication
+    Route::post('/auth/login', [AuthController::class, 'login']);
+
     // Paystack SaaS Billing & Subscriptions
     Route::post('/billing/initialize', [BillingController::class, 'initialize']);
     Route::get('/billing/verify', [BillingController::class, 'verify']);
@@ -39,9 +43,10 @@ Route::prefix('v1')->middleware(['api', \App\Http\Middleware\TenantContextMiddle
     Route::post('/projects/from-template', [TemplateAndReportController::class, 'createFromTemplate'])
         ->middleware([\App\Http\Middleware\EnsureOrganizationVerified::class, \App\Http\Middleware\EnsureTenantPermission::class . ':project:create']);
 
-    // Reports & CSV Export
+    // Reports & CSV / PDF Export
     Route::get('/projects/{uuid}/report', [TemplateAndReportController::class, 'generateReport']);
     Route::get('/projects/{uuid}/report/export', [TemplateAndReportController::class, 'exportCsv']);
+    Route::get('/projects/{uuid}/report/pdf', [TemplateAndReportController::class, 'exportPdfReport']);
 
     // Activities & Delay Propagation
     Route::post('/activities/{id}/progress', [ActivityController::class, 'updateProgress'])

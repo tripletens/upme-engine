@@ -62,4 +62,90 @@ class TemplateAndReportController extends Controller
             'Content-Disposition' => 'attachment; filename="project-' . $project->code . '-activities.csv"',
         ]);
     }
+
+    public function exportPdfReport(string $uuid, ProjectReportService $reportService): Response
+    {
+        $project = Project::where('uuid', $uuid)->firstOrFail();
+        $report = $reportService->generateExecutiveReport($project);
+
+        $html = "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='utf-8'>
+            <title>Executive Report - {$project->name}</title>
+            <style>
+                body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #0f172a; padding: 40px; background: #fff; }
+                .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; }
+                .title { font-size: 24px; font-weight: bold; color: #0f172a; }
+                .subtitle { color: #64748b; font-size: 14px; margin-top: 5px; }
+                .grid { display: flex; gap: 20px; margin-bottom: 30px; }
+                .card { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; background: #f8fafc; }
+                .card-title { font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: bold; }
+                .card-val { font-size: 28px; font-weight: bold; color: #4f46e5; margin-top: 5px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; font-size: 13px; }
+                th { background: #f1f5f9; color: #334155; font-weight: bold; }
+                .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+                .badge-track { background: #ecfdf5; color: #047857; }
+            </style>
+        </head>
+        <body>
+            <div class='header'>
+                <div class='title'>UPME Executive Project Health Report</div>
+                <div class='subtitle'>Project: {$project->name} ({$project->code}) | Tenant ID: {$project->organization_id}</div>
+            </div>
+
+            <div class='grid'>
+                <div class='card'>
+                    <div class='card-title'>Overall Health Score</div>
+                    <div class='card-val' style='color:#059669;'>{$report['metrics']['health_score']}/100</div>
+                </div>
+                <div class='card'>
+                    <div class='card-title'>Overall Progress</div>
+                    <div class='card-val'>{$report['metrics']['overall_progress']}%</div>
+                </div>
+                <div class='card'>
+                    <div class='card-title'>Schedule Variance</div>
+                    <div class='card-val'>{$report['metrics']['schedule_variance_days']} Days</div>
+                </div>
+            </div>
+
+            <h3>Milestone & Activity Status</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Activity Name</th>
+                        <th>Milestone</th>
+                        <th>Status</th>
+                        <th>Progress</th>
+                        <th>Assigned To</th>
+                    </tr>
+                </thead>
+                <tbody>";
+
+        foreach ($project->milestones as $m) {
+            foreach ($m->activities as $a) {
+                $html .= "
+                    <tr>
+                        <td>{$a->name}</td>
+                        <td>{$m->name}</td>
+                        <td><span class='badge badge-track'>{$a->status}</span></td>
+                        <td>{$a->progress}%</td>
+                        <td>" . ($a->assigned_to_user_id ? 'Assigned' : 'Unassigned') . "</td>
+                    </tr>";
+            }
+        }
+
+        $html .= "
+                </tbody>
+            </table>
+        </body>
+        </html>";
+
+        return response($html, 200, [
+            'Content-Type' => 'text/html',
+            'Content-Disposition' => 'inline; filename="executive-report-' . $project->code . '.html"',
+        ]);
+    }
 }
