@@ -1,20 +1,49 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Milestone } from '../types';
-import { Box, Typography, Chip, LinearProgress } from '@mui/material';
+import { Box, Typography, Chip, LinearProgress, Button, Stack } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+
+import { DeliverableEvidenceModal } from './DeliverableEvidenceModal';
+import { DependencyManagerModal } from './DependencyManagerModal';
 
 interface GanttTimelineProps {
   milestones: Milestone[];
 }
 
 export const GanttTimeline: React.FC<GanttTimelineProps> = ({ milestones }) => {
+  const [evidenceModalOpen, setEvidenceModalOpen] = useState(false);
+  const [dependencyModalOpen, setDependencyModalOpen] = useState(false);
+  const [selectedActivityName, setSelectedActivityName] = useState('');
+
+  // Extract flat list of activities for dependency manager
+  const allActivities = milestones.flatMap((m) => m.activities);
+
+  const handleOpenEvidence = (activityName: string) => {
+    setSelectedActivityName(activityName);
+    setEvidenceModalOpen(true);
+  };
+
   return (
     <Box className="enterprise-card" sx={{ p: 4, mb: 4 }}>
-      <Typography variant="h6" sx={{ color: '#0f172a', fontWeight: 800, mb: 3 }}>
-        📊 Project Timeline & Activity Dependencies (Gantt Chart)
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+        <Typography variant="h6" sx={{ color: '#0f172a', fontWeight: 800 }}>
+          📊 Project Timeline & Activity Dependencies (Gantt Chart)
+        </Typography>
+
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<AccountTreeIcon />}
+          onClick={() => setDependencyModalOpen(true)}
+          sx={{ color: '#4f46e5', borderColor: '#c7d2fe', fontWeight: 700, textTransform: 'none' }}
+        >
+          Manage DAG Precedence Links
+        </Button>
+      </Box>
 
       {milestones.map((m) => (
         <Box key={m.id} sx={{ mb: 4 }}>
@@ -56,66 +85,71 @@ export const GanttTimeline: React.FC<GanttTimelineProps> = ({ milestones }) => {
                   {act.status === 'COMPLETED' && <CheckCircleIcon sx={{ color: '#059669', fontSize: 18 }} />}
                   {act.status === 'BLOCKED' && <LockIcon sx={{ color: '#dc2626', fontSize: 18 }} />}
                   {act.status === 'IN_PROGRESS' && <WarningAmberIcon sx={{ color: '#d97706', fontSize: 18 }} />}
-                  
-                  <Typography variant="body2" sx={{ color: '#0f172a', fontWeight: 700 }}>
+
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: act.status === 'BLOCKED' ? '#991b1b' : '#0f172a' }}>
                     {act.name}
                   </Typography>
-                  
+
                   {act.isCriticalPath && (
-                    <Chip label="Critical Path" size="small" sx={{ height: 20, fontSize: '0.65rem', background: '#dc2626', color: '#fff', fontWeight: 700 }} />
+                    <Chip label="CRITICAL PATH" size="small" sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700, background: '#fef3c7', color: '#b45309' }} />
                   )}
                 </Box>
 
-                <Typography variant="caption" sx={{ color: '#475569' }}>
-                  Assigned: <strong style={{ color: '#4f46e5' }}>{act.assignedTo || 'Unassigned'}</strong>
-                </Typography>
-              </Box>
-
-              {/* Progress Bar & Status */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 0.5 }}>
-                <Box sx={{ flexGrow: 1 }}>
-                  <LinearProgress
-                    variant="determinate"
-                    value={act.progress}
-                    sx={{
-                      height: 8,
-                      borderRadius: 4,
-                      backgroundColor: '#e2e8f0',
-                      '& .MuiLinearProgress-bar': {
-                        backgroundColor: act.status === 'BLOCKED' ? '#dc2626' : act.progress === 100 ? '#059669' : '#4f46e5'
-                      }
-                    }}
-                  />
-                </Box>
-                <Typography variant="caption" sx={{ color: '#0f172a', fontWeight: 700, minWidth: 35 }}>
-                  {act.progress}%
-                </Typography>
-              </Box>
-
-              {/* Deliverable & Evidence Tag */}
-              {act.deliverableTitle && (
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 0.5 }}>
-                  <Typography variant="caption" sx={{ color: '#64748b' }}>
-                    Deliverable: <em>{act.deliverableTitle}</em>
-                  </Typography>
+                <Stack direction="row" spacing={1} alignItems="center">
                   <Chip
-                    label={`Evidence: ${act.evidenceStatus}`}
+                    label={`${act.progress}% (${act.status})`}
                     size="small"
                     sx={{
-                      height: 20,
-                      fontSize: '0.65rem',
                       fontWeight: 700,
-                      background: act.evidenceStatus === 'APPROVED' ? '#ecfdf5' : '#fff7ed',
-                      color: act.evidenceStatus === 'APPROVED' ? '#047857' : '#c2410c',
-                      border: act.evidenceStatus === 'APPROVED' ? '1px solid #a7f3d0' : '1px solid #ffedd5'
+                      background: act.status === 'COMPLETED' ? '#d1fae5' : act.status === 'BLOCKED' ? '#fee2e2' : '#e0e7ff',
+                      color: act.status === 'COMPLETED' ? '#047857' : act.status === 'BLOCKED' ? '#b91c1c' : '#4338ca'
                     }}
                   />
-                </Box>
-              )}
+
+                  <Button
+                    variant="text"
+                    size="small"
+                    startIcon={<CloudUploadIcon sx={{ fontSize: 14 }} />}
+                    onClick={() => handleOpenEvidence(act.name)}
+                    sx={{ fontSize: '0.75rem', textTransform: 'none', color: '#4f46e5', fontWeight: 600 }}
+                  >
+                    Upload Evidence
+                  </Button>
+                </Stack>
+              </Box>
+
+              <LinearProgress
+                variant="determinate"
+                value={act.progress}
+                sx={{
+                  height: 6,
+                  borderRadius: 3,
+                  background: '#e2e8f0',
+                  '& .MuiLinearProgress-bar': {
+                    background: act.status === 'COMPLETED' ? '#059669' : act.status === 'BLOCKED' ? '#dc2626' : '#4f46e5'
+                  }
+                }}
+              />
             </Box>
           ))}
         </Box>
       ))}
+
+      {/* Deliverable Evidence Upload Modal */}
+      <DeliverableEvidenceModal
+        open={evidenceModalOpen}
+        onClose={() => setEvidenceModalOpen(false)}
+        activityName={selectedActivityName}
+        onUploadSuccess={(url) => console.log('Uploaded evidence:', url)}
+      />
+
+      {/* DAG Dependency Manager Modal */}
+      <DependencyManagerModal
+        open={dependencyModalOpen}
+        onClose={() => setDependencyModalOpen(false)}
+        activities={allActivities}
+        onAddDependency={(pred, succ, type, lag) => console.log('Added DAG dependency:', pred, succ, type, lag)}
+      />
     </Box>
   );
 };
