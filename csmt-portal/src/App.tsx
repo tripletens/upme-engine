@@ -36,20 +36,20 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { UpdateCsmtTaskModal } from './components/UpdateCsmtTaskModal';
 import { CsmtLoginModal } from './components/CsmtLoginModal';
 import { CsmtLoginView } from './components/CsmtLoginView';
-import { CsmtOrgUsersModal } from './components/CsmtOrgUsersModal';
 import { CsmtSidebar } from './components/CsmtSidebar';
 import { CsmtProjectDetailView } from './components/CsmtProjectDetailView';
 import { CreateCsmtProjectView } from './components/CreateCsmtProjectView';
+import { CsmtOrgUsersView } from './components/CsmtOrgUsersView';
 
 export const App: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [usersModalOpen, setUsersModalOpen] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   // Full Page Navigation States
   const [selectedDetailProject, setSelectedDetailProject] = useState<any>(null);
   const [isCreatingProjectView, setIsCreatingProjectView] = useState(false);
+  const [isUsersViewOpen, setIsUsersViewOpen] = useState(false);
 
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [selectedProject, setSelectedProject] = useState<any>(null);
@@ -81,6 +81,7 @@ export const App: React.FC = () => {
     setCurrentUser(null);
     setSelectedDetailProject(null);
     setIsCreatingProjectView(false);
+    setIsUsersViewOpen(false);
   };
 
   const handleLoginSuccess = (user: any) => {
@@ -249,14 +250,20 @@ export const App: React.FC = () => {
           setActiveCategory(cat);
           setSelectedDetailProject(null);
           setIsCreatingProjectView(false);
+          setIsUsersViewOpen(false);
         }}
         currentUser={currentUser}
         onLogout={handleLogout}
         onOpenCreateModal={() => {
           setSelectedDetailProject(null);
+          setIsUsersViewOpen(false);
           setIsCreatingProjectView(true);
         }}
-        onOpenUsersModal={() => setUsersModalOpen(true)}
+        onOpenUsersModal={() => {
+          setSelectedDetailProject(null);
+          setIsCreatingProjectView(false);
+          setIsUsersViewOpen(true);
+        }}
         onSyncDb={fetchLiveEngineProjects}
         syncing={loading}
         projectCounts={projectCounts}
@@ -274,6 +281,10 @@ export const App: React.FC = () => {
               setCsmtProjects((prev) => [newProj, ...prev]);
               setAlertMsg(`🎉 Real School Project "${newProj.projectName}" created in live database!`);
             }}
+          />
+        ) : isUsersViewOpen ? (
+          <CsmtOrgUsersView
+            onBack={() => setIsUsersViewOpen(false)}
           />
         ) : selectedDetailProject ? (
           <CsmtProjectDetailView
@@ -346,32 +357,31 @@ export const App: React.FC = () => {
                   </Typography>
                 </Box>
 
-                {/* Equal-Height Single-Line Action Buttons Layout on Mobile */}
-                <Stack
-                  direction="row"
-                  spacing={1.5}
-                  alignItems="center"
+                {/* Stacked Full-Width Action Buttons Layout on Mobile */}
+                <Box
                   sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    gap: 1.5,
                     width: { xs: '100%', sm: 'auto' },
-                    mt: { xs: 1, sm: 0 },
-                    justify: { xs: 'space-between', sm: 'flex-end' }
+                    mt: { xs: 1.5, sm: 0 }
                   }}
                 >
                   <Button
                     variant="contained"
                     size="small"
-                    startIcon={<AddCircleOutlineIcon />}
+                    startIcon={<AddCircleOutlineIcon sx={{ fontSize: '18px !important' }} />}
                     onClick={() => setIsCreatingProjectView(true)}
                     sx={{
-                      flex: { xs: 1, sm: 'initial' },
-                      height: 40,
+                      width: { xs: '100%', sm: 'auto' },
+                      height: 42,
                       whiteSpace: 'nowrap',
-                      fontSize: { xs: '0.78rem', sm: '0.85rem' },
+                      fontSize: '0.85rem',
                       background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                       color: '#fff',
                       textTransform: 'none',
                       fontWeight: 800,
-                      px: 2,
+                      px: 3.5,
                       borderRadius: '10px',
                       boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
                       '&:hover': { background: '#047857' }
@@ -386,22 +396,22 @@ export const App: React.FC = () => {
                     startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />}
                     onClick={fetchLiveEngineProjects}
                     sx={{
-                      flex: { xs: 1, sm: 'initial' },
-                      height: 40,
+                      width: { xs: '100%', sm: 'auto' },
+                      height: 42,
                       whiteSpace: 'nowrap',
-                      fontSize: { xs: '0.78rem', sm: '0.85rem' },
+                      fontSize: '0.85rem',
                       color: '#a5f3fc',
                       borderColor: 'rgba(255,255,255,0.3)',
                       textTransform: 'none',
                       fontWeight: 700,
-                      px: 2,
+                      px: 3,
                       borderRadius: '10px',
                       '&:hover': { borderColor: '#a5f3fc', background: 'rgba(255,255,255,0.05)' }
                     }}
                   >
                     Sync DB
                   </Button>
-                </Stack>
+                </Box>
               </Box>
             </Paper>
 
@@ -556,12 +566,6 @@ export const App: React.FC = () => {
             )}
           </Box>
         )}
-
-        {/* Admin Organization Users Inspector Modal */}
-        <CsmtOrgUsersModal
-          open={usersModalOpen}
-          onClose={() => setUsersModalOpen(false)}
-        />
 
         {/* School Staff Login Modal */}
         <CsmtLoginModal

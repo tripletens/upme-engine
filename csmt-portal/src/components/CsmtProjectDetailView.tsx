@@ -548,39 +548,43 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                       </Box>
                     </Box>
 
-                    {/* Footer: Equal-Width Responsive Action Buttons */}
-                    <Stack direction="row" spacing={1.5} sx={{ width: '100%', pt: 0.5 }}>
+                    {/* Footer: Responsive Action Buttons */}
+                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1, width: '100%', pt: 0.5 }}>
                       <Button
                         size="small"
                         variant="outlined"
-                        startIcon={<VisibilityIcon sx={{ fontSize: 14 }} />}
+                        startIcon={<VisibilityIcon sx={{ fontSize: 15 }} />}
                         onClick={() => handleOpenDocPreview(doc)}
                         sx={{
-                          flex: 1,
-                          height: 32,
+                          flex: { xs: 'initial', sm: 1 },
+                          width: { xs: '100%', sm: 'auto' },
+                          height: 36,
+                          whiteSpace: 'nowrap',
                           textTransform: 'none',
                           fontWeight: 800,
-                          fontSize: '0.75rem',
+                          fontSize: '0.78rem',
                           color: '#4f46e5',
                           borderColor: '#c7d2fe',
                           borderRadius: '8px',
                           '&:hover': { background: '#e0e7ff', borderColor: '#4f46e5' }
                         }}
                       >
-                        View
+                        View Document
                       </Button>
 
                       <Button
                         size="small"
                         variant="contained"
-                        startIcon={<DownloadIcon sx={{ fontSize: 14 }} />}
+                        startIcon={<DownloadIcon sx={{ fontSize: 15 }} />}
                         onClick={() => handleDownloadDoc(doc)}
                         sx={{
-                          flex: 1,
-                          height: 32,
+                          flex: { xs: 'initial', sm: 1 },
+                          width: { xs: '100%', sm: 'auto' },
+                          height: 36,
+                          whiteSpace: 'nowrap',
                           textTransform: 'none',
                           fontWeight: 800,
-                          fontSize: '0.75rem',
+                          fontSize: '0.78rem',
                           background: '#059669',
                           color: '#fff',
                           borderRadius: '8px',
@@ -588,9 +592,9 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                           '&:hover': { background: '#047857' }
                         }}
                       >
-                        Download
+                        Download Proof
                       </Button>
-                    </Stack>
+                    </Box>
                   </Paper>
                 ))
               )}
@@ -670,9 +674,23 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                   variant="contained"
                   disabled={uploading}
                   startIcon={uploading ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />}
-                  sx={{ background: '#4f46e5', color: '#fff', textTransform: 'none', fontWeight: 800, ml: 'auto', px: 3, py: 1, fontSize: '0.82rem' }}
+                  sx={{
+                    background: '#4f46e5',
+                    color: '#fff',
+                    textTransform: 'none',
+                    fontWeight: 800,
+                    height: 42,
+                    whiteSpace: 'nowrap',
+                    px: 3,
+                    fontSize: '0.85rem',
+                    borderRadius: '10px',
+                    boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
+                    width: { xs: '100%', sm: 'auto' },
+                    ml: { xs: 0, sm: 'auto' },
+                    '&:hover': { background: '#4338ca' }
+                  }}
                 >
-                  {uploading ? 'Uploading...' : 'Upload Document to Stage'}
+                  {uploading ? 'Uploading...' : 'Upload Document'}
                 </Button>
               </Box>
             </Box>
