@@ -9,7 +9,8 @@ import {
   ListItemText,
   Divider,
   Chip,
-  Button
+  Button,
+  Drawer
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
@@ -34,6 +35,8 @@ interface SidebarNavProps {
   onOpenNewProject: () => void;
   onGoToLanding: () => void;
   onLogout: () => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 export const SidebarNav: React.FC<SidebarNavProps> = ({
@@ -45,7 +48,9 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
   onOpenKyc,
   onOpenNewProject,
   onGoToLanding,
-  onLogout
+  onLogout,
+  mobileOpen = false,
+  onMobileClose
 }) => {
   const menuItems = [
     { id: 'client_portal', label: 'Client Executive Portal', icon: <RemoveRedEyeIcon /> },
@@ -59,20 +64,16 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
     { id: 'billing', label: 'Paystack SaaS Subscriptions', icon: <CreditCardIcon /> },
   ];
 
-  return (
+  const drawerContent = (
     <Box
       sx={{
         width: 280,
-        minWidth: 280,
-        height: '100vh',
-        position: 'sticky',
-        top: 0,
+        height: '100%',
         background: '#ffffff',
-        borderRight: '1px solid #e2e8f0',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
-        zIndex: 1100
+        justify: 'space-between',
+        boxSizing: 'border-box'
       }}
     >
       {/* Top Header & Brand */}
@@ -86,7 +87,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
               background: 'linear-gradient(135deg, #4f46e5 0%, #0284c7 100%)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
+              justify: 'center',
               fontWeight: 800,
               color: '#fff',
               fontSize: '1.3rem'
@@ -109,7 +110,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
           fullWidth
           variant="contained"
           startIcon={<AddCircleOutlineIcon />}
-          onClick={onOpenNewProject}
+          onClick={() => {
+            onOpenNewProject();
+            if (onMobileClose) onMobileClose();
+          }}
           sx={{
             background: '#4f46e5',
             color: '#ffffff',
@@ -139,6 +143,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
                   onClick={() => {
                     if (item.id === 'kyc') onOpenKyc();
                     else onSelectTab(item.id);
+                    if (onMobileClose) onMobileClose();
                   }}
                   sx={{
                     borderRadius: '10px',
@@ -168,7 +173,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
       <Box sx={{ p: 2, borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
           <Box sx={{ overflow: 'hidden' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', truncate: true }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
               {currentUser ? currentUser.name : 'Client Executive'}
             </Typography>
             <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>
@@ -215,6 +220,41 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
             </Button>
           )}
         </Box>
+      </Box>
+    </Box>
+  );
+
+  return (
+    <Box component="nav">
+      {/* Mobile Drawer */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={onMobileClose}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 280 }
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+
+      {/* Desktop Fixed Sidebar */}
+      <Box
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          width: 280,
+          minWidth: 280,
+          height: '100vh',
+          position: 'sticky',
+          top: 0,
+          background: '#ffffff',
+          borderRight: '1px solid #e2e8f0',
+          zIndex: 1100
+        }}
+      >
+        {drawerContent}
       </Box>
     </Box>
   );

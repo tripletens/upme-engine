@@ -13,7 +13,10 @@ import {
   Divider,
   Paper,
   Alert,
-  CircularProgress
+  CircularProgress,
+  AppBar,
+  Toolbar,
+  IconButton
 } from '@mui/material';
 import SchoolIcon from '@mui/icons-material/School';
 import ComputerIcon from '@mui/icons-material/Computer';
@@ -28,6 +31,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DescriptionIcon from '@mui/icons-material/Description';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import MenuIcon from '@mui/icons-material/Menu';
 
 import { UpdateCsmtTaskModal } from './components/UpdateCsmtTaskModal';
 import { CsmtLoginModal } from './components/CsmtLoginModal';
@@ -42,6 +46,7 @@ export const App: React.FC = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [usersModalOpen, setUsersModalOpen] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   // Full Page Project View Navigation State
   const [selectedDetailProject, setSelectedDetailProject] = useState<any>(null);
@@ -236,8 +241,37 @@ export const App: React.FC = () => {
   }
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
-      {/* Sleek Left Navigation Sidebar */}
+    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, minHeight: '100vh', background: '#f8fafc' }}>
+      {/* Mobile Top App Bar Navigation */}
+      <AppBar
+        position="sticky"
+        elevation={0}
+        sx={{
+          display: { xs: 'flex', md: 'none' },
+          background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
+          borderBottom: '1px solid #4338ca'
+        }}
+      >
+        <Toolbar sx={{ justifyContent: 'space-between', px: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <IconButton onClick={() => setMobileDrawerOpen(true)} sx={{ color: '#ffffff' }}>
+              <MenuIcon />
+            </IconButton>
+            <SchoolIcon sx={{ color: '#ffffff', fontSize: 24 }} />
+            <Typography variant="h6" sx={{ fontWeight: 900, color: '#ffffff', fontSize: '1.05rem' }}>
+              CSMT Schools
+            </Typography>
+          </Box>
+
+          <Chip
+            label={currentUser.role}
+            size="small"
+            sx={{ background: '#4f46e5', color: '#fff', fontWeight: 800, fontSize: '0.65rem' }}
+          />
+        </Toolbar>
+      </AppBar>
+
+      {/* Responsive Navigation Sidebar */}
       <CsmtSidebar
         activeCategory={activeCategory}
         onSelectCategory={(cat) => {
@@ -251,10 +285,12 @@ export const App: React.FC = () => {
         onSyncDb={fetchLiveEngineProjects}
         syncing={loading}
         projectCounts={projectCounts}
+        mobileOpen={mobileDrawerOpen}
+        onMobileClose={() => setMobileDrawerOpen(false)}
       />
 
       {/* Main Dashboard Content Area */}
-      <Box component="main" sx={{ flexGrow: 1, overflowX: 'hidden' }}>
+      <Box component="main" sx={{ flexGrow: 1, minWidth: 0, overflowX: 'hidden' }}>
         {/* Full Page Project Detail View Routing */}
         {selectedDetailProject ? (
           <CsmtProjectDetailView
@@ -266,12 +302,12 @@ export const App: React.FC = () => {
             }}
           />
         ) : (
-          <Box sx={{ p: 4 }}>
+          <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
             {/* Top Header Card */}
             <Paper
               elevation={0}
               sx={{
-                p: 4,
+                p: { xs: 3, md: 4 },
                 mb: 4,
                 borderRadius: '16px',
                 background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
@@ -281,7 +317,7 @@ export const App: React.FC = () => {
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
                 <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1, flexWrap: 'wrap' }}>
                     <Chip
                       icon={<SchoolIcon sx={{ color: '#fff !important', fontSize: 16 }} />}
                       label="CSMT SCHOOLS DISTRICT PORTAL"
@@ -293,7 +329,7 @@ export const App: React.FC = () => {
                       sx={{ background: '#059669', color: '#fff', fontWeight: 800 }}
                     />
                   </Box>
-                  <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.5, mb: 0.5 }}>
+                  <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.5, mb: 0.5, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
                     {activeCategory === 'ALL'
                       ? 'All District Projects Portfolio'
                       : activeCategory === 'ACADEMIC_LAB'
@@ -311,7 +347,7 @@ export const App: React.FC = () => {
                   </Typography>
                 </Box>
 
-                <Stack direction="row" spacing={1.5} alignItems="center">
+                <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
                   <Button
                     variant="contained"
                     size="small"
@@ -370,7 +406,7 @@ export const App: React.FC = () => {
             ) : (
               <Grid container spacing={3}>
                 {filteredProjects.map((proj) => (
-                  <Grid item xs={12} lg={6} key={proj.id}>
+                  <Grid item xs={12} sm={12} md={6} key={proj.id}>
                     <Card
                       onClick={() => setSelectedDetailProject(proj)}
                       sx={{
@@ -383,7 +419,7 @@ export const App: React.FC = () => {
                       }}
                     >
                       <CardContent sx={{ p: 3 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, flexWrap: 'wrap', gap: 1 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                             <Box sx={{ width: 44, height: 44, borderRadius: '12px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               {renderIcon(proj.iconType)}
@@ -399,7 +435,7 @@ export const App: React.FC = () => {
                           </Box>
 
                           <Chip
-                            label={`ENGINE HEALTH: ${proj.healthScore}/100`}
+                            label={`HEALTH: ${proj.healthScore}/100`}
                             size="small"
                             sx={{
                               fontWeight: 800,
