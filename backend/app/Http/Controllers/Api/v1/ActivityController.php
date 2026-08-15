@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Domain\Progress\ProgressCalculationEngine;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateActivityProgressRequest;
 use App\Http\Resources\ActivityResource;
@@ -17,7 +18,8 @@ class ActivityController extends Controller
         int $id,
         UpdateActivityProgressRequest $request,
         DependencyEvaluationService $dependencyService,
-        ProjectHealthService $healthService
+        ProjectHealthService $healthService,
+        ProgressCalculationEngine $progressEngine
     ): JsonResponse {
         $activity = Activity::findOrFail($id);
 
@@ -32,23 +34,30 @@ class ActivityController extends Controller
             $activity->actual_end_date = $request->validated('actual_end_date');
         }
 
-        if ($activity->progress == 100.0) {
+        if ((float) $activity->progress >= 100.0) {
             $activity->status = 'COMPLETED';
+            $activity->progress = 100.0;
         }
 
         $activity->save();
+
+        // Recalculate parent project overall progress & health score
+        $project = $activity->project;
+        $project->overall_progress = $progressEngine->calculateProgress($project);
+        $project->save();
 
         // Dispatch asynchronous background DAG delay propagation job
         ProcessGraphDelayJob::dispatch($activity->id);
 
         // Immediate recalculation for active HTTP response payload
         $impactedActivities = $dependencyService->propagateDelay($activity);
-        $healthService->calculateHealth($activity->project);
+        $healthService->calculateHealth($project);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Activity progress updated successfully.',
             'data' => new ActivityResource($activity),
+            'calculated_project_progress' => $project->overall_progress,
             'downstream_impact' => $impactedActivities,
             'job_dispatched' => true,
         ]);

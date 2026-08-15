@@ -43,7 +43,7 @@ import { ClientPortalView } from './components/ClientPortalView';
 
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'landing' | 'dashboard'>('landing');
-  const [activeTab, setActiveTab] = useState<string>('client_portal');
+  const [activeTab, setActiveTab] = useState<string>('dashboard');
 
   const [project, setProject] = useState<any>(schoolLabProjectDemo);
   const [milestones, setMilestones] = useState<any[]>(schoolLabMilestones);
@@ -59,7 +59,7 @@ export const App: React.FC = () => {
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
   const [kycStatus, setKycStatus] = useState('VERIFIED');
 
-  // Fetch Live Database Project State
+  // Fetch Live Database Project State & Dynamically Calculate Overall Progress
   const fetchLiveProjectData = async () => {
     setLoading(true);
     try {
@@ -74,39 +74,53 @@ export const App: React.FC = () => {
 
       if (data.status === 'success' && data.data) {
         const liveProj = data.data;
+
+        let mappedMilestones = schoolLabMilestones;
+        if (liveProj.milestones && liveProj.milestones.length > 0) {
+          mappedMilestones = liveProj.milestones.map((m: any) => {
+            const activities = (m.activities || []).map((a: any) => ({
+              id: a.id,
+              name: a.name,
+              status: a.progress >= 100 ? 'COMPLETED' : a.status,
+              plannedStartDate: a.planned_start_date,
+              plannedEndDate: a.planned_end_date,
+              plannedDurationDays: a.planned_duration_days,
+              progress: a.progress,
+              isCriticalPath: a.is_critical_path
+            }));
+
+            const allCompleted = activities.length > 0 && activities.every((a: any) => a.progress >= 100);
+
+            return {
+              id: m.id,
+              name: m.name,
+              plannedStartDate: m.planned_start_date,
+              plannedEndDate: m.planned_end_date,
+              progress: m.progress,
+              status: allCompleted ? 'COMPLETED' : m.status,
+              activities
+            };
+          });
+        }
+
+        // Dynamically compute overall progress from activities
+        const allActs = mappedMilestones.flatMap((m: any) => m.activities || []);
+        const computedProgress = allActs.length > 0
+          ? Math.round(allActs.reduce((sum: number, act: any) => sum + Number(act.progress || 0), 0) / allActs.length)
+          : liveProj.overall_progress;
+
+        setMilestones(mappedMilestones);
         setProject({
           id: liveProj.id,
           uuid: liveProj.uuid,
           code: liveProj.code,
           name: liveProj.name,
           description: liveProj.description,
-          status: liveProj.status,
+          status: computedProgress === 100 ? 'COMPLETED' : liveProj.status,
           healthStatus: liveProj.health_status,
-          overallHealthScore: liveProj.health_status === 'ON_TRACK' ? 94.5 : 68.0,
-          overallProgress: liveProj.overall_progress
+          overallHealthScore: computedProgress === 100 ? 100.0 : (liveProj.health_status === 'ON_TRACK' ? 94.5 : 68.0),
+          overallProgress: computedProgress
         });
-
-        if (liveProj.milestones && liveProj.milestones.length > 0) {
-          const mappedMilestones = liveProj.milestones.map((m: any) => ({
-            id: m.id,
-            name: m.name,
-            plannedStartDate: m.planned_start_date,
-            plannedEndDate: m.planned_end_date,
-            progress: m.progress,
-            status: m.status,
-            activities: (m.activities || []).map((a: any) => ({
-              id: a.id,
-              name: a.name,
-              status: a.status,
-              plannedStartDate: a.planned_start_date,
-              plannedEndDate: a.planned_end_date,
-              plannedDurationDays: a.planned_duration_days,
-              progress: a.progress,
-              isCriticalPath: a.is_critical_path
-            }))
-          }));
-          setMilestones(mappedMilestones);
-        }
 
         if (liveProj.risks) setRisks(liveProj.risks);
         if (liveProj.issues) setIssues(liveProj.issues);
