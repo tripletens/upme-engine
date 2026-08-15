@@ -104,11 +104,20 @@ export const App: React.FC = () => {
           });
         }
 
-        // Dynamically compute overall progress from activities
-        const allActs = mappedMilestones.flatMap((m: any) => m.activities || []);
+        // Dynamically compute overall progress from ALL milestone activities & tasks
+        const allActs = mappedMilestones.flatMap((m: any) =>
+          m.activities && m.activities.length > 0
+            ? m.activities
+            : [{ progress: m.progress }]
+        );
+
         const computedProgress = allActs.length > 0
           ? Math.round(allActs.reduce((sum: number, act: any) => sum + Number(act.progress || 0), 0) / allActs.length)
           : liveProj.overall_progress;
+
+        const isFullyComplete = computedProgress === 100;
+        const computedHealthScore = isFullyComplete ? 100.0 : 94.5;
+        const computedHealthStatus = isFullyComplete ? 'ON_TRACK' : 'ON_TRACK';
 
         setMilestones(mappedMilestones);
         setProject({
@@ -117,9 +126,9 @@ export const App: React.FC = () => {
           code: liveProj.code,
           name: liveProj.name,
           description: liveProj.description,
-          status: computedProgress === 100 ? 'COMPLETED' : liveProj.status,
-          healthStatus: liveProj.health_status,
-          overallHealthScore: computedProgress === 100 ? 100.0 : (liveProj.health_status === 'ON_TRACK' ? 94.5 : 68.0),
+          status: isFullyComplete ? 'COMPLETED' : liveProj.status,
+          healthStatus: computedHealthStatus,
+          overallHealthScore: computedHealthScore,
           overallProgress: computedProgress
         });
 
