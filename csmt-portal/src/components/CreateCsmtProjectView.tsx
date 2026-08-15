@@ -16,14 +16,15 @@ import {
   Radio,
   RadioGroup,
   FormControl,
-  FormLabel
+  IconButton
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import SchoolIcon from '@mui/icons-material/School';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import LayersIcon from '@mui/icons-material/Layers';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import AddIcon from '@mui/icons-material/Add';
 
 interface CreateCsmtProjectViewProps {
   onBack: () => void;
@@ -40,11 +41,38 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
   const [location, setLocation] = useState('Block A - Room 304');
   const [budget, setBudget] = useState('₦35,000,000');
   const [supervisor, setSupervisor] = useState('Dr. Robert Vance (HOD Computer Science)');
-  const [milestoneStrategy, setMilestoneStrategy] = useState('STANDARD');
+  const [milestoneStrategy, setMilestoneStrategy] = useState<'STANDARD' | 'CUSTOM'>('STANDARD');
+
+  // Custom Milestones Builder State
+  const [customMilestones, setCustomMilestones] = useState<string[]>([
+    '1. Initial Site Inspection & Setup',
+    '2. Equipment Procurement & Installation',
+    '3. Final Testing & Safety Certification'
+  ]);
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  const handleAddCustomMilestone = () => {
+    setCustomMilestones((prev) => [
+      ...prev,
+      `${prev.length + 1}. New Milestone Stage`
+    ]);
+  };
+
+  const handleRemoveCustomMilestone = (index: number) => {
+    if (customMilestones.length <= 1) return;
+    setCustomMilestones((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleCustomMilestoneChange = (index: number, val: string) => {
+    setCustomMilestones((prev) => {
+      const updated = [...prev];
+      updated[index] = val;
+      return updated;
+    });
+  };
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +83,24 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
 
     setLoading(true);
     setErrorMsg('');
+
+    const defaultMilestones = milestoneStrategy === 'CUSTOM'
+      ? customMilestones.map((m, idx) => ({
+          id: 101 + idx,
+          name: m.trim() || `Stage ${idx + 1}`,
+          progress: 0
+        }))
+      : [
+          { id: 101, name: '1. Site Inspection & Electrical Power Line Upgrade', progress: 100 },
+          { id: 102, name: '2. High-Performance Workstation Hardware Delivery', progress: 75 },
+          { id: 103, name: '3. Fiber-Optic LAN Cabling & AP Installation', progress: 40 },
+          { id: 104, name: '4. Software Licensing & Cloud Engine Setup', progress: 0 },
+          { id: 105, name: '5. Staff Training & Final Quality Audit', progress: 0 }
+        ];
+
+    const computedInitialProgress = Math.round(
+      defaultMilestones.reduce((sum, m) => sum + m.progress, 0) / defaultMilestones.length
+    );
 
     try {
       // 1. Post project baseline to Laravel Engine Backend API
@@ -76,14 +122,6 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
       const data = await res.json();
       setLoading(false);
 
-      const defaultMilestones = [
-        { id: 101, name: '1. Site Inspection & Electrical Power Line Upgrade', progress: 100 },
-        { id: 102, name: '2. High-Performance Workstation Hardware Delivery', progress: 75 },
-        { id: 103, name: '3. Fiber-Optic LAN Cabling & AP Installation', progress: 40 },
-        { id: 104, name: '4. Software Licensing & Cloud Engine Setup', progress: 0 },
-        { id: 105, name: '5. Staff Training & Final Quality Audit', progress: 0 }
-      ];
-
       const newProj = {
         id: data?.data?.id || Date.now(),
         uuid: data?.data?.uuid || `uuid-${Date.now()}`,
@@ -92,7 +130,7 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
         category,
         location,
         budget,
-        progress: 43,
+        progress: computedInitialProgress,
         healthScore: 94.5,
         healthStatus: 'ON_TRACK',
         supervisor,
@@ -107,13 +145,6 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
       }, 1000);
     } catch (err) {
       setLoading(false);
-      // Fallback local creation
-      const defaultMilestones = [
-        { id: 101, name: '1. Site Inspection & Electrical Infrastructure', progress: 100 },
-        { id: 102, name: '2. Hardware Delivery & Workstation Assembly', progress: 60 },
-        { id: 103, name: '3. Network Cabling & Server Configuration', progress: 20 },
-        { id: 104, name: '4. Final Testing & Safety Certification', progress: 0 }
-      ];
 
       const fallbackProj = {
         id: Date.now(),
@@ -123,7 +154,7 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
         category,
         location,
         budget,
-        progress: 45,
+        progress: computedInitialProgress,
         healthScore: 92.0,
         healthStatus: 'ON_TRACK',
         supervisor,
@@ -281,34 +312,94 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
 
           <Divider sx={{ my: 1 }} />
 
-          {/* Milestone Structure Strategy */}
+          {/* Milestone Structure Strategy (Standard vs Custom) */}
           <Paper elevation={0} sx={{ p: 2.5, borderRadius: '14px', background: '#f8fafc', border: '1px solid #cbd5e1' }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
               <LayersIcon sx={{ color: '#4f46e5' }} />
               Milestone Structure Strategy
             </Typography>
 
-            <FormControl component="fieldset">
+            <FormControl component="fieldset" fullWidth>
               <RadioGroup
                 value={milestoneStrategy}
-                onChange={(e) => setMilestoneStrategy(e.target.value)}
+                onChange={(e) => setMilestoneStrategy(e.target.value as 'STANDARD' | 'CUSTOM')}
               >
                 <FormControlLabel
                   value="STANDARD"
                   control={<Radio size="small" />}
                   label={
-                    <Box>
+                    <Box sx={{ py: 0.5 }}>
                       <Typography variant="body2" sx={{ fontWeight: 800, color: '#0f172a' }}>
                         ⚡ Use Recommended Standard School Milestones
                       </Typography>
-                      <Typography variant="caption" sx={{ color: '#64748b' }}>
+                      <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>
                         Auto-generates 5 standard audit stages (Inspection, Hardware, LAN Setup, Software, Final Audit).
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{ mb: 1 }}
+                />
+
+                <FormControlLabel
+                  value="CUSTOM"
+                  control={<Radio size="small" />}
+                  label={
+                    <Box sx={{ py: 0.5 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                        🛠 Define Custom Milestone Stages
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>
+                        Define specific custom milestone stage titles tailored to this project's scope.
                       </Typography>
                     </Box>
                   }
                 />
               </RadioGroup>
             </FormControl>
+
+            {/* Custom Milestones Dynamic Builder */}
+            {milestoneStrategy === 'CUSTOM' && (
+              <Box sx={{ mt: 2.5, pl: { xs: 0, sm: 4 } }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#4338ca', display: 'block', mb: 1.5, letterSpacing: 0.5 }}>
+                  DEFINE CUSTOM MILESTONE STAGES ({customMilestones.length}):
+                </Typography>
+
+                <Stack spacing={1.5} sx={{ mb: 2 }}>
+                  {customMilestones.map((m, idx) => (
+                    <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        value={m}
+                        onChange={(e) => handleCustomMilestoneChange(idx, e.target.value)}
+                        placeholder={`Stage ${idx + 1} Title`}
+                        sx={{ background: '#ffffff' }}
+                      />
+                      {customMilestones.length > 1 && (
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleRemoveCustomMilestone(idx)}
+                          sx={{ background: '#fef2f2', border: '1px solid #fca5a5', '&:hover': { background: '#fee2e2' } }}
+                        >
+                          <DeleteOutlineIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      )}
+                    </Box>
+                  ))}
+                </Stack>
+
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<AddIcon />}
+                  onClick={handleAddCustomMilestone}
+                  sx={{ textTransform: 'none', fontWeight: 800, fontSize: '0.78rem', color: '#4f46e5', borderColor: '#c7d2fe' }}
+                >
+                  Add Milestone Stage
+                </Button>
+              </Box>
+            )}
           </Paper>
 
           <Divider sx={{ my: 1 }} />
@@ -327,7 +418,7 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
               type="submit"
               variant="contained"
               disabled={loading}
-              startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <AddCircleOutlineIcon />}
+              startIcon={<AddCircleOutlineIcon />}
               sx={{
                 background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                 color: '#ffffff',
