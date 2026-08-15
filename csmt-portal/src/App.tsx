@@ -53,18 +53,22 @@ export const App: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [csmtProjects, setCsmtProjects] = useState<any[]>([]);
 
-  // Logged-in Staff User State
+  // Logged-in Staff User State (Defaults to null until user logs in)
   const [currentUser, setCurrentUser] = useState<any>(() => {
     const savedUser = localStorage.getItem('csmt_current_user');
-    return savedUser
-      ? JSON.parse(savedUser)
-      : {
-          name: 'Dr. Robert Vance',
-          email: 'dr.vance@csmt.edu.ng',
-          role: 'HOD Computer Science',
-          dept: 'CS & AI Labs'
-        };
+    return savedUser ? JSON.parse(savedUser) : null;
   });
+
+  const handleLogout = () => {
+    localStorage.removeItem('csmt_current_user');
+    setCurrentUser(null);
+  };
+
+  const handleLoginSuccess = (user: any) => {
+    localStorage.setItem('csmt_current_user', JSON.stringify(user));
+    setCurrentUser(user);
+    setLoginModalOpen(false);
+  };
 
   // Fetch Live MySQL Engine Database Projects
   const fetchLiveEngineProjects = async () => {
@@ -248,7 +252,13 @@ export const App: React.FC = () => {
                   variant="contained"
                   size="small"
                   startIcon={<AddCircleOutlineIcon />}
-                  onClick={() => setCreateModalOpen(true)}
+                  onClick={() => {
+                    if (!currentUser) {
+                      setLoginModalOpen(true);
+                      return;
+                    }
+                    setCreateModalOpen(true);
+                  }}
                   sx={{ background: '#059669', color: '#fff', textTransform: 'none', fontWeight: 800, '&:hover': { background: '#047857' } }}
                 >
                   Create School Project
@@ -281,7 +291,7 @@ export const App: React.FC = () => {
                     variant="outlined"
                     color="error"
                     startIcon={<LogoutIcon sx={{ fontSize: 13 }} />}
-                    onClick={() => setCurrentUser(null)}
+                    onClick={handleLogout}
                     sx={{ textTransform: 'none', ml: 1, color: '#fca5a5', borderColor: '#fca5a5', fontSize: '0.72rem' }}
                   >
                     Logout
@@ -336,7 +346,13 @@ export const App: React.FC = () => {
             <Button
               variant="contained"
               startIcon={<AddCircleOutlineIcon />}
-              onClick={() => setCreateModalOpen(true)}
+              onClick={() => {
+                if (!currentUser) {
+                  setLoginModalOpen(true);
+                  return;
+                }
+                setCreateModalOpen(true);
+              }}
               sx={{ background: '#4f46e5', color: '#fff', borderRadius: '10px', px: 3, py: 1.2, fontWeight: 800, textTransform: 'none' }}
             >
               Create First CSMT School Project
@@ -491,9 +507,7 @@ export const App: React.FC = () => {
         <CsmtLoginModal
           open={loginModalOpen}
           onClose={() => setLoginModalOpen(false)}
-          onLoginSuccess={(user, token) => {
-            setCurrentUser(user);
-          }}
+          onLoginSuccess={handleLoginSuccess}
         />
       </Container>
     </Box>
