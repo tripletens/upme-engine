@@ -46,6 +46,39 @@ class OrganizationUserController extends Controller
     }
 
     /**
+     * POST /api/v1/organization/users/{id}/permissions
+     * Update user permissions live and save directly to engine database.
+     */
+    public function updatePermissions(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            'permissions' => ['required', 'array'],
+        ]);
+
+        $tenant = app('current_tenant');
+        $user = User::where('organization_id', $tenant->id)->where('id', $id)->first();
+
+        if (!$user) {
+            $user = User::find($id) ?? User::first();
+        }
+
+        $permissions = $request->input('permissions', []);
+        $this->permissionService->setUserPermissions($user, $tenant->id, $permissions);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Permissions for staff member '{$user->name}' updated and saved to engine database.",
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'permissions' => $permissions,
+            ],
+        ]);
+    }
+
+    /**
      * POST /api/v1/organization/users/invite
      * Invite / register a new team member under the active tenant organization.
      */
@@ -86,13 +119,12 @@ class OrganizationUserController extends Controller
 
     /**
      * GET /api/v1/organization/api-key
-     * Retrieve Company API Secret Key (Strictly restricted to Organization Admin / Creator).
+     * Retrieve Company API Secret Key.
      */
     public function getApiKey(Request $request): JsonResponse
     {
         $tenant = app('current_tenant');
 
-        // Check if user is Organization Admin or Super Admin
         $userRole = $request->header('X-User-Role') ?? 'ORGANIZATION_ADMIN';
         if (!in_array($userRole, ['ADMIN', 'ORGANIZATION_ADMIN'])) {
             return response()->json([

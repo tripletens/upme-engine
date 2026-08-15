@@ -42,7 +42,21 @@ class PermissionService
             return [];
         }
 
+        $cacheKey = "user_perms_{$user->id}_{$organizationId}";
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
+
         return $this->rolePermissions[$user->role] ?? $this->rolePermissions['CONTRACTOR'];
+    }
+
+    /**
+     * Store customized permissions for a user in an organization.
+     */
+    public function setUserPermissions(User $user, int $organizationId, array $permissions): void
+    {
+        $cacheKey = "user_perms_{$user->id}_{$organizationId}";
+        Cache::put($cacheKey, $permissions, now()->addDays(30));
     }
 
     /**

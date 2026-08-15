@@ -12,7 +12,8 @@ import {
   Alert,
   TextField,
   MenuItem,
-  CircularProgress
+  CircularProgress,
+  Tooltip
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SchoolIcon from '@mui/icons-material/School';
@@ -25,6 +26,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
 import PersonIcon from '@mui/icons-material/Person';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import LockIcon from '@mui/icons-material/Lock';
 
 import { UpdateCsmtTaskModal } from './UpdateCsmtTaskModal';
 import { DocumentPreviewModal } from './DocumentPreviewModal';
@@ -43,6 +45,16 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
   const [activeStage, setActiveStage] = useState<any>(project.milestones?.[0] || null);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
+
+  // Read Logged-In User Permissions
+  const currentUser = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('csmt_current_user') || '{}');
+    } catch (e) {
+      return {};
+    }
+  })();
+  const canUpdateProgress = currentUser.canUpdateProgress !== false;
 
   // Document Viewer Preview Modal State
   const [previewDocModalOpen, setPreviewDocModalOpen] = useState(false);
@@ -200,7 +212,7 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
     };
 
     onUpdateProject(updatedProj);
-    if (activeStage && (activeStage.id === selectedTask.id || activeStage.name === selectedStage.name)) {
+    if (activeStage && (activeStage.id === selectedTask.id || activeStage.name === selectedTask.name)) {
       setActiveStage({ ...activeStage, progress: newProgress });
     }
     setAlertMsg(`🎉 Task "${selectedTask.name}" progress updated to ${newProgress}%!`);
@@ -217,6 +229,13 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
       >
         Back to All Projects Portfolio
       </Button>
+
+      {/* Permission Lock Warning Banner */}
+      {!canUpdateProgress && (
+        <Alert severity="warning" icon={<LockIcon />} sx={{ mb: 3, borderRadius: '12px', fontWeight: 700 }}>
+          <strong>PROGRESS EDITING RESTRICTED:</strong> Your Organization Admin has revoked permission to edit or update milestone progress for projects. Contact your administrator to regain access.
+        </Alert>
+      )}
 
       {/* Main Project Overview Card */}
       <Paper
@@ -339,19 +358,25 @@ export const CsmtProjectDetailView: React.FC<CsmtProjectDetailViewProps> = ({
                         Click to view stage docs
                       </Typography>
 
-                      <Button
-                        size="small"
-                        variant="contained"
-                        startIcon={<EditIcon sx={{ fontSize: 12 }} />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedTask(m);
-                          setTaskModalOpen(true);
-                        }}
-                        sx={{ fontSize: '0.65rem', textTransform: 'none', fontWeight: 800, background: '#4f46e5', px: 1.5 }}
-                      >
-                        Update %
-                      </Button>
+                      <Tooltip title={canUpdateProgress ? 'Update progress %' : 'Permission Removed by Admin'}>
+                        <span>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            disabled={!canUpdateProgress}
+                            startIcon={canUpdateProgress ? <EditIcon sx={{ fontSize: 12 }} /> : <LockIcon sx={{ fontSize: 12 }} />}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!canUpdateProgress) return;
+                              setSelectedTask(m);
+                              setTaskModalOpen(true);
+                            }}
+                            sx={{ fontSize: '0.65rem', textTransform: 'none', fontWeight: 800, background: canUpdateProgress ? '#4f46e5' : '#94a3b8', px: 1.5 }}
+                          >
+                            {canUpdateProgress ? 'Update %' : 'Locked'}
+                          </Button>
+                        </span>
+                      </Tooltip>
                     </Box>
                   </Paper>
                 );

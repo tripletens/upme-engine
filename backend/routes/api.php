@@ -29,6 +29,7 @@ Route::prefix('v1')->middleware(['api', \App\Http\Middleware\TenantContextMiddle
     // Multi-Tenant Company User Management & Admin API Keys
     Route::get('/organization/users', [OrganizationUserController::class, 'index']);
     Route::post('/organization/users/invite', [OrganizationUserController::class, 'invite']);
+    Route::post('/organization/users/{id}/permissions', [OrganizationUserController::class, 'updatePermissions']);
     Route::get('/organization/api-key', [OrganizationUserController::class, 'getApiKey']);
     Route::post('/organization/api-key/regenerate', [OrganizationUserController::class, 'regenerateApiKey']);
 
