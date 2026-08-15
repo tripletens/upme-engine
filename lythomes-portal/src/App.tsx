@@ -32,12 +32,17 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import MenuIcon from '@mui/icons-material/Menu';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import BusinessIcon from '@mui/icons-material/Business';
+import FolderSpecialIcon from '@mui/icons-material/FolderSpecial';
+import LockIcon from '@mui/icons-material/Lock';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
 
 import { LytHomesSidebar } from './components/LytHomesSidebar';
 import { LytHomesLoginView } from './components/LytHomesLoginView';
 import { LytHomesProjectDetailView } from './components/LytHomesProjectDetailView';
 import { CreateLytHomesProjectView } from './components/CreateLytHomesProjectView';
 import { LytHomesOrgUsersView } from './components/LytHomesOrgUsersView';
+import { LytHomesCategoryManagerView, CategoryItem } from './components/LytHomesCategoryManagerView';
+import { PaystackSubscriptionModal } from './components/PaystackSubscriptionModal';
 
 export const App: React.FC = () => {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -46,10 +51,46 @@ export const App: React.FC = () => {
   const [selectedDetailProject, setSelectedDetailProject] = useState<any>(null);
   const [isCreatingProjectView, setIsCreatingProjectView] = useState(false);
   const [isUsersViewOpen, setIsUsersViewOpen] = useState(false);
+  const [isCategoriesViewOpen, setIsCategoriesViewOpen] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   const [alertMsg, setAlertMsg] = useState('');
   const [loading, setLoading] = useState<boolean>(false);
   const [lytProjects, setLytProjects] = useState<any[]>([]);
+
+  // Subscription Plan State ('STARTER' | 'PROFESSIONAL' | 'ENTERPRISE')
+  const [currentPlan, setCurrentPlan] = useState<string>(() => {
+    return localStorage.getItem('lythomes_plan_tier') || 'STARTER';
+  });
+
+  const getPlanQuotaLimit = (plan: string) => {
+    switch (plan) {
+      case 'STARTER': return 5;
+      case 'PROFESSIONAL': return 25;
+      case 'ENTERPRISE': return 999999;
+      default: return 5;
+    }
+  };
+
+  const planQuotaLimit = getPlanQuotaLimit(currentPlan);
+
+  // Category Portfolios State
+  const defaultCategories: CategoryItem[] = [
+    { id: 'RESIDENTIAL_ESTATE', label: 'Residential Estates & Villas', description: 'Luxury 5-bedroom smart villas, private estates, and residential housing projects.', iconType: 'villa', color: '#10b981' },
+    { id: 'COMMERCIAL_TOWER', label: 'Commercial Towers & Tech Hubs', description: 'High-rise office towers, commercial tech hubs, and multi-story complexes.', iconType: 'tower', color: '#6366f1' },
+    { id: 'CIVIL_INFRASTRUCTURE', label: 'Civil Roads & Microgrids', description: 'Dual-carriageway paving, storm drainage, industrial solar PV arrays, and microgrids.', iconType: 'road', color: '#06b6d4' },
+    { id: 'INDUSTRIAL_PARK', label: 'Logistics Parks & Warehousing', description: 'Heavy industrial logistics hubs, manufacturing plants, and bonded warehouses.', iconType: 'warehouse', color: '#f59e0b' },
+    { id: 'INTERIOR_RENOVATION', label: 'Interior Architecture & Fit-outs', description: 'High-end interior architectural redesign, Italian marble finishing, and acoustic fit-outs.', iconType: 'brush', color: '#ec4899' }
+  ];
+
+  const [categoriesList, setCategoriesList] = useState<CategoryItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('lythomes_categories');
+      return saved ? JSON.parse(saved) : defaultCategories;
+    } catch (err) {
+      return defaultCategories;
+    }
+  });
 
   // Logged-in Staff User State (Safe JSON Parse)
   const [currentUser, setCurrentUser] = useState<any>(() => {
@@ -140,12 +181,35 @@ export const App: React.FC = () => {
     setSelectedDetailProject(null);
     setIsCreatingProjectView(false);
     setIsUsersViewOpen(false);
+    setIsCategoriesViewOpen(false);
   };
 
   const handleLoginSuccess = (user: any) => {
     localStorage.setItem('lythomes_current_user', JSON.stringify(user));
     setCurrentUser(user);
     setActiveCategory(user.allowedCategory || 'ALL');
+  };
+
+  // CRUD Category Portfolio Handlers
+  const handleCreateCategory = (newCat: CategoryItem) => {
+    const updated = [...categoriesList, newCat];
+    setCategoriesList(updated);
+    localStorage.setItem('lythomes_categories', JSON.stringify(updated));
+  };
+
+  const handleUpdateCategory = (updatedCat: CategoryItem) => {
+    const updated = categoriesList.map((c) => (c.id === updatedCat.id ? updatedCat : c));
+    setCategoriesList(updated);
+    localStorage.setItem('lythomes_categories', JSON.stringify(updated));
+  };
+
+  const handleDeleteCategory = (catId: string) => {
+    const updated = categoriesList.filter((c) => c.id !== catId);
+    setCategoriesList(updated);
+    localStorage.setItem('lythomes_categories', JSON.stringify(updated));
+    if (activeCategory === catId) {
+      setActiveCategory('ALL');
+    }
   };
 
   // Fetch Projects from UPME Engine API & Merge Local Custom Projects
@@ -197,15 +261,22 @@ export const App: React.FC = () => {
     }
   };
 
+  const isQuotaReached = lytProjects.length >= planQuotaLimit;
+
   const handleProjectCreated = (newProj: any) => {
-    // Save to local storage for persistence across reloads/syncs
     const saved = JSON.parse(localStorage.getItem('lythomes_custom_projects') || '[]');
     const updatedCustoms = [newProj, ...saved];
     localStorage.setItem('lythomes_custom_projects', JSON.stringify(updatedCustoms));
 
     setLytProjects((prev) => [newProj, ...prev]);
-    setActiveCategory('ALL'); // Reset category filter to ALL so the newly created project immediately appears!
+    setActiveCategory('ALL');
     setAlertMsg(`🎉 Construction Project "${newProj.projectName}" created successfully!`);
+  };
+
+  const handleUpgradePlan = (newPlan: string) => {
+    setCurrentPlan(newPlan);
+    localStorage.setItem('lythomes_plan_tier', newPlan);
+    setAlertMsg(`🎉 Organization subscription upgraded to ${newPlan}! Quota updated to ${getPlanQuotaLimit(newPlan)} active projects.`);
   };
 
   useEffect(() => {
@@ -230,13 +301,12 @@ export const App: React.FC = () => {
   });
 
   const projectCounts: Record<string, number> = {
-    ALL: accessibleProjects.length,
-    RESIDENTIAL_ESTATE: accessibleProjects.filter((p) => p.category === 'RESIDENTIAL_ESTATE').length,
-    COMMERCIAL_TOWER: accessibleProjects.filter((p) => p.category === 'COMMERCIAL_TOWER').length,
-    CIVIL_INFRASTRUCTURE: accessibleProjects.filter((p) => p.category === 'CIVIL_INFRASTRUCTURE').length,
-    INDUSTRIAL_PARK: accessibleProjects.filter((p) => p.category === 'INDUSTRIAL_PARK').length,
-    INTERIOR_RENOVATION: accessibleProjects.filter((p) => p.category === 'INTERIOR_RENOVATION').length
+    ALL: accessibleProjects.length
   };
+
+  categoriesList.forEach((c) => {
+    projectCounts[c.id] = accessibleProjects.filter((p) => p.category === c.id).length;
+  });
 
   const filteredProjects = accessibleProjects.filter((p) => {
     if (isAdmin || userAllowedCategory === 'ALL') {
@@ -252,6 +322,15 @@ export const App: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, minHeight: '100vh', background: '#f8fafc' }}>
+      {/* Paystack Upgrade Subscription Modal */}
+      <PaystackSubscriptionModal
+        open={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+        currentProjectCount={lytProjects.length}
+        currentPlan={currentPlan}
+        onUpgradeSuccess={handleUpgradePlan}
+      />
+
       {/* Mobile Top AppBar */}
       <AppBar
         position="sticky"
@@ -290,22 +369,36 @@ export const App: React.FC = () => {
           setSelectedDetailProject(null);
           setIsCreatingProjectView(false);
           setIsUsersViewOpen(false);
+          setIsCategoriesViewOpen(false);
         }}
         currentUser={currentUser}
         onLogout={handleLogout}
         onOpenCreateModal={() => {
+          if (isQuotaReached) {
+            setIsUpgradeModalOpen(true);
+            return;
+          }
           setSelectedDetailProject(null);
           setIsUsersViewOpen(false);
+          setIsCategoriesViewOpen(false);
           setIsCreatingProjectView(true);
         }}
         onOpenUsersModal={() => {
           setSelectedDetailProject(null);
           setIsCreatingProjectView(false);
+          setIsCategoriesViewOpen(false);
           setIsUsersViewOpen(true);
+        }}
+        onOpenCategoriesModal={() => {
+          setSelectedDetailProject(null);
+          setIsCreatingProjectView(false);
+          setIsUsersViewOpen(false);
+          setIsCategoriesViewOpen(true);
         }}
         onSyncDb={fetchEngineProjects}
         syncing={loading}
         projectCounts={projectCounts}
+        categoriesList={categoriesList}
         mobileOpen={mobileDrawerOpen}
         onMobileClose={() => setMobileDrawerOpen(false)}
       />
@@ -320,6 +413,15 @@ export const App: React.FC = () => {
         ) : isUsersViewOpen ? (
           <LytHomesOrgUsersView
             onBack={() => setIsUsersViewOpen(false)}
+          />
+        ) : isCategoriesViewOpen ? (
+          <LytHomesCategoryManagerView
+            categories={categoriesList}
+            projectCounts={projectCounts}
+            onBack={() => setIsCategoriesViewOpen(false)}
+            onCreateCategory={handleCreateCategory}
+            onUpdateCategory={handleUpdateCategory}
+            onDeleteCategory={handleDeleteCategory}
           />
         ) : selectedDetailProject ? (
           <LytHomesProjectDetailView
@@ -355,10 +457,10 @@ export const App: React.FC = () => {
                       sx={{ background: '#f59e0b', color: '#fff', fontWeight: 800, fontSize: '0.62rem', height: 24 }}
                     />
                     <Chip
-                      icon={<VerifiedIcon sx={{ color: '#fff !important', fontSize: 13 }} />}
-                      label="LIVE ENGINE"
+                      icon={<CreditCardIcon sx={{ color: '#fff !important', fontSize: 13 }} />}
+                      label={`PLAN: ${currentPlan} (${lytProjects.length}/${planQuotaLimit === 999999 ? '∞' : planQuotaLimit} PROJECTS)`}
                       size="small"
-                      sx={{ background: '#10b981', color: '#fff', fontWeight: 800, fontSize: '0.62rem', height: 24 }}
+                      sx={{ background: isQuotaReached ? '#ef4444' : '#10b981', color: '#fff', fontWeight: 800, fontSize: '0.62rem', height: 24 }}
                     />
                   </Box>
 
@@ -375,15 +477,7 @@ export const App: React.FC = () => {
                     {isAdmin
                       ? activeCategory === 'ALL'
                         ? 'All Construction & Civil Projects'
-                        : activeCategory === 'RESIDENTIAL_ESTATE'
-                        ? 'Residential Estates & Luxury Villas'
-                        : activeCategory === 'COMMERCIAL_TOWER'
-                        ? 'Commercial Towers & Tech Hubs'
-                        : activeCategory === 'CIVIL_INFRASTRUCTURE'
-                        ? 'Civil Roads & Microgrids'
-                        : activeCategory === 'INDUSTRIAL_PARK'
-                        ? 'Logistics Parks & Warehousing'
-                        : 'Interior Architectural Fit-outs'
+                        : categoriesList.find((c) => c.id === activeCategory)?.label || activeCategory
                       : `${currentUser.dept} Projects Portfolio`}
                   </Typography>
 
@@ -402,27 +496,60 @@ export const App: React.FC = () => {
                     mt: { xs: 1.5, sm: 0 }
                   }}
                 >
+                  {isAdmin && (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<FolderSpecialIcon />}
+                      onClick={() => setIsCategoriesViewOpen(true)}
+                      sx={{
+                        width: { xs: '100%', sm: 'auto' },
+                        height: 42,
+                        whiteSpace: 'nowrap',
+                        fontSize: '0.85rem',
+                        color: '#f59e0b',
+                        borderColor: 'rgba(245, 158, 11, 0.4)',
+                        textTransform: 'none',
+                        fontWeight: 800,
+                        px: 2.5,
+                        borderRadius: '10px',
+                        '&:hover': { borderColor: '#f59e0b', background: 'rgba(245, 158, 11, 0.1)' }
+                      }}
+                    >
+                      Portfolios (CRUD)
+                    </Button>
+                  )}
+
+                  {/* Create Project Button with Quota Lockout state */}
                   <Button
                     variant="contained"
                     size="small"
-                    startIcon={<AddCircleOutlineIcon />}
-                    onClick={() => setIsCreatingProjectView(true)}
+                    startIcon={isQuotaReached ? <LockIcon sx={{ color: '#f59e0b' }} /> : <AddCircleOutlineIcon />}
+                    onClick={() => {
+                      if (isQuotaReached) {
+                        setIsUpgradeModalOpen(true);
+                      } else {
+                        setIsCreatingProjectView(true);
+                      }
+                    }}
                     sx={{
                       width: { xs: '100%', sm: 'auto' },
                       height: 42,
                       whiteSpace: 'nowrap',
                       fontSize: '0.85rem',
-                      background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                      color: '#fff',
+                      background: isQuotaReached
+                        ? 'linear-gradient(135deg, #334155 0%, #475569 100%)'
+                        : 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                      color: isQuotaReached ? '#94a3b8' : '#fff',
                       textTransform: 'none',
                       fontWeight: 800,
                       px: 3.5,
                       borderRadius: '10px',
-                      boxShadow: '0 4px 14px rgba(245, 158, 11, 0.3)',
-                      '&:hover': { background: '#d97706' }
+                      boxShadow: isQuotaReached ? 'none' : '0 4px 14px rgba(245, 158, 11, 0.3)',
+                      '&:hover': { background: isQuotaReached ? '#475569' : '#d97706' }
                     }}
                   >
-                    Create Project
+                    {isQuotaReached ? `Quota Locked (${lytProjects.length}/${planQuotaLimit})` : 'Create Project'}
                   </Button>
 
                   <Button
@@ -456,6 +583,27 @@ export const App: React.FC = () => {
               </Alert>
             )}
 
+            {/* Quota Exceeded Lockout Alert Banner */}
+            {isQuotaReached && (
+              <Alert
+                severity="warning"
+                icon={<LockIcon sx={{ color: '#b45309' }} />}
+                action={
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => setIsUpgradeModalOpen(true)}
+                    sx={{ background: '#f59e0b', color: '#fff', fontWeight: 800, textTransform: 'none', borderRadius: '8px' }}
+                  >
+                    Upgrade via Paystack
+                  </Button>
+                }
+                sx={{ mb: 3, borderRadius: '14px', background: '#fffbeb', border: '1px solid #fef3c7', fontWeight: 700 }}
+              >
+                <strong>PROJECT QUOTA REACHED ({lytProjects.length}/{planQuotaLimit} Projects)</strong>. The "Create Project" button is locked. Upgrade your Paystack plan to unlock additional capacity.
+              </Alert>
+            )}
+
             {/* Scope Alert */}
             {!isAdmin && (
               <Alert severity="info" icon={<KeyIcon />} sx={{ mb: 3, borderRadius: '12px', fontWeight: 700, fontSize: '0.85rem' }}>
@@ -475,11 +623,18 @@ export const App: React.FC = () => {
                 </Typography>
                 <Button
                   variant="contained"
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={() => setIsCreatingProjectView(true)}
-                  sx={{ background: '#f59e0b', color: '#fff', borderRadius: '10px', px: 3.5, py: 1.2, fontWeight: 800, textTransform: 'none' }}
+                  disabled={isQuotaReached}
+                  startIcon={isQuotaReached ? <LockIcon /> : <AddCircleOutlineIcon />}
+                  onClick={() => {
+                    if (isQuotaReached) {
+                      setIsUpgradeModalOpen(true);
+                    } else {
+                      setIsCreatingProjectView(true);
+                    }
+                  }}
+                  sx={{ background: isQuotaReached ? '#94a3b8' : '#f59e0b', color: '#fff', borderRadius: '10px', px: 3.5, py: 1.2, fontWeight: 800, textTransform: 'none' }}
                 >
-                  Instantiate First Construction Baseline
+                  {isQuotaReached ? 'Quota Locked' : 'Instantiate First Construction Baseline'}
                 </Button>
               </Paper>
             ) : (
