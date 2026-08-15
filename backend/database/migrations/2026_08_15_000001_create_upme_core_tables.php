@@ -79,7 +79,7 @@ return new class extends Migration
             $table->integer('lag_days')->default(0);
             $table->timestamps();
 
-            $table->unique(['predecessor_activity_id', 'successor_activity_id']);
+            $table->unique(['predecessor_activity_id', 'successor_activity_id'], 'act_dep_pred_succ_unique');
         });
 
         Schema::create('deliverables', function (Blueprint $table) {
