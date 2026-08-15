@@ -106,7 +106,7 @@ class TemplateAndReportController extends Controller
         <body>
             <div class='header'>
                 <div class='title'>UPME Executive Project Health Report</div>
-                <div class='subtitle'>Project: {$project->name} ({$project->code}) | Tenant ID: {$project->organization_id}</div>
+                <div class='subtitle'>Project: {$project->name} ({$project->code})</div>
             </div>
 
             <div class='grid'>
