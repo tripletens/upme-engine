@@ -39,10 +39,11 @@ import { PricingSection } from './components/PricingSection';
 import { AlertsAndActionsView } from './components/AlertsAndActionsView';
 import { BaselineProgressView } from './components/BaselineProgressView';
 import { TeamMembersView } from './components/TeamMembersView';
+import { ClientPortalView } from './components/ClientPortalView';
 
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'landing' | 'dashboard'>('landing');
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [activeTab, setActiveTab] = useState<string>('client_portal');
 
   const [project, setProject] = useState<any>(schoolLabProjectDemo);
   const [milestones, setMilestones] = useState<any[]>(schoolLabMilestones);
@@ -186,70 +187,10 @@ export const App: React.FC = () => {
       {/* Main Content Area */}
       <Box sx={{ flex: 1, p: 4, overflowX: 'hidden' }}>
         <Container maxWidth="xl" disableGutters>
-          {/* Project Title Banner */}
-          <Box className="enterprise-card" sx={{ p: 4, mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-            <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a' }}>
-                  {project.name}
-                </Typography>
-                <Chip label={project.code} size="small" sx={{ background: '#f1f5f9', color: '#334155', fontWeight: 700 }} />
-                <Chip
-                  label={`HEALTH: ${project.healthStatus} (${project.overallHealthScore}/100)`}
-                  className="badge-on-track"
-                  onClick={() => setHealthModalOpen(true)}
-                  sx={{ fontWeight: 700, cursor: 'pointer' }}
-                />
-              </Box>
-              <Typography variant="body2" sx={{ color: '#64748b' }}>
-                {project.description}
-              </Typography>
-            </Box>
-
-            <Stack direction="row" spacing={1.5}>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<DownloadIcon />}
-                onClick={handleExportCsv}
-                sx={{ color: '#334155', borderColor: '#cbd5e1', textTransform: 'none', fontWeight: 600 }}
-              >
-                Export CSV
-              </Button>
-
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<PictureAsPdfIcon />}
-                onClick={handleExportPdf}
-                sx={{ color: '#0284c7', borderColor: '#bae6fd', textTransform: 'none', fontWeight: 600 }}
-              >
-                Executive PDF
-              </Button>
-
-              <Button
-                variant="contained"
-                size="small"
-                disabled={recalculating}
-                onClick={handleRecalculate}
-                startIcon={recalculating ? <CircularProgress size={16} color="inherit" /> : <RefreshIcon />}
-                sx={{
-                  background: '#4f46e5',
-                  color: '#ffffff',
-                  borderRadius: '8px',
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)',
-                  '&:hover': { background: '#4338ca' }
-                }}
-              >
-                {recalculating ? 'Evaluating Engine...' : 'Recalculate Engine'}
-              </Button>
-            </Stack>
-          </Box>
-
           {/* Tab View Routing */}
-          {activeTab === 'billing' ? (
+          {activeTab === 'client_portal' ? (
+            <ClientPortalView project={project} milestones={milestones} currentOrganization={currentOrganization} />
+          ) : activeTab === 'billing' ? (
             <PricingSection />
           ) : activeTab === 'alerts_actions' ? (
             <AlertsAndActionsView />
@@ -259,6 +200,68 @@ export const App: React.FC = () => {
             <TeamMembersView currentOrganization={currentOrganization} />
           ) : (
             <>
+              {/* Project Title Banner */}
+              <Box className="enterprise-card" sx={{ p: 4, mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                      {project.name}
+                    </Typography>
+                    <Chip label={project.code} size="small" sx={{ background: '#f1f5f9', color: '#334155', fontWeight: 700 }} />
+                    <Chip
+                      label={`HEALTH: ${project.healthStatus} (${project.overallHealthScore}/100)`}
+                      className="badge-on-track"
+                      onClick={() => setHealthModalOpen(true)}
+                      sx={{ fontWeight: 700, cursor: 'pointer' }}
+                    />
+                  </Box>
+                  <Typography variant="body2" sx={{ color: '#64748b' }}>
+                    {project.description}
+                  </Typography>
+                </Box>
+
+                <Stack direction="row" spacing={1.5}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<DownloadIcon />}
+                    onClick={handleExportCsv}
+                    sx={{ color: '#334155', borderColor: '#cbd5e1', textTransform: 'none', fontWeight: 600 }}
+                  >
+                    Export CSV
+                  </Button>
+
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<PictureAsPdfIcon />}
+                    onClick={handleExportPdf}
+                    sx={{ color: '#0284c7', borderColor: '#bae6fd', textTransform: 'none', fontWeight: 600 }}
+                  >
+                    Executive PDF
+                  </Button>
+
+                  <Button
+                    variant="contained"
+                    size="small"
+                    disabled={recalculating}
+                    onClick={handleRecalculate}
+                    startIcon={recalculating ? <CircularProgress size={16} color="inherit" /> : <RefreshIcon />}
+                    sx={{
+                      background: '#4f46e5',
+                      color: '#ffffff',
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)',
+                      '&:hover': { background: '#4338ca' }
+                    }}
+                  >
+                    {recalculating ? 'Evaluating Engine...' : 'Recalculate Engine'}
+                  </Button>
+                </Stack>
+              </Box>
+
               {/* Executive Alerts */}
               <Alert
                 severity="success"

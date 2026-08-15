@@ -21,6 +21,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import GroupIcon from '@mui/icons-material/Group';
+import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 
 interface SidebarNavProps {
   activeTab: string;
@@ -46,6 +47,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
   onLogout
 }) => {
   const menuItems = [
+    { id: 'client_portal', label: 'Client Executive Portal', icon: <RemoveRedEyeIcon /> },
     { id: 'dashboard', label: 'Dashboard & Timeline', icon: <DashboardIcon /> },
     { id: 'team', label: 'Team & User Accounts', icon: <GroupIcon /> },
     { id: 'baseline', label: 'Baseline & Progress Engine', icon: <AccountTreeIcon /> },
@@ -124,7 +126,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
       {/* Navigation Links */}
       <Box sx={{ px: 2, flex: 1, overflowY: 'auto' }}>
         <Typography variant="caption" sx={{ px: 1.5, color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-          ENGINE MONITORING
+          VIEWS & NAVIGATION
         </Typography>
         <List sx={{ mt: 1 }}>
           {menuItems.map((item) => {
@@ -165,10 +167,10 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
           <Box sx={{ overflow: 'hidden' }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', truncate: true }}>
-              {currentUser ? currentUser.name : 'Super Admin'}
+              {currentUser ? currentUser.name : 'Client Executive'}
             </Typography>
             <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>
-              {currentUser ? currentUser.email : 'admin@upme.io'}
+              {currentUser ? currentUser.email : 'schooladmin@school.edu'}
             </Typography>
           </Box>
           <Chip
