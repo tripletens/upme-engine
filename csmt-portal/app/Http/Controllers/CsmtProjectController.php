@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\UpmeEngineService;
+use Database\Seeders\CsmtSchoolSeeder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,74 +13,70 @@ class CsmtProjectController
 
     /**
      * GET /csmt/projects
-     * Fetch CSMT Schools projects with live UPME engine health state.
+     * Fetch all CSMT Schools campus projects across Library, Sports, Clubs, Hostels, & CS Labs.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $engineState = $this->upmeEngine->getProjectState('proj-cs-lab-001');
+        $allProjects = CsmtSchoolSeeder::getSeededSchoolProjects();
+        $category = $request->query('category');
+
+        if ($category) {
+            $allProjects = array_values(array_filter($allProjects, fn($p) => $p['category'] === strtoupper($category)));
+        }
+
+        // Enrich first project with live UPME engine calculated state
+        $liveEngineState = $this->upmeEngine->getProjectState('proj-cs-lab-001');
+        if (isset($allProjects[0]) && isset($liveEngineState['data'])) {
+            $allProjects[0]['engine_live_state'] = $liveEngineState['data'];
+        }
 
         return response()->json([
             'status' => 'success',
-            'client_portal' => 'CSMT Schools Educational Infrastructure Portal',
-            'tenant_code' => env('UPME_ORGANIZATION_CODE', 'CSMT-SCHOOLS-DISTRICT'),
-            'school_projects' => [
-                [
-                    'id' => 101,
-                    'school_name' => 'CSMT Main Science Campus',
-                    'lab_name' => 'Computer Science & AI Lab 304',
-                    'lab_type' => 'CS_LAB',
-                    'principal_contact' => 'Dr. Robert Vance (Principal)',
-                    'upme_project_uuid' => 'proj-cs-lab-001',
-                    'engine_state' => $engineState['data'] ?? null,
-                ]
-            ]
+            'client_portal' => 'CSMT Schools Multi-Campus Infrastructure & Activities Portal',
+            'organization_code' => env('UPME_ORGANIZATION_CODE', 'CSMT-SCHOOLS-DISTRICT'),
+            'total_seeded_projects' => count($allProjects),
+            'categories_summary' => [
+                'ACADEMIC_LAB' => 1,
+                'LIBRARY' => 1,
+                'SPORTS' => 1,
+                'HOSTEL' => 1,
+                'CLUBS' => 1
+            ],
+            'projects' => $allProjects,
         ]);
     }
 
     /**
      * POST /csmt/projects/create
-     * Create a new CSMT school project baseline in UPME Engine.
+     * Create a new school campus project baseline in UPME Engine.
      */
     public function store(Request $request): JsonResponse
     {
         $request->validate([
             'school_name' => ['required', 'string'],
-            'lab_type' => ['required', 'string', 'in:CS_LAB,ROBOTICS_STUDIO,CHEMISTRY_LAB'],
-            'lab_name' => ['required', 'string'],
+            'project_name' => ['required', 'string'],
+            'category' => ['required', 'string', 'in:ACADEMIC_LAB,LIBRARY,SPORTS,HOSTEL,CLUBS'],
+            'location' => ['required', 'string'],
         ]);
 
-        $templateCode = match ($request->input('lab_type')) {
-            'ROBOTICS_STUDIO' => 'TPL-ROBOTICS-2026',
-            'CHEMISTRY_LAB' => 'TPL-CHEM-2026',
+        $templateCode = match ($request->input('category')) {
+            'LIBRARY' => 'TPL-LIB-2026',
+            'SPORTS' => 'TPL-SPORTS-2026',
+            'HOSTEL' => 'TPL-HOSTEL-2026',
+            'CLUBS' => 'TPL-CLUBS-2026',
             default => 'TPL-CS-LAB-2026',
         };
 
         $result = $this->upmeEngine->createSchoolProjectFromTemplate(
             $templateCode,
-            "{$request->input('school_name')} - {$request->input('lab_name')}",
-            "CSMT Schools Infrastructure Upgrade Project"
+            "{$request->input('school_name')} - {$request->input('project_name')}",
+            "CSMT Schools Infrastructure Project ({$request->input('category')})"
         );
 
         return response()->json([
             'status' => 'success',
-            'message' => 'School lab project created successfully in UPME Engine!',
+            'message' => 'New CSMT School project baseline instantiated in UPME Engine!',
             'result' => $result,
         ], 201);
-    }
-
-    /**
-     * POST /csmt/activities/{id}/progress
-     * Update task progress via UPME Engine SDK.
-     */
-    public function updateProgress(int $id, Request $request): JsonResponse
-    {
-        $progress = (float) $request->input('progress', 100);
-        $result = $this->upmeEngine->updateTaskProgress($id, $progress);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'CSMT task progress updated via UPME Engine SDK.',
-            'result' => $result,
-        ]);
     }
 }
