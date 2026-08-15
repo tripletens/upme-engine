@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\v1\TemplateAndReportController;
 use App\Http\Controllers\Api\v1\KycController;
 use App\Http\Controllers\Api\v1\BillingController;
 use App\Http\Controllers\Api\v1\AuthController;
+use App\Http\Controllers\Api\v1\MonitoringEngineController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,6 +38,14 @@ Route::prefix('v1')->middleware(['api', \App\Http\Middleware\TenantContextMiddle
     
     Route::get('/projects/{uuid}', [ProjectController::class, 'show']);
     Route::get('/projects/{uuid}/health', [ProjectController::class, 'health']);
+
+    // Advanced Monitoring Engine & Intelligence Endpoints
+    Route::get('/projects/{uuid}/health/explanation', [MonitoringEngineController::class, 'explainHealth']);
+    Route::get('/projects/{uuid}/alerts', [MonitoringEngineController::class, 'indexAlerts']);
+    Route::get('/projects/{uuid}/corrective-actions', [MonitoringEngineController::class, 'indexCorrectiveActions']);
+    Route::post('/projects/{uuid}/baselines', [MonitoringEngineController::class, 'createBaselineSnapshot']);
+    Route::post('/risks/{id}/materialize', [MonitoringEngineController::class, 'materializeRisk']);
+    Route::post('/monitoring/evaluate/{uuid}', [MonitoringEngineController::class, 'evaluateMonitoring']);
 
     // Templates & Instantiation
     Route::get('/templates', [TemplateAndReportController::class, 'indexTemplates']);
