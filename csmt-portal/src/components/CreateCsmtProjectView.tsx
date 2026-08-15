@@ -175,7 +175,7 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
         variant="outlined"
         startIcon={<ArrowBackIcon />}
         onClick={onBack}
-        sx={{ mb: 3, textTransform: 'none', fontWeight: 800, color: '#334155', borderColor: '#cbd5e1', borderRadius: '10px', fontSize: '0.85rem' }}
+        sx={{ mb: 3, textTransform: 'none', fontWeight: 800, color: '#334155', borderColor: '#cbd5e1', borderRadius: '10px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}
       >
         Back to Projects Portfolio
       </Button>
@@ -430,13 +430,14 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
                     textTransform: 'none',
                     fontWeight: 800,
                     fontSize: '0.78rem',
+                    whiteSpace: 'nowrap',
                     color: '#4f46e5',
                     borderColor: '#c7d2fe',
                     borderRadius: '10px',
                     '&:hover': { background: '#e0e7ff', borderColor: '#4f46e5' }
                   }}
                 >
-                  Add Another Milestone Stage
+                  Add Stage
                 </Button>
               </Box>
             )}
