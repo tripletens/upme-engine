@@ -23,18 +23,31 @@ import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import HotelIcon from '@mui/icons-material/Hotel';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import RefreshIcon from '@mui/icons-material/Refresh';
 import KeyIcon from '@mui/icons-material/Key';
 import EditIcon from '@mui/icons-material/Edit';
+import LockIcon from '@mui/icons-material/Lock';
+import LogoutIcon from '@mui/icons-material/Logout';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 import { UpdateCsmtTaskModal } from './components/UpdateCsmtTaskModal';
+import { CsmtLoginModal } from './components/CsmtLoginModal';
 
 export const App: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [modalOpen, setModalOpen] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [alertMsg, setAlertMsg] = useState('');
+
+  // Logged-in Staff User State
+  const [currentUser, setCurrentUser] = useState<any>({
+    name: 'Dr. Robert Vance',
+    email: 'dr.vance@csmt.edu.ng',
+    role: 'HOD Computer Science',
+    dept: 'CS & AI Labs'
+  });
+  const [authToken, setAuthToken] = useState<string>('csmt_staff_session_token_9x');
 
   const [csmtProjects, setCsmtProjects] = useState<any[]>([
     {
@@ -136,6 +149,10 @@ export const App: React.FC = () => {
   ]);
 
   const handleOpenTaskModal = (proj: any, task: any) => {
+    if (!currentUser) {
+      setLoginModalOpen(true);
+      return;
+    }
     setSelectedProject(proj);
     setSelectedTask(task);
     setModalOpen(true);
@@ -164,7 +181,7 @@ export const App: React.FC = () => {
     );
 
     setAlertMsg(
-      `🎉 Task "${selectedTask.name}" updated to ${newProgress}%! Proof asset "${fileName}" attached & synced with UPME Engine.`
+      `🎉 Task "${selectedTask.name}" updated to ${newProgress}% by ${currentUser.name} (${currentUser.role})! Proof asset "${fileName}" attached & synced with UPME Engine.`
     );
   };
 
@@ -176,7 +193,7 @@ export const App: React.FC = () => {
   return (
     <Box sx={{ minHeight: '100vh', background: '#f8fafc', py: 5 }}>
       <Container maxWidth="xl">
-        {/* Header Banner */}
+        {/* Top Header Navigation Bar */}
         <Paper
           elevation={0}
           sx={{
@@ -210,15 +227,45 @@ export const App: React.FC = () => {
               </Typography>
             </Box>
 
-            <Stack direction="column" spacing={1} alignItems="flex-end">
+            <Stack direction="column" spacing={1.5} alignItems="flex-end">
+              {currentUser ? (
+                <Paper elevation={0} sx={{ p: 1.5, px: 2, background: 'rgba(255,255,255,0.1)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <AccountCircleIcon sx={{ color: '#38bdf8' }} />
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.1 }}>
+                      {currentUser.name}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                      {currentUser.email} ({currentUser.role})
+                    </Typography>
+                  </Box>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="error"
+                    startIcon={<LogoutIcon sx={{ fontSize: 13 }} />}
+                    onClick={() => setCurrentUser(null)}
+                    sx={{ textTransform: 'none', ml: 1, color: '#fca5a5', borderColor: '#fca5a5', fontSize: '0.72rem' }}
+                  >
+                    Logout
+                  </Button>
+                </Paper>
+              ) : (
+                <Button
+                  variant="contained"
+                  startIcon={<LockIcon />}
+                  onClick={() => setLoginModalOpen(true)}
+                  sx={{ background: '#4f46e5', color: '#fff', fontWeight: 800, textTransform: 'none', px: 3, py: 1, borderRadius: '10px' }}
+                >
+                  School Staff Login
+                </Button>
+              )}
+
               <Chip
                 icon={<KeyIcon sx={{ fontSize: 14, color: '#a5f3fc !important' }} />}
                 label="TENANT: CSMT-SCHOOLS-DISTRICT"
                 sx={{ background: 'rgba(255,255,255,0.1)', color: '#a5f3fc', fontWeight: 700, border: '1px solid rgba(255,255,255,0.2)' }}
               />
-              <Typography variant="caption" sx={{ color: '#94a3b8' }}>
-                Engine Server: <code>http://127.0.0.1:8000/api/v1</code>
-              </Typography>
             </Stack>
           </Box>
         </Paper>
@@ -355,12 +402,23 @@ export const App: React.FC = () => {
           <UpdateCsmtTaskModal
             open={modalOpen}
             onClose={() => setModalOpen(false)}
+            taskId={selectedTask.id}
             taskName={selectedTask.name}
             currentProgress={selectedTask.progress}
             supervisorName={selectedProject.supervisor}
             onSaveSuccess={handleTaskSaved}
           />
         )}
+
+        {/* School Staff Login Modal */}
+        <CsmtLoginModal
+          open={loginModalOpen}
+          onClose={() => setLoginModalOpen(false)}
+          onLoginSuccess={(user, token) => {
+            setCurrentUser(user);
+            setAuthToken(token);
+          }}
+        />
       </Container>
     </Box>
   );
