@@ -97,7 +97,7 @@ export const CsmtOrgUsersModal: React.FC<CsmtOrgUsersModalProps> = ({ open, onCl
             </Box>
             <Chip
               icon={<VerifiedIcon sx={{ color: '#fff !important', fontSize: 14 }} />}
-              label="SYNCHRONIZED WITH MYSQL"
+              label="SYNCHRONIZED WITH ENGINE"
               size="small"
               sx={{ background: '#059669', color: '#fff', fontWeight: 800 }}
             />

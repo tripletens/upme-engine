@@ -111,7 +111,7 @@ export const CsmtSidebar: React.FC<CsmtSidebarProps> = ({
 
           <Chip
             icon={<VerifiedIcon sx={{ color: '#fff !important', fontSize: 13 }} />}
-            label="CONNECTED TO MYSQL"
+            label="CONNECTED TO LIVE DATABASE"
             size="small"
             sx={{ background: 'rgba(5, 150, 105, 0.2)', color: '#34d399', fontWeight: 800, fontSize: '0.62rem', width: '100%', mt: 1 }}
           />
@@ -276,7 +276,7 @@ export const CsmtSidebar: React.FC<CsmtSidebarProps> = ({
             onClick={onSyncDb}
             sx={{ color: '#64748b', textTransform: 'none', fontSize: '0.75rem', fontWeight: 600 }}
           >
-            Sync MySQL Database
+            Sync Engine Database
           </Button>
         </Stack>
       </Box>

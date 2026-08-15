@@ -80,7 +80,7 @@ export const App: React.FC = () => {
     setLoginModalOpen(false);
   };
 
-  // Fetch Live MySQL Engine Database Projects
+  // Fetch Live Database Engine Projects
   const fetchLiveEngineProjects = async () => {
     setLoading(true);
     try {
@@ -197,7 +197,7 @@ export const App: React.FC = () => {
     });
 
     setAlertMsg(
-      `🎉 Task "${selectedTask.name}" updated to ${newProgress}% by ${currentUser.name}! Saved directly to MySQL database.`
+      `🎉 Task "${selectedTask.name}" updated to ${newProgress}% by ${currentUser.name}! Saved directly to live database.`
     );
   };
 
@@ -277,7 +277,7 @@ export const App: React.FC = () => {
                 />
                 <Chip
                   icon={<VerifiedIcon sx={{ color: '#fff !important', fontSize: 14 }} />}
-                  label="LIVE MYSQL ENGINE"
+                  label="CONNECTED TO LIVE DATABASE"
                   sx={{ background: '#059669', color: '#fff', fontWeight: 800 }}
                 />
               </Box>
@@ -497,7 +497,7 @@ export const App: React.FC = () => {
           onClose={() => setCreateModalOpen(false)}
           onProjectCreated={(newProj) => {
             setCsmtProjects((prev) => [newProj, ...prev]);
-            setAlertMsg(`🎉 Real School Project "${newProj.projectName}" created in MySQL database!`);
+            setAlertMsg(`🎉 Real School Project "${newProj.projectName}" created in live database!`);
           }}
         />
 
