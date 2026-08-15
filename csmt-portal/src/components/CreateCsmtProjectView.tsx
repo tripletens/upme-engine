@@ -446,12 +446,20 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
           <Divider sx={{ my: 1 }} />
 
           {/* Action Buttons */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5, flexWrap: 'wrap', mt: 1 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column-reverse', sm: 'row' },
+              justifyContent: 'flex-end',
+              gap: 1.5,
+              mt: 1
+            }}
+          >
             <Button
               variant="outlined"
               onClick={onBack}
               sx={{
-                flex: { xs: 1, sm: 'initial' },
+                width: { xs: '100%', sm: 'auto' },
                 height: 42,
                 whiteSpace: 'nowrap',
                 fontSize: '0.85rem',
@@ -470,9 +478,9 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
               type="submit"
               variant="contained"
               disabled={loading}
-              startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <AddCircleOutlineIcon />}
+              startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <AddCircleOutlineIcon sx={{ fontSize: '18px !important' }} />}
               sx={{
-                flex: { xs: 1, sm: 'initial' },
+                width: { xs: '100%', sm: 'auto' },
                 height: 42,
                 whiteSpace: 'nowrap',
                 fontSize: '0.85rem',
@@ -480,7 +488,7 @@ export const CreateCsmtProjectView: React.FC<CreateCsmtProjectViewProps> = ({
                 color: '#ffffff',
                 textTransform: 'none',
                 fontWeight: 800,
-                px: 3,
+                px: 3.5,
                 borderRadius: '10px',
                 boxShadow: '0 4px 14px rgba(5, 150, 105, 0.3)',
                 '&:hover': { background: '#047857' }
