@@ -89,7 +89,7 @@ class TemplateAndReportController extends Controller
             <title>Executive Report - {$project->name}</title>
             <style>
                 body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #0f172a; padding: 40px; background: #fff; }
-                .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; }
+                .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
                 .title { font-size: 24px; font-weight: bold; color: #0f172a; }
                 .subtitle { color: #64748b; font-size: 14px; margin-top: 5px; }
                 .grid { display: flex; gap: 20px; margin-bottom: 30px; }
@@ -101,12 +101,20 @@ class TemplateAndReportController extends Controller
                 th { background: #f1f5f9; color: #334155; font-weight: bold; }
                 .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
                 .badge-track { background: #ecfdf5; color: #047857; }
+                .btn-print { background: #4f46e5; color: #ffffff; padding: 10px 18px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; text-decoration: none; }
+                @media print {
+                    .no-print { display: none !important; }
+                    body { padding: 0; }
+                }
             </style>
         </head>
         <body>
             <div class='header'>
-                <div class='title'>UPME Executive Project Health Report</div>
-                <div class='subtitle'>Project: {$project->name} ({$project->code})</div>
+                <div>
+                    <div class='title'>UPME Executive Project Health Report</div>
+                    <div class='subtitle'>Project: {$project->name} ({$project->code})</div>
+                </div>
+                <button class='btn-print no-print' onclick='window.print()'>🖨️ Save as PDF</button>
             </div>
 
             <div class='grid'>
@@ -153,6 +161,15 @@ class TemplateAndReportController extends Controller
         $html .= "
                 </tbody>
             </table>
+
+            <script>
+                // Auto trigger print dialog to save as PDF
+                window.onload = function() {
+                    setTimeout(function() {
+                        window.print();
+                    }, 500);
+                };
+            </script>
         </body>
         </html>";
 
